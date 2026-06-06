@@ -47,9 +47,11 @@ export type RequiredFieldCodec<TValue> =
   | SingleRequiredFieldCodec<TValue>
   | MultiRequiredFieldCodec<TValue>;
 
-export type FieldCodec<TValue = unknown> =
+  // biome-ignore lint/suspicious/noExplicitAny: 用于表达任意 FieldCodec
+export type FieldCodec<TValue = any> =
   | OptionalFieldCodec<TValue>
   | RequiredFieldCodec<TValue>;
+
 
 export type RecordCodec = Record<string, FieldCodec>;
 

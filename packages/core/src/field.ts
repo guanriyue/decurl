@@ -1,3 +1,4 @@
+import { shallowEqualArray } from './_internal/shallowEqualArray';
 import type {
   FieldCodec,
   InferFieldValue,
@@ -24,6 +25,30 @@ export const decodeField = <TCodec extends FieldCodec>(
 
   const decoded = codec.decode(raw) ?? codec.defaultValue;
   return decoded as never;
+};
+
+export const isFieldValueEqual = <TCodec extends FieldCodec>(
+  codec: TCodec,
+  value: InferFieldValue<TCodec>,
+  previousValue: InferFieldValue<TCodec>,
+): boolean => {
+  if (Object.is(value, previousValue)) {
+    return true;
+  }
+
+  if (value === undefined || previousValue === undefined) {
+    return false;
+  }
+
+  if (codec.eq !== undefined) {
+    return codec.eq(value as never, previousValue as never);
+  }
+
+  if (isMultiFieldCodec(codec)) {
+    return shallowEqualArray(value, previousValue);
+  }
+
+  return false;
 };
 
 const isMultiFieldCodec = <TValue>(

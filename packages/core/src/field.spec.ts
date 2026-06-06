@@ -4,7 +4,7 @@ import type {
   SingleOptionalFieldCodec,
   SingleRequiredFieldCodec,
 } from './codec';
-import { decodeField } from './field';
+import { decodeField, isFieldValueEqual } from './field';
 
 describe('decodeField', () => {
   it('decodes a single field by explicit key', () => {
@@ -100,5 +100,71 @@ describe('decodeField', () => {
 
     expect(value).toEqual([]);
     expect(decode).toHaveBeenCalledWith([]);
+  });
+});
+
+describe('isFieldValueEqual', () => {
+  it('returns true when values are Object.is equal', () => {
+    const codec = {
+      decode: (input) => Number(input),
+    } satisfies SingleOptionalFieldCodec<number>;
+
+    expect(isFieldValueEqual(codec, 1, 1)).toBe(true);
+    expect(isFieldValueEqual(codec, undefined, undefined)).toBe(true);
+  });
+
+  it('returns false when only one optional value is undefined', () => {
+    const codec = {
+      decode: (input) => Number(input),
+    } satisfies SingleOptionalFieldCodec<number>;
+
+    expect(isFieldValueEqual(codec, 1, undefined)).toBe(false);
+    expect(isFieldValueEqual(codec, undefined, 1)).toBe(false);
+  });
+
+  it('uses Object.is as the default single field equality', () => {
+    const codec = {
+      decode: (input) => ({ value: input }),
+    } satisfies SingleOptionalFieldCodec<{ value: string }>;
+
+    expect(
+      isFieldValueEqual(codec, { value: 'decurl' }, { value: 'decurl' }),
+    ).toBe(false);
+  });
+
+  it('uses custom field equality when provided', () => {
+    const codec = {
+      decode: (input) => ({ value: input }),
+      eq: (left, right) => left.value === right.value,
+    } satisfies SingleOptionalFieldCodec<{ value: string }>;
+
+    expect(
+      isFieldValueEqual(
+        codec,
+        { value: 'decurl' },
+        { value: 'decurl' },
+      ),
+    ).toBe(true);
+  });
+
+  it('uses order-sensitive shallow array equality for multi fields', () => {
+    const codec = {
+      mode: 'multi',
+      decode: (input) => input.map(Number),
+    } satisfies MultiOptionalFieldCodec<number[]>;
+
+    expect(isFieldValueEqual(codec, [1, 2], [1, 2])).toBe(true);
+    expect(isFieldValueEqual(codec, [1, 2], [2, 1])).toBe(false);
+  });
+
+  it('uses Object.is per item for multi field array equality', () => {
+    const item = { id: 1 };
+    const codec = {
+      mode: 'multi',
+      decode: () => [item],
+    } satisfies MultiOptionalFieldCodec<Array<{ id: number }>>;
+
+    expect(isFieldValueEqual(codec, [item], [item])).toBe(true);
+    expect(isFieldValueEqual(codec, [{ id: 1 }], [{ id: 1 }])).toBe(false);
   });
 });
