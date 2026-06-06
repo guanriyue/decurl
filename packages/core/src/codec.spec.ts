@@ -92,7 +92,7 @@ describe('FieldCodec types', () => {
 
   it('rejects mismatched mode and decode input shapes', () => {
     const singleDecode = {
-      // @ts-expect-error single field decode receives string | null.
+      // @ts-expect-error single field decode receives string.
       decode: (input: string[]) => input,
     } satisfies SingleOptionalFieldCodec<string[]>;
 
