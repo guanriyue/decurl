@@ -23,11 +23,25 @@ const isBoolish = (input: string): input is 'true' | 'false' => {
   return input === 'true' || input === 'false';
 };
 
+const isRealMonth = (month: number): boolean => {
+  return Number.isInteger(month) && month >= 1 && month <= 12;
+};
+
 const isMonth = (input: string): boolean => {
-  return /^\d{4}-(0[1-9]|1[0-2])$/.test(input);
+  const matched = input.match(/^(\d{4})-(\d{2})$/);
+
+  if (!matched) {
+    return false;
+  }
+
+  return isRealMonth(Number(matched[2]));
 };
 
 const isRealDate = (year: number, month: number, day: number): boolean => {
+  if (!isRealMonth(month)) {
+    return false;
+  }
+
   const date = new Date(Date.UTC(year, month - 1, day));
 
   return (
@@ -38,18 +52,7 @@ const isRealDate = (year: number, month: number, day: number): boolean => {
 };
 
 const isDate = (input: string): boolean => {
-  if (!/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(input)) {
-    return false;
-  }
-
-  const [year, month, day] = input.split('-').map(Number);
-  return isRealDate(year, month, day);
-};
-
-const isDatetime = (input: string): boolean => {
-  const matched = input.match(
-    /^(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])(?:(?:[T ]([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?)|(?:T([01]\d|2[0-3]):([0-5]\d):([0-5]\d)(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)))$/,
-  );
+  const matched = input.match(/^(\d{4})-(\d{2})-(\d{2})$/);
 
   if (!matched) {
     return false;
@@ -57,6 +60,73 @@ const isDatetime = (input: string): boolean => {
 
   const [, year, month, day] = matched;
   return isRealDate(Number(year), Number(month), Number(day));
+};
+
+const isRealTime = (
+  hour: number,
+  minute: number,
+  second: number | undefined,
+): boolean => {
+  return (
+    Number.isInteger(hour) &&
+    hour >= 0 &&
+    hour <= 23 &&
+    Number.isInteger(minute) &&
+    minute >= 0 &&
+    minute <= 59 &&
+    (second === undefined ||
+      (Number.isInteger(second) && second >= 0 && second <= 59))
+  );
+};
+
+const isTimezoneOffset = (input: string): boolean => {
+  if (input === 'Z') {
+    return true;
+  }
+
+  const matched = input.match(/^[+-](\d{2}):(\d{2})$/);
+
+  if (!matched) {
+    return false;
+  }
+
+  const [, hour, minute] = matched;
+  return isRealTime(Number(hour), Number(minute), undefined);
+};
+
+const isDatetime = (input: string): boolean => {
+  const matched = input.match(
+    /^(\d{4})-(\d{2})-(\d{2})([T ])(\d{2}):(\d{2})(?::(\d{2}))?(Z|[+-]\d{2}:\d{2})?$/,
+  );
+
+  if (!matched) {
+    return false;
+  }
+
+  const [, year, month, day, separator, hour, minute, second, timezone] =
+    matched;
+
+  if (!isRealDate(Number(year), Number(month), Number(day))) {
+    return false;
+  }
+
+  if (
+    !isRealTime(
+      Number(hour),
+      Number(minute),
+      second === undefined ? undefined : Number(second),
+    )
+  ) {
+    return false;
+  }
+
+  if (timezone === undefined) {
+    return true;
+  }
+
+  return (
+    separator === 'T' && second !== undefined && isTimezoneOffset(timezone)
+  );
 };
 
 const createShape = (regexp: RegExp): Decode<string, string> => {
