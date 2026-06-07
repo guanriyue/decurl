@@ -1,203 +1,108 @@
-# Decode Primitives
+# Decode Primitives 维护准则
 
-Decode 函数是 core 的基础可组合单元。
+Decode primitive 是 core 的基础可组合单元。
 
-当前统一协议：
+基础协议：
 
 ```ts
 type Decode<I, O> = (input: I) => O | null | undefined
 ```
 
-`null` 和 `undefined` 都表示 decode 失败、无效或空值。实现内部可以按需归一化为 `undefined`。
+`null | undefined` 表示 decode 失败、值缺失或值无效。
 
-这些函数是候选清单，后续可以扩展、重命名或删减。不要为了完整性膨胀工具函数；如果某个 helper 语义重复或不够清楚，应优先移除或延后。
+具体 API 行为见使用者文档：[../api/decode-primitives.md](../api/decode-primitives.md)。
 
-## 组合函数
+## 添加 primitive 的判断顺序
 
-### `pipe`
+新增 primitive 前，按以下顺序判断。
 
-连接多个 decode 函数，按顺序依次执行。
+1. 是否符合包定位  
+   它必须服务 URLSearchParams decode / encode 的核心流程，而不是通用工具库能力。
 
-任意一步返回 `null` 或 `undefined` 时，整个 pipeline 返回空值，并停止后续执行。
+2. 是否是单一步骤  
+   它不能隐藏 trim、shape、transform、fallback、default 等多个策略。
 
-示例：
+3. 是否提升阅读透明度  
+   放进 `pipe(...)` 后，维护者和 agent 应该能一眼理解它的作用。
 
-```ts
-pipe(trim, shape.integer, toNumber, elementOf(pageSizeOptions))
-```
+4. 是否符合大众认知  
+   默认行为应符合大多数开发者对该概念的理解。例如 `"123.xyz"` 不应被视为合法 number。
 
-### `array`，名称待定
+5. 是否是高频 URLSearchParams 场景  
+   优先支持过滤、分页、排序、日期范围等 search params 常见场景。
 
-预期输入是数组。
+6. 替代成本是否足够高  
+   如果开发者只是多写一个清楚的 lambda，就不急着放进 core。
 
-它连接多个函数，对数组中的每个值执行类似 `pipe` 的流程，并在输出中移除 `null | undefined` 值。
+## 应该提供
 
-语义重点：
+- 基础组合：`pipe`、`mapItems`。
+- 空值过滤和条件约束：`where`、`shape`。
+- URL 字符串解析高频步骤：`trim`、`toNumber`、`toBoolean`。
+- 常见静态值约束：`elementOf`。
+- 少量 URL filter 场景中的规范化步骤，前提是它仍然只是单一步骤。
 
-- 输入不是数组时返回 `undefined`。
-- 输出顺序保持输入顺序。
-- 过滤空值不应重排剩余值。
-- 命名待定，后续可以考虑更明确的名称。
+## 不应该提供
 
-## 条件过滤
+- 成品 parser，例如 `parseAsInteger`、`parseAsDateRange`。
+- 通用集合工具，例如 `uniqBy`、`groupBy`、`take`、`slice`。
+- 仅仅为了少写一个 lambda 而包装 lodash 或原生 prototype 方法的函数。
+- 复刻 lodash/fp 的 curry-like adapter 集合。
 
-### `where(predicate)`
+## 成品 parser 边界
 
-如果 `predicate(input)` 为真，返回原值；否则返回 `undefined`。
+不要把多个策略打包成 core primitive。
 
-### `shape(regexp)`
-
-如果字符串满足 `regexp` 约束，返回原值；否则返回 `undefined`。
-
-`shape` 系列只约束字符串形状，不做业务类型转换。
-
-### `startsWith(s)`
-
-如果字符串以 `s` 开头，返回原值；否则返回 `undefined`。
-
-## 内置 Shape
-
-### `shape.integer`
-
-要求值的结构是有效整数，并保证面向人的可读性。
-
-暂定约束：
-
-- 只接受十进制整数字符串。
-- 允许负号。
-- 不允许前导 `+`。
-- 不允许前导 0，除非值本身就是 `"0"`。
-- 不允许科学计数法。
-- 不允许千分位分隔符。
-- 不允许小数点。
-- 不允许空白字符，是否 trim 由开发者显式决定。
-
-候选正则：
+不推荐：
 
 ```ts
-/^-?(0|[1-9]\d*)$/
+parseAsInteger()
 ```
 
-这个结构约束参考 JSON number 的十进制可读性原则，但进一步限制为整数，并保持 URL 中的人类可读表达。
+推荐：
 
-### `shape.number`
+```ts
+pipe(trim, shape.integer, toNumber)
+```
 
-要求值的结构是数字。
+业务项目如果需要成品函数，可以在项目内封装：
 
-暂定约束：
+```ts
+const positiveInteger = pipe(trim, shape.integer, toNumber, min(1))
+```
 
-- 接受十进制数字。
-- 允许负号。
-- 不允许前导 `+`。
-- 不允许千分位分隔符。
-- 不允许科学计数法，除非后续明确需要。
-- 不允许 `NaN`、`Infinity`、`-Infinity`。
-- 不允许空白字符，是否 trim 由开发者显式决定。
-- 小数形式待实现时精确定义，例如是否允许 `1.` 或 `.1`。
+这种封装带有业务上下文，风险小于 core 提供通用成品 parser。
 
-实现前需要补充测试用例来固定边界。
+## 数组工具边界
 
-### `shape.boolish`
+`mapItems` 的职责是 item decode + 过滤 `null | undefined`。
 
-严格匹配字符串 `"true"` 或 `"false"`。
+数组级变换通常应使用普通函数接入 `pipe`：
 
-不接受大小写变体，也不接受 `"1"`、`"0"`、`"yes"`、`"no"`。
+```ts
+pipe(
+  mapItems(pipe(shape.integer, toNumber)),
+  (values) => uniqBy(values, identity),
+  (values) => values.toSorted(compareFn),
+)
+```
 
-### `shape.month`
+除非某个数组规范化步骤在 URLSearchParams 过滤场景中足够高频，并且仍然保持单一步骤，否则不要加入 core。
 
-匹配 `'YYYY-MM'` 结构。
+`unique` 属于可以考虑进入 core 的高频规范化步骤。典型场景是多选过滤，URL 中同一个 key 出现多次时，最终业务值通常期望去重。
 
-实现时应至少约束月份范围为 `01` 到 `12`。
+`unique` 的设计应保持单一步骤：
 
-是否进一步校验年份范围暂不固定。
+- `unique(values)`：直接对数组去重。
+- `unique(identity)`：返回一个 decode-compatible 函数，之后由 `pipe` 调用。
 
-### `shape.date`
+`unique` 不应扩展成完整集合工具族。带业务 identity 的去重可以支持，但 `groupBy`、`take`、`slice` 等仍不属于 core。
 
-匹配 `'YYYY-MM-DD'` 结构。
+`toSorted.date` 也可以按个案评估，因为日期范围是常见过滤参数；但 `decodeDateRange` 不应进入 core，因为它隐藏了 shape、转换、长度校验和排序等多个策略。
 
-实现时应校验实际日历日期，而不是只校验正则形状。例如 `2024-02-29` 有效，`2023-02-29` 无效。
+## Shape Predicate 暴露边界
 
-时区不参与 date 语义。
+`isInteger`、`isNumber`、`isBoolish`、`isMonth`、`isDate` 这类函数可以作为内部实现细节存在，但暂不作为对外 API 暴露。
 
-### `shape.datetime`
+使用者应优先通过 `shape.integer`、`shape.number`、`shape.boolish`、`shape.month`、`shape.date` 组合 pipeline。
 
-待定。
-
-UTC 和 ISO datetime 的格式边界不同，先不要急于实现。后续可以参考 RFC 3339 / ISO 8601 的具体子集，明确是否接受：
-
-- 必须带时区还是允许本地时间。
-- 是否只接受 `Z`。
-- 是否允许 offset，例如 `+08:00`。
-- 是否允许毫秒或任意小数秒。
-
-## 字符串处理
-
-### `trim`
-
-清理字符串前后空白。
-
-### `trim.left`
-
-只清理字符串左侧空白。
-
-### `trim.right`
-
-只清理字符串右侧空白。
-
-## 数值和长度约束
-
-### `min(n)`
-
-满足最小值约束时返回原值，否则返回 `undefined`。
-
-主要用于 number 值。是否支持 string 比较不作为默认语义。
-
-### `max(n)`
-
-满足最大值约束时返回原值，否则返回 `undefined`。
-
-主要用于 number 值。是否支持 string 比较不作为默认语义。
-
-### `length(n | [min, max])`
-
-要求输入具有 `length` 属性。
-
-传入 number 时，`length` 必须等于该值。
-
-传入 `[min, max]` 时，`length` 必须落在闭区间内。
-
-### `length.min(n)`，名称待定
-
-要求 `length >= n`。
-
-也可以考虑命名为 `minLength`。
-
-### `length.max(n)`，名称待定
-
-要求 `length <= n`。
-
-也可以考虑命名为 `maxLength`。
-
-## 类型转换
-
-### `toNumber`
-
-将字符串转换为 number。
-
-推荐在 `shape.integer` 或 `shape.number` 之后使用。`toNumber` 不应承担宽松解析责任。
-
-### `toBoolean`
-
-将 `"true"` 转换为 `true`，将 `"false"` 转换为 `false`。
-
-推荐在 `shape.boolish` 之后使用。
-
-### `toEnum` / `elementOf`
-
-名称待定。
-
-约束输入必须属于一组静态值。候选输入可以是数组、readonly tuple、Set 或原生 TypeScript enum definition。
-
-当前更偏向 `elementOf`，因为它表达的是“值属于集合”，不会暗示直接处理 enum 的所有边界。
-
-对于数字 enum，推荐开发者先通过 `shape.integer` 和 `toNumber` 得到业务数字，再用 `elementOf(enumDefinition)` 约束值。这可以避开 TypeScript 数字 enum 反向映射带来的意外匹配。
