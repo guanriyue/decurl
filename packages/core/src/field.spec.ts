@@ -4,7 +4,7 @@ import type {
   SingleOptionalFieldCodec,
   SingleRequiredFieldCodec,
 } from './codec';
-import { decodeField, isFieldValueEqual } from './field';
+import { decodeField, encodeField, isFieldValueEqual } from './field';
 
 describe('decodeField', () => {
   it('decodes a single field by explicit key', () => {
@@ -100,6 +100,83 @@ describe('decodeField', () => {
 
     expect(value).toEqual([]);
     expect(decode).toHaveBeenCalledWith([]);
+  });
+});
+
+describe('encodeField', () => {
+  it('returns undefined for nullish values without calling custom encode', () => {
+    const encode = vi.fn((value: number) => String(value));
+    const codec = {
+      decode: (input) => Number(input),
+      encode,
+    } satisfies SingleOptionalFieldCodec<number>;
+
+    expect(encodeField(codec, undefined)).toBeUndefined();
+    expect(encodeField(codec, null)).toBeUndefined();
+    expect(encode).not.toHaveBeenCalled();
+  });
+
+  it('stringifies single field values by default', () => {
+    const codec = {
+      decode: (input) => Number(input),
+    } satisfies SingleOptionalFieldCodec<number>;
+
+    const value = encodeField(codec, 12);
+
+    expect(value).toBe('12');
+    expectTypeOf(value).toEqualTypeOf<string | undefined>();
+  });
+
+  it('uses custom single field encode when provided', () => {
+    const codec = {
+      decode: (input) => Number(input),
+      encode: (value) => `page-${value}`,
+    } satisfies SingleOptionalFieldCodec<number>;
+
+    expect(encodeField(codec, 2)).toBe('page-2');
+  });
+
+  it('normalizes custom encode nullish result to undefined', () => {
+    const codec = {
+      decode: (input) => Number(input),
+      encode: () => null,
+    } satisfies SingleOptionalFieldCodec<number>;
+
+    expect(encodeField(codec, 2)).toBeUndefined();
+  });
+
+  it('stringifies multi field array values by default', () => {
+    const codec = {
+      mode: 'multi',
+      decode: (input) => input.map(Number),
+    } satisfies MultiOptionalFieldCodec<number[]>;
+
+    const value = encodeField(codec, [1, 2]);
+
+    expect(value).toEqual(['1', '2']);
+    expectTypeOf(value).toEqualTypeOf<string[] | undefined>();
+  });
+
+  it('filters nullish items when default-encoding multi field values', () => {
+    const codec = {
+      mode: 'multi',
+      decode: (input) => input,
+    } satisfies MultiOptionalFieldCodec<string[]>;
+
+    expect(encodeField(codec, ['a', null, undefined, 'b'] as never)).toEqual([
+      'a',
+      'b',
+    ]);
+  });
+
+  it('uses custom multi field encode when provided', () => {
+    const codec = {
+      mode: 'multi',
+      decode: (input) => input.map(Number),
+      encode: (value) => value.map((item) => `id-${item}`),
+    } satisfies MultiOptionalFieldCodec<number[]>;
+
+    expect(encodeField(codec, [1, 2])).toEqual(['id-1', 'id-2']);
   });
 });
 
