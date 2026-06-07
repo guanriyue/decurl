@@ -1,10 +1,10 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest';
+import { decodeField, encodeField, isFieldValueEqual } from './field';
 import type {
   MultiOptionalFieldCodec,
   SingleOptionalFieldCodec,
   SingleRequiredFieldCodec,
-} from './codec';
-import { decodeField, encodeField, isFieldValueEqual } from './field';
+} from './types';
 
 describe('decodeField', () => {
   it('decodes a single field by explicit key', () => {
@@ -216,11 +216,7 @@ describe('isFieldValueEqual', () => {
     } satisfies SingleOptionalFieldCodec<{ value: string }>;
 
     expect(
-      isFieldValueEqual(
-        codec,
-        { value: 'decurl' },
-        { value: 'decurl' },
-      ),
+      isFieldValueEqual(codec, { value: 'decurl' }, { value: 'decurl' }),
     ).toBe(true);
   });
 

@@ -1,6 +1,6 @@
 import { isDef } from '../_internal/isDef';
 import { isNil } from '../_internal/isNil';
-import type { Decode } from '../codec';
+import type { Decode } from './types';
 
 export function pipe<A, B>(ab: Decode<A, B>): Decode<A, B>;
 

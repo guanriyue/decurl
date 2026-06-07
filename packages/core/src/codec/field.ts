@@ -1,12 +1,12 @@
-import { isDef } from './_internal/isDef';
-import { isNil } from './_internal/isNil';
-import { shallowEqualArray } from './_internal/shallowEqualArray';
+import { isDef } from '../_internal/isDef';
+import { isNil } from '../_internal/isNil';
+import { shallowEqualArray } from '../_internal/shallowEqualArray';
 import type {
   FieldCodec,
   InferFieldValue,
   MultiOptionalFieldCodec,
   MultiRequiredFieldCodec,
-} from './codec';
+} from './types';
 
 export type EncodedFieldValue<TCodec extends FieldCodec> =
   TCodec extends { mode: 'multi' } ? string[] | undefined : string | undefined;

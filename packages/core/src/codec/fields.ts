@@ -1,7 +1,7 @@
-import { isDef } from './_internal/isDef';
-import { isNil } from './_internal/isNil';
-import type { InferFieldValues, RecordCodec } from './codec';
+import { isDef } from '../_internal/isDef';
+import { isNil } from '../_internal/isNil';
 import { decodeField, encodeField, isFieldValueEqual } from './field';
+import type { InferFieldValues, RecordCodec } from './types';
 
 export type EncodeFieldsOptions = {
   base?: URLSearchParams | string;

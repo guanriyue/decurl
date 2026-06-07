@@ -1,5 +1,5 @@
-import type { Decode } from '../codec';
 import { where } from './predicate';
+import type { Decode } from './types';
 
 type Shape = {
   (regexp: RegExp): Decode<string, string>;

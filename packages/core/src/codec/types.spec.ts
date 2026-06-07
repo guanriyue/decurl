@@ -8,7 +8,7 @@ import type {
   MultiRequiredFieldCodec,
   SingleOptionalFieldCodec,
   SingleRequiredFieldCodec,
-} from './codec';
+} from './types';
 
 describe('FieldCodec types', () => {
   it('infers optional single field values as value or undefined', () => {

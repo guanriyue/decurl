@@ -1,11 +1,11 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
+import { decodeFields, encodeFields, isFieldValuesEqual } from './fields';
 import type {
   FieldCodec,
   InferFieldValues,
   MultiOptionalFieldCodec,
   SingleOptionalFieldCodec,
-} from './codec';
-import { decodeFields, encodeFields, isFieldValuesEqual } from './fields';
+} from './types';
 
 describe('decodeFields', () => {
   it('decodes field values from a record codec', () => {
@@ -110,10 +110,10 @@ describe('encodeFields', () => {
       },
     } satisfies Record<string, FieldCodec>;
 
-    const searchParams = encodeFields(
-      definition,
-      { page: 2, sort: 'desc' } as never,
-    );
+    const searchParams = encodeFields(definition, {
+      page: 2,
+      sort: 'desc',
+    } as never);
 
     expect(searchParams.toString()).toBe('page=2');
   });
@@ -201,10 +201,14 @@ describe('encodeFields', () => {
     ).toBe('');
 
     expect(
-      encodeFields(definition, { page: 1 }, {
-        base: 'page=2',
-        preserveDefault: true,
-      }).toString(),
+      encodeFields(
+        definition,
+        { page: 1 },
+        {
+          base: 'page=2',
+          preserveDefault: true,
+        },
+      ).toString(),
     ).toBe('page=1');
   });
 

@@ -1,4 +1,4 @@
-import type { Decode } from '../codec';
+import type { Decode } from './types';
 
 type Identity<TValue, TIdentity> = (value: TValue) => TIdentity;
 

@@ -1,4 +1,4 @@
-import type { Decode } from '../codec';
+import type { Decode } from './types';
 
 export const toNumber: Decode<unknown, number> = (input) => {
   const value = Number(input);

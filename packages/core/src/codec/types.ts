@@ -1,8 +1,5 @@
-import type { AnyFunction, Prettier } from './_internal/types';
-
-export type Decode<TInput, TOutput> = (
-  input: TInput,
-) => TOutput | null | undefined;
+import type { AnyFunction, Prettier } from '../_internal/types';
+import type { Decode } from '../decode/types';
 
 export type FieldMode = 'single' | 'multi';
 
@@ -47,11 +44,10 @@ export type RequiredFieldCodec<TValue> =
   | SingleRequiredFieldCodec<TValue>
   | MultiRequiredFieldCodec<TValue>;
 
-  // biome-ignore lint/suspicious/noExplicitAny: 用于表达任意 FieldCodec
+// biome-ignore lint/suspicious/noExplicitAny: 用于表达任意 FieldCodec
 export type FieldCodec<TValue = any> =
   | OptionalFieldCodec<TValue>
   | RequiredFieldCodec<TValue>;
-
 
 export type RecordCodec = Record<string, FieldCodec>;
 
