@@ -13,7 +13,6 @@ export {
 } from './fields';
 export {
   type FieldCodec,
-  type FieldCodecBase,
   type FieldCodecOf,
   type FieldMode,
   type FieldsCodec,
@@ -30,3 +29,7 @@ export {
   type SingleOptionalFieldCodec,
   type SingleRequiredFieldCodec,
 } from './types';
+export {
+  createURLSearchParamsCodec,
+  type URLSearchParamsCodec,
+} from './urlSearchParams';
