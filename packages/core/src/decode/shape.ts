@@ -1,3 +1,4 @@
+import { isUndefined } from '../_internal/isUndefined';
 import { where } from './predicate';
 import type { Decode } from './types';
 
@@ -74,7 +75,7 @@ const isRealTime = (
     Number.isInteger(minute) &&
     minute >= 0 &&
     minute <= 59 &&
-    (second === undefined ||
+    (isUndefined(second) ||
       (Number.isInteger(second) && second >= 0 && second <= 59))
   );
 };
@@ -114,18 +115,18 @@ const isDatetime = (input: string): boolean => {
     !isRealTime(
       Number(hour),
       Number(minute),
-      second === undefined ? undefined : Number(second),
+      isUndefined(second) ? undefined : Number(second),
     )
   ) {
     return false;
   }
 
-  if (timezone === undefined) {
+  if (isUndefined(timezone)) {
     return true;
   }
 
   return (
-    separator === 'T' && second !== undefined && isTimezoneOffset(timezone)
+    separator === 'T' && !isUndefined(second) && isTimezoneOffset(timezone)
   );
 };
 

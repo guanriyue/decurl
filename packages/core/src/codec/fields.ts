@@ -1,5 +1,6 @@
 import { isDef } from '../_internal/isDef';
 import { isNil } from '../_internal/isNil';
+import { isUndefined } from '../_internal/isUndefined';
 import { decodeField, encodeField, isFieldValueEqual } from './field';
 import type { InferFieldValues, RecordCodec } from './types';
 
@@ -58,7 +59,7 @@ export const encodeFields = <TDefinition extends RecordCodec>(
 
     const encoded = encodeField(codec, value);
 
-    if (encoded === undefined) {
+    if (isUndefined(encoded)) {
       searchParams.delete(searchKey);
       continue;
     }

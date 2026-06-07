@@ -1,5 +1,6 @@
 import { isDef } from '../_internal/isDef';
 import { isNil } from '../_internal/isNil';
+import { isUndefined } from '../_internal/isUndefined';
 import { shallowEqualArray } from '../_internal/shallowEqualArray';
 import type {
   FieldCodec,
@@ -8,8 +9,11 @@ import type {
   MultiRequiredFieldCodec,
 } from './types';
 
-export type EncodedFieldValue<TCodec extends FieldCodec> =
-  TCodec extends { mode: 'multi' } ? string[] | undefined : string | undefined;
+export type EncodedFieldValue<TCodec extends FieldCodec> = TCodec extends {
+  mode: 'multi';
+}
+  ? string[] | undefined
+  : string | undefined;
 
 export const decodeField = <TCodec extends FieldCodec>(
   codec: TCodec,
@@ -40,7 +44,7 @@ export const encodeField = <TCodec extends FieldCodec>(
     return undefined as EncodedFieldValue<TCodec>;
   }
 
-  if (codec.encode !== undefined) {
+  if (!isUndefined(codec.encode)) {
     return (codec.encode(value) ?? undefined) as never;
   }
 
@@ -66,11 +70,11 @@ export const isFieldValueEqual = <TCodec extends FieldCodec>(
     return true;
   }
 
-  if (value === undefined || previousValue === undefined) {
+  if (isUndefined(value) || isUndefined(previousValue)) {
     return false;
   }
 
-  if (codec.eq !== undefined) {
+  if (!isUndefined(codec.eq)) {
     return codec.eq(value as never, previousValue as never);
   }
 
