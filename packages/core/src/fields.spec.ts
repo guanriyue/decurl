@@ -2,9 +2,10 @@ import { describe, expect, expectTypeOf, it } from 'vitest';
 import type {
   FieldCodec,
   InferFieldValues,
+  MultiOptionalFieldCodec,
   SingleOptionalFieldCodec,
 } from './codec';
-import { decodeFields, isFieldValuesEqual } from './fields';
+import { decodeFields, encodeFields, isFieldValuesEqual } from './fields';
 
 describe('decodeFields', () => {
   it('decodes field values from a record codec', () => {
@@ -59,6 +60,132 @@ describe('decodeFields', () => {
     expect(decodeFields(definition, new URLSearchParams('q=decurl'))).toEqual({
       keyword: 'decurl',
     });
+  });
+});
+
+describe('encodeFields', () => {
+  it('encodes patch values into URLSearchParams', () => {
+    const definition = {
+      keyword: {
+        decode: (input) => input,
+      },
+      page: {
+        decode: (input) => Number(input),
+        defaultValue: 1,
+      },
+    } satisfies Record<string, FieldCodec>;
+
+    const searchParams = encodeFields(definition, {
+      keyword: 'decurl',
+      page: 2,
+    });
+
+    expect(searchParams.toString()).toBe('keyword=decurl&page=2');
+  });
+
+  it('starts from base and keeps untouched values', () => {
+    const definition = {
+      keyword: {
+        decode: (input) => input,
+      },
+      page: {
+        decode: (input) => Number(input),
+        defaultValue: 1,
+      },
+    } satisfies Record<string, FieldCodec>;
+
+    const searchParams = encodeFields(
+      definition,
+      { keyword: 'decurl' },
+      { base: 'page=2&sort=desc' },
+    );
+
+    expect(searchParams.toString()).toBe('page=2&sort=desc&keyword=decurl');
+  });
+
+  it('ignores keys outside the definition', () => {
+    const definition = {
+      page: {
+        decode: (input) => Number(input),
+      },
+    } satisfies Record<string, FieldCodec>;
+
+    const searchParams = encodeFields(
+      definition,
+      { page: 2, sort: 'desc' } as never,
+    );
+
+    expect(searchParams.toString()).toBe('page=2');
+  });
+
+  it('deletes a key when the patch value is nullish', () => {
+    const definition = {
+      keyword: {
+        decode: (input) => input,
+      },
+      page: {
+        decode: (input) => Number(input),
+      },
+    } satisfies Record<string, FieldCodec>;
+
+    const searchParams = encodeFields(
+      definition,
+      { keyword: null },
+      { base: 'keyword=decurl&page=2' },
+    );
+
+    expect(searchParams.toString()).toBe('page=2');
+  });
+
+  it('deletes a key when encodeField returns undefined', () => {
+    const definition = {
+      page: {
+        decode: (input) => Number(input),
+        encode: () => undefined,
+      },
+    } satisfies Record<string, FieldCodec>;
+
+    const searchParams = encodeFields(
+      definition,
+      { page: 2 },
+      { base: 'page=1&keyword=decurl' },
+    );
+
+    expect(searchParams.toString()).toBe('keyword=decurl');
+  });
+
+  it('appends multi values in order after deleting previous values', () => {
+    const definition = {
+      tags: {
+        mode: 'multi',
+        decode: (input) => input,
+      } satisfies MultiOptionalFieldCodec<string[]>,
+    };
+
+    const searchParams = encodeFields(
+      definition,
+      { tags: ['a', 'b'] },
+      { base: 'tags=old&tags=older&page=1' },
+    );
+
+    expect(searchParams.toString()).toBe('page=1&tags=a&tags=b');
+  });
+
+  it('uses field name as the search params key', () => {
+    const definition = {
+      keyword: {
+        name: 'q',
+        decode: (input) => input,
+      },
+    } satisfies Record<string, FieldCodec>;
+
+    const searchParams = encodeFields(
+      definition,
+      { keyword: 'decurl' },
+      { base: 'keyword=ignored&q=old' },
+    );
+
+    expect(searchParams.toString()).toBe('keyword=ignored&q=decurl');
   });
 });
 
