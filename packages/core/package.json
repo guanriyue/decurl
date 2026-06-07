@@ -14,7 +14,7 @@
     }
   },
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
     "lint": "biome check ."
@@ -30,6 +30,6 @@
         "import": "./dist/codec/index.js"
       }
     },
-    "files": ["dist"]
+    "files": ["dist", "src"]
   }
 }
