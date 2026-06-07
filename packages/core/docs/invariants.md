@@ -22,9 +22,11 @@ Field codec 可以定义 `defaultValue`。
 
 如果 field 有 `defaultValue`，从类型推导角度看，它的 decode 结果应被视为一定存在。推导出的 decoded field 类型不应包含 `null` 或 `undefined`。
 
-默认情况下，序列化采用 clear-on-default 行为。如果序列化值和 field 默认值相等，则从 URLSearchParams 中移除该 key。
+默认情况下，如果序列化值和 field 默认值相等，则从 URLSearchParams 中移除该 key。
 
-`clearOnDefault` 名称与 nuqs 保持一致，但暂不加入 FieldCodec。它涉及 field、schema、encode options 等多层优先级覆盖问题，当前阶段先不固定配置位置。
+如果调用方在 schema/write 层传入 `preserveDefault: true`，则与默认值相等的值也会被写入 URLSearchParams。
+
+`preserveDefault` 不属于 FieldCodec。它是 schema/write 层选项，因为它决定的是最终 URLSearchParams 是否保留 default value，而不是单个 field 如何编码业务值。
 
 可观察到的默认行为是：与默认值等价的值会从 URL 中省略。
 

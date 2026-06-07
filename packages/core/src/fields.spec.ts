@@ -187,6 +187,58 @@ describe('encodeFields', () => {
 
     expect(searchParams.toString()).toBe('keyword=ignored&q=decurl');
   });
+
+  it('deletes default values unless preserveDefault is true', () => {
+    const definition = {
+      page: {
+        decode: (input) => Number(input),
+        defaultValue: 1,
+      },
+    } satisfies Record<string, FieldCodec>;
+
+    expect(
+      encodeFields(definition, { page: 1 }, { base: 'page=2' }).toString(),
+    ).toBe('');
+
+    expect(
+      encodeFields(definition, { page: 1 }, {
+        base: 'page=2',
+        preserveDefault: true,
+      }).toString(),
+    ).toBe('page=1');
+  });
+
+  it('does not delete default values that are omitted from the patch', () => {
+    const definition = {
+      page: {
+        decode: (input) => Number(input),
+        defaultValue: 1,
+      },
+    } satisfies Record<string, FieldCodec>;
+
+    const searchParams = encodeFields(definition, {}, { base: 'page=1' });
+
+    expect(searchParams.toString()).toBe('page=1');
+  });
+
+  it('uses field equality when checking default values', () => {
+    const definition = {
+      filter: {
+        decode: (input) => ({ value: input }),
+        encode: (value) => value.value,
+        defaultValue: { value: 'all' },
+        eq: (left, right) => left.value === right.value,
+      },
+    } satisfies Record<string, FieldCodec>;
+
+    const searchParams = encodeFields(
+      definition,
+      { filter: { value: 'all' } },
+      { base: 'filter=active' },
+    );
+
+    expect(searchParams.toString()).toBe('');
+  });
 });
 
 describe('isFieldValuesEqual', () => {

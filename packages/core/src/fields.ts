@@ -1,8 +1,11 @@
+import { isDef } from './_internal/isDef';
+import { isNil } from './_internal/isNil';
 import type { InferFieldValues, RecordCodec } from './codec';
 import { decodeField, encodeField, isFieldValueEqual } from './field';
 
 export type EncodeFieldsOptions = {
   base?: URLSearchParams | string;
+  preserveDefault?: boolean;
 };
 
 export type EncodeFieldsValues<TDefinition extends RecordCodec> = Partial<{
@@ -37,10 +40,23 @@ export const encodeFields = <TDefinition extends RecordCodec>(
     }
 
     const searchKey = codec.name ?? key;
-    const encoded = encodeField(
-      codec,
-      values[key as keyof EncodeFieldsValues<TDefinition>] as never,
-    );
+    const value = values[key as keyof EncodeFieldsValues<TDefinition>];
+
+    if (isNil(value)) {
+      searchParams.delete(searchKey);
+      continue;
+    }
+
+    if (
+      options.preserveDefault !== true &&
+      isDef(codec.defaultValue) &&
+      isFieldValueEqual(codec, value, codec.defaultValue)
+    ) {
+      searchParams.delete(searchKey);
+      continue;
+    }
+
+    const encoded = encodeField(codec, value);
 
     if (encoded === undefined) {
       searchParams.delete(searchKey);

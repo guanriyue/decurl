@@ -14,7 +14,8 @@ type URLSearchParamsCodec<TValue> = {
 }
 
 type URLSearchParamsEncodeOptions = {
-  base?: URLSearchParams
+  base?: URLSearchParams | string
+  preserveDefault?: boolean
 }
 
 type URLSearchParamsCodecDefinition = Record<string, FieldCodec>
@@ -44,14 +45,15 @@ Encode 默认采用 patch 机制。
 - 未出现在 `value` 中的 field 不会被修改。
 - 出现在 `value` 中但不存在于 schema 的 field 会被忽略。
 - 如果 field value 是 `null` 或 `undefined`，移除对应 URL key。
-- 如果 clear-on-default 行为生效，且 field value 等于 `defaultValue`，移除对应 URL key。
+- 默认情况下，如果 field value 等于 `defaultValue`，移除对应 URL key。
+- 如果传入 `preserveDefault: true`，与 `defaultValue` 相等的 field value 也会被写入 URLSearchParams。
 - Multi field 会为同一个 key 写入多个有序 value。
 
 这意味着当 schema 是 `{ foo, page, pageSize }` 时，调用 `encode({ foo, bar }, { base })` 会序列化 `foo`，忽略 `bar`，并保留 `base` 中原有的 `page` 和 `pageSize`。
 
-未来新增 options 时，应扩展 `URLSearchParamsEncodeOptions`，不要改变 `base` 的含义。
+新增 options 时，应扩展 `URLSearchParamsEncodeOptions`，不要改变 `base` 的含义。
 
-`clearOnDefault` 是后续设计项。名称与 nuqs 保持一致，但当前阶段不固定在 FieldCodec 或 schema options 上。
+`preserveDefault` 是 schema/write 层选项，不属于 FieldCodec。FieldCodec 只描述单个 field 如何 decode、encode 和比较值。
 
 ## Full Update
 
