@@ -1,12 +1,35 @@
 {
   "name": "@decurl/core",
-  "private": true,
   "version": "0.0.0",
-  "sideEffects": false,
   "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./decode": {
+      "types": "./src/decode/index.ts",
+      "import": "./src/decode/index.ts"
+    },
+    "./codec": {
+      "types": "./src/codec/index.ts",
+      "import": "./src/codec/index.ts"
+    }
+  },
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "build": "vite build",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "biome check ."
+  },
+  "publishConfig": {
+    "exports": {
+      "./decode": {
+        "types": "./dist/decode/index.d.ts",
+        "import": "./dist/decode/index.js"
+      },
+      "./codec": {
+        "types": "./dist/codec/index.d.ts",
+        "import": "./dist/codec/index.js"
+      }
+    },
+    "files": ["dist"]
   }
 }
