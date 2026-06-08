@@ -382,6 +382,21 @@ resolved options 应是：
 
 真实业务中，search params 更新通常使用 `replace`，以避免 history 中出现大量无效记录。
 
+## Flush Schedule
+
+Store 支持两种 flush schedule 模式：
+
+- `throttle`
+- `debounce`
+
+P0 默认采用 `throttle`。
+
+Throttle 模式下，第一次 `setValues` 会启动固定 flush 窗口。窗口内后续 `setValues` 会继续更新 optimistic state 和 pending entries，但不会推迟本次 flush。
+
+Debounce 模式下，每次 `setValues` 都会重新计时。持续更新会持续推迟 flush。
+
+默认使用 throttle 的原因是：如果 debounce delay 设置较长，entry 可能长时间等待持久化，直到 pathname 变化后被丢弃。Throttle 能让 URL 在持续更新中保持相对平滑的同步。
+
 ## Navigate Failure
 
 如果 runtime navigate 失败、被 blocker 阻止，或没有收到对应 location confirmation，P0 不暴露错误处理 API。

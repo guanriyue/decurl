@@ -53,7 +53,9 @@ P0 支持透传 `preventScrollReset`。
 
 `SearchLocation.search` 在 decurl 内部统一不带 `?` 前缀。
 
-Runtime 从 React Router location 读取 search 时，应先去除 `?`。
+Runtime 可以返回 React Router 原始 search。
+
+Store 接收 runtime location 或 location change 时，会统一去除 `?`。
 
 Runtime 调用底层 navigate 时，应转换为 `NavigateSearch`，即 `?searchString` 形态。
 
@@ -117,7 +119,7 @@ const navigate = useNavigate()
 store.configureRuntime({
   getLocation: () => ({
     pathname: location.pathname,
-    search: stripSearchPrefix(location.search),
+    search: location.search,
   }),
   navigate: (nextLocation, options) => {
     navigate(toNavigateSearch(nextLocation), options)
@@ -189,18 +191,13 @@ Provider 边界和使用场景见 [Provider 边界](provider.md)。
 基于 React Router router instance 的 runtime 可以概念化为：
 
 ```ts
-const toSearchLocation = (location) => ({
-  pathname: location.pathname,
-  search: stripSearchPrefix(location.search),
-})
-
 const runtime = {
-  getLocation: () => toSearchLocation(router.state.location),
+  getLocation: () => router.state.location,
   navigate: (location, options) =>
     router.navigate(toNavigateSearch(location), options),
   subscribe: (listener) =>
     router.subscribe((state) => {
-      listener(toSearchLocation(state.location))
+      listener(state.location)
     }),
 }
 ```

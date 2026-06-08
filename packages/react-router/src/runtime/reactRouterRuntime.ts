@@ -1,13 +1,10 @@
-import {
-  type SearchLocationLike,
-  toNavigateSearch,
-  toSearchLocation,
-} from './search';
 import type {
   NavigateSearch,
+  SearchLocationLike,
   SearchNavigateOptions,
   SearchRuntime,
 } from './types';
+import { toNavigateSearch, toSearchLocation } from './search';
 
 export type ReactRouterNavigate = (
   to: NavigateSearch,

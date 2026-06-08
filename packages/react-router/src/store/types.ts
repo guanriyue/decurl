@@ -5,6 +5,7 @@ import type {
 } from '@decurl/core/codec';
 import type {
   SearchLocation,
+  SearchLocationLike,
   SearchNavigateOptions,
   SearchRuntime,
 } from '../runtime/types';
@@ -108,7 +109,7 @@ export type SearchStore = {
    *
    * Store 会自行判断这是 decurl flush confirmation，还是 external location change。
    */
-  locationChanged: (location: SearchLocation) => void;
+  locationChanged: (location: SearchLocationLike) => void;
 
   /**
    * 添加 pending patch entry，并立即更新 optimistic state。

@@ -1,10 +1,9 @@
 import { stripSearchPrefix } from '../_internal/stripSearchPrefix';
-import type { NavigateSearch, SearchLocation } from './types';
-
-export type SearchLocationLike = {
-  pathname: string;
-  search: string;
-};
+import type {
+  NavigateSearch,
+  SearchLocation,
+  SearchLocationLike,
+} from './types';
 
 export const toSearchLocation = (
   location: SearchLocationLike,

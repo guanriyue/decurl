@@ -75,7 +75,7 @@ const navigate = useNavigate()
 store.configureRuntime({
   getLocation: () => ({
     pathname: location.pathname,
-    search: stripSearchPrefix(location.search),
+    search: location.search,
   }),
   navigate: (nextLocation, options) => {
     navigate(toNavigateSearch(nextLocation), options)
@@ -102,7 +102,7 @@ Hook 负责把 React Router location 变化同步给 store。
 useLayoutEffect(() => {
   store.locationChanged({
     pathname: location.pathname,
-    search: stripSearchPrefix(location.search),
+    search: location.search,
   })
 }, [location.pathname, location.search])
 ```

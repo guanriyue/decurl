@@ -3,6 +3,11 @@ export type SearchLocation = {
   search: string;
 };
 
+export type SearchLocationLike = {
+  pathname: string;
+  search: string;
+};
+
 export type NavigateSearch = `?${string}`;
 
 export type SearchNavigateOptions = {
@@ -13,10 +18,10 @@ export type SearchNavigateOptions = {
 type Dispose = () => void;
 
 export type SearchRuntime = {
-  getLocation: () => SearchLocation;
+  getLocation: () => SearchLocationLike;
   navigate: (
     location: SearchLocation,
     options: SearchNavigateOptions,
   ) => void | Promise<void>;
-  subscribe?: (listener: (location: SearchLocation) => void) => Dispose;
+  subscribe?: (listener: (location: SearchLocationLike) => void) => Dispose;
 };
