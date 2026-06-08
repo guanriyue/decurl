@@ -62,17 +62,18 @@ type InflightFlush = {
 ```ts
 type PendingEntry<TDefinition extends RecordCodec = RecordCodec> = {
   id: number
-  pathname: string
-  baseSearch: string
+  baseLocation: SearchLocation
   schema: TDefinition
   patch: SearchPatch<TDefinition>
   options?: SearchNavigateOptions
 }
 ```
 
-`pathname` 用于表达 entry 的有效路径边界。
+`baseLocation` 是 entry 创建时的 visible base location。
 
-`baseSearch` 用于表达 entry 创建时的 search 上下文，也可以用于调试和后续更严格的失效判断。
+它用于记录 entry 的原始上下文，也可以用于调试和后续更严格的失效判断。
+
+它不代表每次 replay 都必须从该 location 开始。
 
 ### inflightFlush
 
