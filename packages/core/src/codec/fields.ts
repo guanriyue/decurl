@@ -2,7 +2,7 @@ import { isDef } from '../_internal/isDef';
 import { isNil } from '../_internal/isNil';
 import { isUndefined } from '../_internal/isUndefined';
 import { decodeField, encodeField, isFieldValueEqual } from './field';
-import type { InferFieldValues, RecordCodec } from './types';
+import type { FieldCodec, InferFieldValues, RecordCodec } from './types';
 
 export type EncodeFieldsOptions = {
   base?: URLSearchParams | string;
@@ -23,7 +23,7 @@ export const decodeFields = <TDefinition extends RecordCodec>(
   return Object.fromEntries(
     Object.entries(definition).map(([key, codec]) => [
       key,
-      decodeField(codec, searchParams, codec.name ?? key),
+      decodeField(codec, searchParams, getFieldNames(codec, key)),
     ]),
   ) as InferFieldValues<TDefinition>;
 };
@@ -40,11 +40,12 @@ export const encodeFields = <TDefinition extends RecordCodec>(
       continue;
     }
 
-    const searchKey = codec.name ?? key;
+    const searchKeys = getFieldNames(codec, key);
+    const canonicalKey = searchKeys[0];
     const value = values[key as keyof EncodeFieldsValues<TDefinition>];
 
     if (isNil(value)) {
-      searchParams.delete(searchKey);
+      deleteSearchKeys(searchParams, searchKeys);
       continue;
     }
 
@@ -53,24 +54,25 @@ export const encodeFields = <TDefinition extends RecordCodec>(
       isDef(codec.defaultValue) &&
       isFieldValueEqual(codec, value, codec.defaultValue)
     ) {
-      searchParams.delete(searchKey);
+      deleteSearchKeys(searchParams, searchKeys);
       continue;
     }
 
     const encoded = encodeField(codec, value);
 
     if (isUndefined(encoded)) {
-      searchParams.delete(searchKey);
+      deleteSearchKeys(searchParams, searchKeys);
       continue;
     }
 
+    deleteSearchKeys(searchParams, searchKeys);
+
     if (Array.isArray(encoded)) {
-      searchParams.delete(searchKey);
       for (const item of encoded) {
-        searchParams.append(searchKey, item);
+        searchParams.append(canonicalKey, item);
       }
     } else {
-      searchParams.set(searchKey, encoded);
+      searchParams.set(canonicalKey, encoded);
     }
   }
 
@@ -93,4 +95,25 @@ export const isFieldValuesEqual = <TDefinition extends RecordCodec>(
       previousValues[key as keyof InferFieldValues<TDefinition>],
     );
   });
+};
+
+const getFieldNames = (codec: FieldCodec, key: string): readonly string[] => {
+  if (typeof codec.name === 'string') {
+    return [codec.name];
+  }
+
+  if (Array.isArray(codec.name) && codec.name.length > 0) {
+    return codec.name;
+  }
+
+  return [key];
+};
+
+const deleteSearchKeys = (
+  searchParams: URLSearchParams,
+  keys: readonly string[],
+): void => {
+  for (const key of keys) {
+    searchParams.delete(key);
+  }
 };

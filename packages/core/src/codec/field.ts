@@ -18,22 +18,41 @@ export type EncodedFieldValue<TCodec extends FieldCodec> = TCodec extends {
 export const decodeField = <TCodec extends FieldCodec>(
   codec: TCodec,
   searchParams: URLSearchParams,
-  key: string,
+  key: string | readonly string[],
 ): InferFieldValue<TCodec> => {
+  const keys = typeof key === 'string' ? [key] : key;
+
   if (isMultiFieldCodec(codec)) {
-    const decoded =
-      codec.decode(searchParams.getAll(key)) ?? codec.defaultValue;
-    return decoded as never;
-  }
+    for (const fieldKey of keys) {
+      if (!searchParams.has(fieldKey)) {
+        continue;
+      }
 
-  const raw = searchParams.get(key);
+      const decoded = codec.decode(searchParams.getAll(fieldKey));
 
-  if (raw === null) {
+      if (!isNil(decoded)) {
+        return decoded as never;
+      }
+    }
+
     return codec.defaultValue as never;
   }
 
-  const decoded = codec.decode(raw) ?? codec.defaultValue;
-  return decoded as never;
+  for (const fieldKey of keys) {
+    const raw = searchParams.get(fieldKey);
+
+    if (raw === null) {
+      continue;
+    }
+
+    const decoded = codec.decode(raw);
+
+    if (!isNil(decoded)) {
+      return decoded as never;
+    }
+  }
+
+  return codec.defaultValue as never;
 };
 
 export const encodeField = <TCodec extends FieldCodec>(

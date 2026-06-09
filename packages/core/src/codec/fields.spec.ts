@@ -61,6 +61,64 @@ describe('decodeFields', () => {
       keyword: 'decurl',
     });
   });
+
+  it('decodes from the first name when multiple names are configured', () => {
+    const definition = {
+      page: {
+        name: ['page_num', 'p'],
+        decode: (input) => Number(input),
+      },
+    } satisfies Record<string, FieldCodec>;
+
+    expect(
+      decodeFields(definition, new URLSearchParams('page_num=2&p=1')),
+    ).toEqual({
+      page: 2,
+    });
+  });
+
+  it('decodes from a legacy name when the canonical name is missing', () => {
+    const definition = {
+      page: {
+        name: ['page_num', 'p'],
+        decode: (input) => Number(input),
+      },
+    } satisfies Record<string, FieldCodec>;
+
+    expect(decodeFields(definition, new URLSearchParams('p=2'))).toEqual({
+      page: 2,
+    });
+  });
+
+  it('continues to a legacy name when canonical decode fails', () => {
+    const definition = {
+      page: {
+        name: ['page_num', 'p'],
+        decode: (input) => (input === 'bad' ? undefined : Number(input)),
+      },
+    } satisfies Record<string, FieldCodec>;
+
+    expect(
+      decodeFields(definition, new URLSearchParams('page_num=bad&p=2')),
+    ).toEqual({
+      page: 2,
+    });
+  });
+
+  it('falls back to the record key when field name is an empty array', () => {
+    const definition = {
+      keyword: {
+        name: [],
+        decode: (input) => input,
+      },
+    } satisfies Record<string, FieldCodec>;
+
+    expect(
+      decodeFields(definition, new URLSearchParams('keyword=decurl')),
+    ).toEqual({
+      keyword: 'decurl',
+    });
+  });
 });
 
 describe('encodeFields', () => {
@@ -186,6 +244,108 @@ describe('encodeFields', () => {
     );
 
     expect(searchParams.toString()).toBe('keyword=ignored&q=decurl');
+  });
+
+  it('deletes aliases and writes the canonical name when encoding aliases', () => {
+    const definition = {
+      page: {
+        name: ['page_num', 'p'],
+        decode: (input) => Number(input),
+      },
+    } satisfies Record<string, FieldCodec>;
+
+    const searchParams = encodeFields(
+      definition,
+      { page: 3 },
+      { base: 'page_num=1&p=2&sort=desc' },
+    );
+
+    expect(searchParams.toString()).toBe('sort=desc&page_num=3');
+  });
+
+  it('keeps aliases in base when the field is omitted from the patch', () => {
+    const definition = {
+      page: {
+        name: ['page_num', 'p'],
+        decode: (input) => Number(input),
+      },
+    } satisfies Record<string, FieldCodec>;
+
+    const searchParams = encodeFields(
+      definition,
+      {},
+      { base: 'page_num=1&p=2&sort=desc' },
+    );
+
+    expect(searchParams.toString()).toBe('page_num=1&p=2&sort=desc');
+  });
+
+  it('deletes all aliases when the patch value is nullish', () => {
+    const definition = {
+      page: {
+        name: ['page_num', 'p'],
+        decode: (input) => Number(input),
+      },
+    } satisfies Record<string, FieldCodec>;
+
+    const searchParams = encodeFields(
+      definition,
+      { page: null },
+      { base: 'page_num=1&p=2&sort=desc' },
+    );
+
+    expect(searchParams.toString()).toBe('sort=desc');
+  });
+
+  it('deletes all aliases when default cleanup applies', () => {
+    const definition = {
+      page: {
+        name: ['page_num', 'p'],
+        decode: (input) => Number(input),
+        defaultValue: 1,
+      },
+    } satisfies Record<string, FieldCodec>;
+
+    const searchParams = encodeFields(
+      definition,
+      { page: 1 },
+      { base: 'page_num=2&p=3&sort=desc' },
+    );
+
+    expect(searchParams.toString()).toBe('sort=desc');
+  });
+
+  it('deletes all aliases when custom encode returns undefined', () => {
+    const definition = {
+      page: {
+        name: ['page_num', 'p'],
+        decode: (input) => Number(input),
+        encode: () => undefined,
+      },
+    } satisfies Record<string, FieldCodec>;
+
+    const searchParams = encodeFields(
+      definition,
+      { page: 2 },
+      { base: 'page_num=1&p=2&sort=desc' },
+    );
+
+    expect(searchParams.toString()).toBe('sort=desc');
+  });
+
+  it('falls back to the record key when encoding an empty name array', () => {
+    const definition = {
+      keyword: {
+        name: [],
+        decode: (input) => input,
+      },
+    } satisfies Record<string, FieldCodec>;
+
+    const searchParams = encodeFields(definition, {
+      keyword: 'decurl',
+    });
+
+    expect(searchParams.toString()).toBe('keyword=decurl');
   });
 
   it('deletes default values unless preserveDefault is true', () => {

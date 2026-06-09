@@ -15,6 +15,7 @@ export {
   type FieldCodec,
   type FieldCodecOf,
   type FieldMode,
+  type FieldName,
   type FieldsCodec,
   field,
   type InferFieldValue,

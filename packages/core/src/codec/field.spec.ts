@@ -2,6 +2,7 @@ import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { decodeField, encodeField, isFieldValueEqual } from './field';
 import type {
   MultiOptionalFieldCodec,
+  MultiRequiredFieldCodec,
   SingleOptionalFieldCodec,
   SingleRequiredFieldCodec,
 } from './types';
@@ -89,7 +90,7 @@ describe('decodeField', () => {
     expectTypeOf(value).toEqualTypeOf<number[] | undefined>();
   });
 
-  it('passes an empty array to multi decode when key is missing', () => {
+  it('returns undefined without calling multi decode when optional key is missing', () => {
     const decode = vi.fn((input: string[]) => input);
     const codec = {
       mode: 'multi',
@@ -98,8 +99,53 @@ describe('decodeField', () => {
 
     const value = decodeField(codec, new URLSearchParams(), 'tag');
 
-    expect(value).toEqual([]);
-    expect(decode).toHaveBeenCalledWith([]);
+    expect(value).toBeUndefined();
+    expect(decode).not.toHaveBeenCalled();
+  });
+
+  it('uses defaultValue without calling multi decode when required key is missing', () => {
+    const decode = vi.fn((input: string[]) => input);
+    const codec = {
+      mode: 'multi',
+      decode,
+      defaultValue: ['default'],
+    } satisfies MultiRequiredFieldCodec<string[]>;
+
+    const value = decodeField(codec, new URLSearchParams(), 'tag');
+
+    expect(value).toEqual(['default']);
+    expect(decode).not.toHaveBeenCalled();
+  });
+
+  it('decodes from a later alias when earlier aliases are missing', () => {
+    const codec = {
+      decode: (input) => Number(input),
+    } satisfies SingleOptionalFieldCodec<number>;
+
+    const value = decodeField(codec, new URLSearchParams('p=2'), [
+      'page_num',
+      'p',
+    ]);
+
+    expect(value).toBe(2);
+  });
+
+  it('continues to later aliases when decode returns nullish', () => {
+    const decode = vi.fn((input: string) =>
+      input === 'bad' ? undefined : Number(input),
+    );
+    const codec = {
+      decode,
+    } satisfies SingleOptionalFieldCodec<number>;
+
+    const value = decodeField(codec, new URLSearchParams('page_num=bad&p=2'), [
+      'page_num',
+      'p',
+    ]);
+
+    expect(value).toBe(2);
+    expect(decode).toHaveBeenCalledWith('bad');
+    expect(decode).toHaveBeenCalledWith('2');
   });
 });
 

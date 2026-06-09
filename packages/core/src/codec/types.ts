@@ -3,9 +3,11 @@ import type { Decode } from '../decode/types';
 
 export type FieldMode = 'single' | 'multi';
 
+export type FieldName = string | readonly string[];
+
 export type FieldCodecBase<TValue> = {
   eq?: (left: NonNullable<TValue>, right: NonNullable<TValue>) => boolean;
-  name?: string;
+  name?: FieldName;
 };
 
 export type SingleOptionalFieldCodec<TValue> = FieldCodecBase<TValue> & {
