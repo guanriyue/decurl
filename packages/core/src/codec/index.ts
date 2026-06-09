@@ -1,4 +1,11 @@
 export {
+  type NamedFieldCodec as DefinedFieldCodec,
+  type DefinedFieldName,
+  type DefinedFields,
+  type DefineFieldsOptions,
+  defineFields,
+} from './definition';
+export {
   decodeField,
   type EncodedFieldValue,
   encodeField,
