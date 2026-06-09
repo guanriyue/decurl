@@ -16,6 +16,31 @@
 
 Schema 级 encoder 会忽略未知 field。
 
+如果 field 配置了多个 name，schema 级 encoder 在处理该 field 时应删除所有 alias key，并只写入 canonical key。
+
+如果 patch 未显式包含该 field，schema 级 encoder 不应改动 base 中的 alias key。
+
+## Name 与 Alias
+
+Field name 可以是字符串或字符串数组。
+
+字符串数组用于历史兼容，第一项是 canonical key，后续项是 legacy alias。
+
+空 name 数组表示没有显式 name，应回退到 schema property key。
+
+同一个 schema 中，应尽量避免多个 field 共享同一个有效 name。这里的有效 name 包括：
+
+- 显式字符串 name。
+- 字符串数组里的每一项。
+- 未提供 name 时回退得到的 schema property key。
+- 空数组回退得到的 schema property key。
+
+如果两个 field 共享任意一个有效 name，schema definition 会产生 decode/encode 歧义。
+
+默认处理策略应优先采用开发期 warning，而不是直接让 schema 不可用。
+
+严格失败可以作为可选策略存在，例如 schema define 的 strict 选项或专门的校验函数。
+
 ## 默认值
 
 Field codec 可以定义 `defaultValue`。

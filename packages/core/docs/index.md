@@ -23,6 +23,7 @@
 - [Core 职责范围](scope.md)
 - [Decode Primitives](decode-primitives.md)
 - [Field Codec](field-codec.md)
+- [Schema Definition](schema-definition.md)
 - [URLSearchParams Codec](url-search-params-codec.md)
 - [核心不变式](invariants.md)
 
