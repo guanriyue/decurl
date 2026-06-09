@@ -26,7 +26,7 @@ Hook 应通过 `useSyncExternalStore` 订阅 store。
 const snapshot = useSyncExternalStore(
   store.subscribe,
   store.getSnapshot,
-  store.getServerSnapshot,
+  store.getSnapshot,
 )
 ```
 
@@ -60,7 +60,9 @@ P0 优先支持 CSR。
 
 SSR 不作为第一考量。
 
-`getServerSnapshot` 可以提供最小兼容形态，但不承诺 SSR 阶段的 URL 写入或完整路由同步语义。
+如果需要传入 `useSyncExternalStore` 的第三个参数，直接复用 `store.getSnapshot`。
+
+P0 不承诺 SSR 阶段的 URL 写入或完整路由同步语义。
 
 ## Runtime Binding
 

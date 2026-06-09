@@ -122,7 +122,6 @@ export const createSearchStore = (
 
   const store: SearchStore = {
     getSnapshot: getSnapshotFromState,
-    getServerSnapshot: getSnapshotFromState,
     subscribe: (listener) => {
       listeners.add(listener);
       return () => {

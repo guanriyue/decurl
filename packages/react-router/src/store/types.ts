@@ -91,9 +91,6 @@ export type SearchStore = {
   /** 返回当前 optimistic snapshot。 */
   getSnapshot: () => SearchStoreSnapshot;
 
-  /** 返回 useSyncExternalStore 使用的 server snapshot。 */
-  getServerSnapshot: () => SearchStoreSnapshot;
-
   /** 订阅 optimistic search state 变化。 */
   subscribe: (listener: () => void) => () => void;
 
