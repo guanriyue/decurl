@@ -23,6 +23,22 @@ describe('createSearchStore', () => {
     vi.useRealTimers();
   });
 
+  it('throws when snapshot is read before runtime is configured', () => {
+    const store = createSearchStore();
+
+    expect(() => store.getSnapshot()).toThrow(
+      '@decurl/react-router store runtime is not configured.',
+    );
+  });
+
+  it('allows snapshot reads when explicit initial location is provided', () => {
+    const store = createSearchStore({
+      initialLocation: location('/users', 'page=1'),
+    });
+
+    expect(store.getSnapshot().location).toEqual(location('/users', 'page=1'));
+  });
+
   it('hydrates the initial location from runtime without notifying subscribers', () => {
     const store = createSearchStore();
     const listener = vi.fn();

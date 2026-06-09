@@ -21,6 +21,8 @@ const initialLocation: SearchLocation = {
 
 const defaultFlushDelay = 100;
 const defaultFlushMode: FlushSchedulerMode = 'throttle';
+const unconfiguredRuntimeMessage =
+  '@decurl/react-router store runtime is not configured. Call useConfigureRuntime() before reading search state.';
 
 export type CreateSearchStoreOptions = {
   initialLocation?: SearchLocation;
@@ -48,9 +50,17 @@ export const createSearchStore = (
   const listeners = new Set<() => void>();
 
   const getSnapshotFromState = (): SearchStoreSnapshot => {
+    assertRuntimeConfigured();
+
     return {
       location: state.optimisticLocation,
     };
+  };
+
+  const assertRuntimeConfigured = (): void => {
+    if (!isLocationInitialized) {
+      throw new Error(unconfiguredRuntimeMessage);
+    }
   };
 
   const notify = (): void => {

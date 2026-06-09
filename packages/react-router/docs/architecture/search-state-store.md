@@ -47,6 +47,29 @@ type InflightFlush = {
 
 它来自 runtime 的当前 location 或 runtime 的 location change 通知。
 
+## Initialization
+
+Runtime configuration 是 store 初始化的一部分。
+
+在 singleton store 场景下，store 创建时还无法读取 React Router hooks，因此不能把占位 location 视为有效业务状态。
+
+首次 `configureRuntime(runtime)` 会调用：
+
+```ts
+runtime.getLocation()
+```
+
+并用该 location 初始化：
+
+```txt
+confirmedLocation
+optimisticLocation
+```
+
+这次初始化不应通知 subscribers。
+
+如果在 runtime 配置前读取 snapshot，store 应抛出错误，提示开发者需要先调用 `useConfigureRuntime()`。
+
 ### optimisticLocation
 
 `optimisticLocation` 是业务当前应看到的 location。
