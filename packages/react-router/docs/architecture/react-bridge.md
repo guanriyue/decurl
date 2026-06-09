@@ -23,14 +23,21 @@ Hook 应通过 `useSyncExternalStore` 订阅 store。
 概念形态：
 
 ```ts
-const snapshot = useSyncExternalStore(
+const selectValues = useSearchStateSelector(schema, decodeValues)
+const getValuesSnapshot = () => selectValues(store.getSnapshot())
+
+const values = useSyncExternalStore(
   store.subscribe,
-  store.getSnapshot,
-  store.getSnapshot,
+  getValuesSnapshot,
+  getValuesSnapshot,
 )
 ```
 
 `store.subscribe` 只在 search state 发生变化时通知。
+
+`useSyncExternalStore` 的 snapshot 必须是 selector 结果，而不是全量 store snapshot。
+
+这样当 store 发生变化但当前 hook 关心的 decoded values 未变化时，selector 会返回旧引用，React 不会因为无关 search field 变化而更新该 hook。
 
 Runtime 配置变化不应触发 subscribe listener。
 
@@ -60,7 +67,7 @@ P0 优先支持 CSR。
 
 SSR 不作为第一考量。
 
-如果需要传入 `useSyncExternalStore` 的第三个参数，直接复用 `store.getSnapshot`。
+如果需要传入 `useSyncExternalStore` 的第三个参数，应复用 selected snapshot getter。
 
 P0 不承诺 SSR 阶段的 URL 写入或完整路由同步语义。
 
@@ -123,7 +130,11 @@ Hook 不应只依赖 `useMemo` 来保证 `values` 引用稳定。
 
 ```ts
 const selectValues = useSearchStateSelector(schema, decodeValues)
-const values = selectValues(snapshot)
+const values = useSyncExternalStore(
+  store.subscribe,
+  () => selectValues(store.getSnapshot()),
+  () => selectValues(store.getSnapshot()),
+)
 ```
 
 Selector 每次基于当前 optimistic search decode：

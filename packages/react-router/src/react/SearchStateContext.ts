@@ -17,3 +17,7 @@ export const SearchStateContext = createContext<SearchStateContextValue>(
 export const useSearchStateContext = (): SearchStateContextValue => {
   return useContext(SearchStateContext);
 };
+
+export const useContextStore = (): SearchStore => {
+  return useSearchStateContext().store;
+};
