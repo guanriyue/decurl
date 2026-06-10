@@ -7,26 +7,41 @@ export type SearchStateSelector<TValue> = (
   snapshot: SearchStoreSnapshot,
 ) => TValue;
 
+export type SearchStateEquality<TValue> = (
+  value: TValue,
+  previousValue: TValue,
+) => boolean;
+
+export const useEqualityCheckedSelector = <TValue>(
+  selector: SearchStateSelector<TValue>,
+  equality: SearchStateEquality<TValue>,
+): SearchStateSelector<TValue> => {
+  const previousValueRef = useRef<TValue | undefined>(undefined);
+
+  return (snapshot) => {
+    const nextValue = selector(snapshot);
+    const previousValue = previousValueRef.current;
+
+    if (
+      typeof previousValue !== 'undefined' &&
+      equality(nextValue, previousValue)
+    ) {
+      return previousValue;
+    }
+
+    previousValueRef.current = nextValue;
+    return nextValue;
+  };
+};
+
 export const useSearchStateSelector = <TDefinition extends RecordCodec>(
   schema: TDefinition,
   selector: SearchStateSelector<InferFieldValues<TDefinition>>,
 ): SearchStateSelector<InferFieldValues<TDefinition>> => {
-  const previousValuesRef = useRef<InferFieldValues<TDefinition> | undefined>(
-    undefined,
+  return useEqualityCheckedSelector(
+    selector,
+    (nextValues, previousValues) => {
+      return isFieldValuesEqual(schema, nextValues, previousValues);
+    },
   );
-
-  return (snapshot) => {
-    const nextValues = selector(snapshot);
-    const previousValues = previousValuesRef.current;
-
-    if (
-      typeof previousValues !== 'undefined' &&
-      isFieldValuesEqual(schema, nextValues, previousValues)
-    ) {
-      return previousValues;
-    }
-
-    previousValuesRef.current = nextValues;
-    return nextValues;
-  };
 };
