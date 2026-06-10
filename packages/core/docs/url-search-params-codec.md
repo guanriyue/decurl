@@ -65,6 +65,8 @@ Encode 默认采用 patch 机制。
 
 `encode(value, { base })` 从 `base` 的拷贝开始，然后在其上叠加传入的 schema field。
 
+Schema 级 encode 负责遍历 definition、判断 patch 中是否显式传入某个 field，并解析 `field.name ?? schema property key`。单个 field 的写入由 `encodeField` 完成；业务值到字符串值的转换由 `encodeFieldValue` 完成。
+
 规则：
 
 - 只处理 schema 中存在的 field。

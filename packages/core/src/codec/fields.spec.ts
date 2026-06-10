@@ -195,7 +195,7 @@ describe('encodeFields', () => {
     expect(searchParams.toString()).toBe('page=2');
   });
 
-  it('deletes a key when encodeField returns undefined', () => {
+  it('deletes a key when encodeFieldValue returns undefined', () => {
     const definition = {
       page: {
         decode: (input) => Number(input),

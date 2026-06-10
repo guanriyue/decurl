@@ -1,5 +1,11 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest';
-import { decodeField, encodeField, isFieldValueEqual } from './field';
+import {
+  decodeField,
+  encodeField,
+  encodeFieldInternal,
+  encodeFieldValue,
+  isFieldValueEqual,
+} from './field';
 import type {
   MultiOptionalFieldCodec,
   MultiRequiredFieldCodec,
@@ -149,7 +155,7 @@ describe('decodeField', () => {
   });
 });
 
-describe('encodeField', () => {
+describe('encodeFieldValue', () => {
   it('returns undefined for nullish values without calling custom encode', () => {
     const encode = vi.fn((value: number) => String(value));
     const codec = {
@@ -157,8 +163,8 @@ describe('encodeField', () => {
       encode,
     } satisfies SingleOptionalFieldCodec<number>;
 
-    expect(encodeField(codec, undefined)).toBeUndefined();
-    expect(encodeField(codec, null)).toBeUndefined();
+    expect(encodeFieldValue(codec, undefined)).toBeUndefined();
+    expect(encodeFieldValue(codec, null)).toBeUndefined();
     expect(encode).not.toHaveBeenCalled();
   });
 
@@ -167,7 +173,7 @@ describe('encodeField', () => {
       decode: (input) => Number(input),
     } satisfies SingleOptionalFieldCodec<number>;
 
-    const value = encodeField(codec, 12);
+    const value = encodeFieldValue(codec, 12);
 
     expect(value).toBe('12');
     expectTypeOf(value).toEqualTypeOf<string | undefined>();
@@ -179,7 +185,7 @@ describe('encodeField', () => {
       encode: (value) => `page-${value}`,
     } satisfies SingleOptionalFieldCodec<number>;
 
-    expect(encodeField(codec, 2)).toBe('page-2');
+    expect(encodeFieldValue(codec, 2)).toBe('page-2');
   });
 
   it('normalizes custom encode nullish result to undefined', () => {
@@ -188,7 +194,7 @@ describe('encodeField', () => {
       encode: () => null,
     } satisfies SingleOptionalFieldCodec<number>;
 
-    expect(encodeField(codec, 2)).toBeUndefined();
+    expect(encodeFieldValue(codec, 2)).toBeUndefined();
   });
 
   it('stringifies multi field array values by default', () => {
@@ -197,7 +203,7 @@ describe('encodeField', () => {
       decode: (input) => input.map(Number),
     } satisfies MultiOptionalFieldCodec<number[]>;
 
-    const value = encodeField(codec, [1, 2]);
+    const value = encodeFieldValue(codec, [1, 2]);
 
     expect(value).toEqual(['1', '2']);
     expectTypeOf(value).toEqualTypeOf<string[] | undefined>();
@@ -209,10 +215,9 @@ describe('encodeField', () => {
       decode: (input) => input,
     } satisfies MultiOptionalFieldCodec<string[]>;
 
-    expect(encodeField(codec, ['a', null, undefined, 'b'] as never)).toEqual([
-      'a',
-      'b',
-    ]);
+    expect(
+      encodeFieldValue(codec, ['a', null, undefined, 'b'] as never),
+    ).toEqual(['a', 'b']);
   });
 
   it('uses custom multi field encode when provided', () => {
@@ -222,7 +227,119 @@ describe('encodeField', () => {
       encode: (value) => value.map((item) => `id-${item}`),
     } satisfies MultiOptionalFieldCodec<number[]>;
 
-    expect(encodeField(codec, [1, 2])).toEqual(['id-1', 'id-2']);
+    expect(encodeFieldValue(codec, [1, 2])).toEqual(['id-1', 'id-2']);
+  });
+});
+
+describe('encodeField', () => {
+  it('writes a single field to a copied URLSearchParams', () => {
+    const codec = {
+      decode: (input) => Number(input),
+    } satisfies SingleOptionalFieldCodec<number>;
+    const base = new URLSearchParams('page=1&sort=desc');
+
+    const searchParams = encodeField(codec, 2, base, 'page');
+
+    expect(searchParams.toString()).toBe('sort=desc&page=2');
+    expect(base.toString()).toBe('page=1&sort=desc');
+  });
+
+  it('deletes a field when the value is nullish', () => {
+    const codec = {
+      decode: (input) => input,
+    } satisfies SingleOptionalFieldCodec<string>;
+
+    const searchParams = encodeField(
+      codec,
+      null,
+      new URLSearchParams('keyword=decurl&page=2'),
+      'keyword',
+    );
+
+    expect(searchParams.toString()).toBe('page=2');
+  });
+
+  it('deletes aliases and writes the canonical key', () => {
+    const codec = {
+      decode: (input) => Number(input),
+    } satisfies SingleOptionalFieldCodec<number>;
+
+    const searchParams = encodeField(
+      codec,
+      3,
+      new URLSearchParams('page_num=1&p=2&sort=desc'),
+      ['page_num', 'p'],
+    );
+
+    expect(searchParams.toString()).toBe('sort=desc&page_num=3');
+  });
+
+  it('deletes a field when encoded value is undefined', () => {
+    const codec = {
+      decode: (input) => Number(input),
+      encode: () => undefined,
+    } satisfies SingleOptionalFieldCodec<number>;
+
+    const searchParams = encodeField(
+      codec,
+      2,
+      new URLSearchParams('page=1&sort=desc'),
+      'page',
+    );
+
+    expect(searchParams.toString()).toBe('sort=desc');
+  });
+
+  it('deletes default values unless preserveDefault is true', () => {
+    const codec = {
+      decode: (input) => Number(input),
+      defaultValue: 1,
+    } satisfies SingleRequiredFieldCodec<number>;
+
+    expect(
+      encodeField(codec, 1, new URLSearchParams('page=2'), 'page').toString(),
+    ).toBe('');
+
+    expect(
+      encodeField(codec, 1, new URLSearchParams('page=2'), 'page', {
+        preserveDefault: true,
+      }).toString(),
+    ).toBe('page=1');
+  });
+
+  it('appends multi values in order', () => {
+    const codec = {
+      mode: 'multi',
+      decode: (input) => input,
+    } satisfies MultiOptionalFieldCodec<string[]>;
+
+    const searchParams = encodeField(
+      codec,
+      ['a', 'b'],
+      new URLSearchParams('tags=old&page=1'),
+      'tags',
+    );
+
+    expect(searchParams.toString()).toBe('page=1&tags=a&tags=b');
+  });
+});
+
+describe('encodeFieldInternal', () => {
+  it('writes to the provided URLSearchParams instance', () => {
+    const codec = {
+      decode: (input) => Number(input),
+    } satisfies SingleOptionalFieldCodec<number>;
+    const searchParams = new URLSearchParams('page=1&sort=desc');
+
+    const nextSearchParams = encodeFieldInternal(
+      codec,
+      2,
+      searchParams,
+      'page',
+    );
+
+    expect(nextSearchParams).toBe(searchParams);
+    expect(searchParams.toString()).toBe('sort=desc&page=2');
   });
 });
 

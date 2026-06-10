@@ -15,6 +15,10 @@ export type EncodedFieldValue<TCodec extends FieldCodec> = TCodec extends {
   ? string[] | undefined
   : string | undefined;
 
+export type EncodeFieldOptions = {
+  preserveDefault?: boolean;
+};
+
 export const decodeField = <TCodec extends FieldCodec>(
   codec: TCodec,
   searchParams: URLSearchParams,
@@ -55,7 +59,7 @@ export const decodeField = <TCodec extends FieldCodec>(
   return codec.defaultValue as never;
 };
 
-export const encodeField = <TCodec extends FieldCodec>(
+export const encodeFieldValue = <TCodec extends FieldCodec>(
   codec: TCodec,
   value: InferFieldValue<TCodec> | null | undefined,
 ): EncodedFieldValue<TCodec> => {
@@ -78,6 +82,65 @@ export const encodeField = <TCodec extends FieldCodec>(
   }
 
   return String(value) as EncodedFieldValue<TCodec>;
+};
+
+export const encodeField = <TCodec extends FieldCodec>(
+  codec: TCodec,
+  value: InferFieldValue<TCodec> | null | undefined,
+  searchParams: URLSearchParams,
+  key: string | readonly string[],
+  options: EncodeFieldOptions = {},
+): URLSearchParams => {
+  const nextSearchParams = new URLSearchParams(searchParams);
+
+  return encodeFieldInternal(codec, value, nextSearchParams, key, options);
+};
+
+export const encodeFieldInternal = <TCodec extends FieldCodec>(
+  codec: TCodec,
+  value: InferFieldValue<TCodec> | null | undefined,
+  searchParams: URLSearchParams,
+  key: string | readonly string[],
+  options: EncodeFieldOptions = {},
+): URLSearchParams => {
+  const keys = typeof key === 'string' ? [key] : key;
+  const canonicalKey = keys[0];
+
+  if (isUndefined(canonicalKey)) {
+    return searchParams;
+  }
+
+  if (isNil(value)) {
+    deleteSearchKeys(searchParams, keys);
+    return searchParams;
+  }
+
+  if (
+    options.preserveDefault !== true &&
+    isDef(codec.defaultValue) &&
+    isFieldValueEqual(codec, value, codec.defaultValue)
+  ) {
+    deleteSearchKeys(searchParams, keys);
+    return searchParams;
+  }
+
+  const encoded = encodeFieldValue(codec, value);
+
+  deleteSearchKeys(searchParams, keys);
+
+  if (isUndefined(encoded)) {
+    return searchParams;
+  }
+
+  if (Array.isArray(encoded)) {
+    for (const item of encoded) {
+      searchParams.append(canonicalKey, item);
+    }
+  } else {
+    searchParams.set(canonicalKey, encoded);
+  }
+
+  return searchParams;
 };
 
 export const isFieldValueEqual = <TCodec extends FieldCodec>(
@@ -110,4 +173,13 @@ const isMultiFieldCodec = <TValue>(
   | MultiOptionalFieldCodec<TValue>
   | MultiRequiredFieldCodec<TValue> => {
   return codec.mode === 'multi';
+};
+
+const deleteSearchKeys = (
+  searchParams: URLSearchParams,
+  keys: readonly string[],
+): void => {
+  for (const key of keys) {
+    searchParams.delete(key);
+  }
 };

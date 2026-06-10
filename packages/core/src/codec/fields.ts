@@ -1,7 +1,4 @@
-import { isDef } from '../_internal/isDef';
-import { isNil } from '../_internal/isNil';
-import { isUndefined } from '../_internal/isUndefined';
-import { decodeField, encodeField, isFieldValueEqual } from './field';
+import { decodeField, encodeFieldInternal, isFieldValueEqual } from './field';
 import type { FieldCodec, InferFieldValues, RecordCodec } from './types';
 
 export type EncodeFieldsOptions = {
@@ -41,39 +38,11 @@ export const encodeFields = <TDefinition extends RecordCodec>(
     }
 
     const searchKeys = getFieldNames(codec, key);
-    const canonicalKey = searchKeys[0];
     const value = values[key as keyof EncodeFieldsValues<TDefinition>];
 
-    if (isNil(value)) {
-      deleteSearchKeys(searchParams, searchKeys);
-      continue;
-    }
-
-    if (
-      options.preserveDefault !== true &&
-      isDef(codec.defaultValue) &&
-      isFieldValueEqual(codec, value, codec.defaultValue)
-    ) {
-      deleteSearchKeys(searchParams, searchKeys);
-      continue;
-    }
-
-    const encoded = encodeField(codec, value);
-
-    if (isUndefined(encoded)) {
-      deleteSearchKeys(searchParams, searchKeys);
-      continue;
-    }
-
-    deleteSearchKeys(searchParams, searchKeys);
-
-    if (Array.isArray(encoded)) {
-      for (const item of encoded) {
-        searchParams.append(canonicalKey, item);
-      }
-    } else {
-      searchParams.set(canonicalKey, encoded);
-    }
+    encodeFieldInternal(codec, value, searchParams, searchKeys, {
+      preserveDefault: options.preserveDefault,
+    });
   }
 
   return searchParams;
@@ -107,13 +76,4 @@ const getFieldNames = (codec: FieldCodec, key: string): readonly string[] => {
   }
 
   return [key];
-};
-
-const deleteSearchKeys = (
-  searchParams: URLSearchParams,
-  keys: readonly string[],
-): void => {
-  for (const key of keys) {
-    searchParams.delete(key);
-  }
 };

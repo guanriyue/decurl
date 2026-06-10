@@ -15,26 +15,30 @@ type Decode<I, O> = (input: I) => O | null | undefined
 Decode pipeline 分为三层：
 
 - primitive 层：`pipe`、`mapItems`、`where`、`shape`、`trim`、`toNumber` 等。
-- field 层：`FieldCodec`、`decodeField`、`isFieldValueEqual`。
-- record 层：`decodeFields`、`isFieldValuesEqual`。
+- field 层：`FieldCodec`、`decodeField`、`encodeFieldValue`、`encodeField`、`isFieldValueEqual`。
+- record 层：`decodeFields`、`encodeFields`、`isFieldValuesEqual`。
 
 primitive 层不理解 URLSearchParams。
 
 field 层理解 single / multi mode，但要求调用方传入已经解析好的 key。
 
-record 层负责把 schema key 和 `codec.name` 映射到最终 URLSearchParams key。
+record 层负责把 schema key 和 `codec.name` 映射到最终 URLSearchParams key，并组合多个 field 的读写。
 
 ## Key 解析边界
 
 `decodeField(codec, searchParams, key)` 要求 key 已经明确。
 
-`decodeFields(definition, searchParams)` 默认使用：
+`encodeField(codec, value, searchParams, key, options)` 同样要求 key 已经明确。它负责字段级 URLSearchParams 写入，返回新的 URLSearchParams，不修改传入对象。
+
+`encodeFieldValue(codec, value)` 只负责把业务值转换为可写入 URLSearchParams 的字符串值，不负责删除 key、处理 alias、处理 default value 或写入 URLSearchParams。
+
+`decodeFields(definition, searchParams)` 和 `encodeFields(definition, values, options)` 默认使用：
 
 ```ts
 codec.name ?? recordKey
 ```
 
-这个策略属于 record 层，不属于 field 层。未来其他上层可以采用不同 key 解析策略。
+这个策略属于 record 层，不属于 field 层。未来其他上层可以采用不同 key 解析策略，然后直接调用 field 层 API。
 
 ## 引用稳定边界
 
