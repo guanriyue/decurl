@@ -6,6 +6,7 @@ import type {
 import { decodeField, encodeField, isFieldValueEqual } from '@decurl/core/codec';
 import { useCallback, useSyncExternalStore } from 'react';
 import type { SearchNavigateOptions } from '../runtime/types';
+import type { SearchStore } from '../store/types';
 import { useContextStore } from './SearchStateContext';
 import { useEqualityCheckedSelector } from './selector';
 import { useConfigureRuntime } from './useConfigureRuntime';
@@ -34,6 +35,14 @@ export const useSearchValue = <TCodec extends FieldCodec>(
   useConfigureRuntime();
 
   const store = useContextStore();
+
+  return useSearchValueStore(store, codec);
+};
+
+export const useSearchValueStore = <TCodec extends FieldCodec>(
+  store: SearchStore,
+  codec: NamedFieldCodec<TCodec>,
+): UseSearchValueResult<TCodec> => {
   const fieldCodec = codec as unknown as TCodec;
   const selectValue = useEqualityCheckedSelector(
     (nextSnapshot) => {

@@ -2,7 +2,7 @@ import type { InferFieldValues, RecordCodec } from '@decurl/core/codec';
 import { decodeFields, encodeFields } from '@decurl/core/codec';
 import { useCallback, useSyncExternalStore } from 'react';
 import type { SearchNavigateOptions } from '../runtime/types';
-import type { SearchPatch } from '../store/types';
+import type { SearchPatch, SearchStore } from '../store/types';
 import { useContextStore } from './SearchStateContext';
 import { useSearchStateSelector } from './selector';
 import { useConfigureRuntime } from './useConfigureRuntime';
@@ -23,6 +23,14 @@ export const useSearchValues = <TDefinition extends RecordCodec>(
   useConfigureRuntime();
 
   const store = useContextStore();
+
+  return useSearchValuesStore(store, schema);
+};
+
+export const useSearchValuesStore = <TDefinition extends RecordCodec>(
+  store: SearchStore,
+  schema: TDefinition,
+): UseSearchValuesResult<TDefinition> => {
   const selectValues = useSearchStateSelector(schema, (nextSnapshot) => {
     return decodeFields(
       schema,

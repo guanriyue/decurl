@@ -1,7 +1,9 @@
-import { defineConfig } from "vitest/config";
+import pluginReact from '@vitejs/plugin-react';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-	test: {
-		projects: ["packages/*"],
-	},
+  plugins: [pluginReact()],
+  test: {
+    projects: ['packages/*'],
+  },
 });
