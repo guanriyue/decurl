@@ -7,7 +7,12 @@ import type {
   SingleRequiredFieldCodec,
 } from '@decurl/core/codec';
 import { act, cleanup, render, screen } from '@testing-library/react';
-import { MemoryRouter, useLocation } from 'react-router-dom';
+import {
+  createMemoryRouter,
+  MemoryRouter,
+  RouterProvider,
+  useLocation,
+} from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ReactRouterSearch } from './configured';
 import { createReactRouterSearch } from './configured';
@@ -77,6 +82,51 @@ describe('createReactRouterSearch', () => {
 
     expect(screen.getByTestId('location').textContent).toBe('/users?page=2');
     expect(pageRenderCount).toBe(0);
+  });
+
+  it('uses a router instance Provider to connect hooks with React Router', async () => {
+    vi.useFakeTimers();
+    const search = createReactRouterSearch();
+    let setPage: SetSearchValue<typeof pageCodec> | undefined;
+
+    const router = createMemoryRouter(
+      [
+        {
+          path: '/users',
+          element: (
+            <PageView
+              search={search}
+              onReady={(nextSetPage) => {
+                setPage = nextSetPage;
+              }}
+            />
+          ),
+        },
+      ],
+      {
+        initialEntries: ['/users?page=5'],
+      },
+    );
+
+    render(
+      <search.Provider router={router}>
+        <RouterProvider router={router} />
+      </search.Provider>,
+    );
+
+    expect(screen.getByTestId('page').textContent).toBe('5');
+
+    act(() => {
+      setPage?.(6);
+    });
+
+    expect(screen.getByTestId('page').textContent).toBe('6');
+
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+
+    expect(router.state.location.search).toBe('?page=6');
   });
 });
 

@@ -10,6 +10,8 @@ P0 默认使用 singleton store 和 React Router hooks runtime。
 `Provider`。该 Provider 负责提供 factory 创建的 store，并自动通过 React Router
 hooks runtime 完成接线。
 
+如果 Provider 收到 `router` prop，则改用 router instance runtime 接线。
+
 Provider 解决多实例 store 问题。
 
 RuntimeConfigurer 解决显式接线问题。
@@ -23,7 +25,6 @@ RuntimeConfigurer 解决显式接线问题。
 - Provider 注入默认配置。
 - 多实例 store。
 - 微前端隔离。
-- 基于 router instance 的直接订阅。
 
 这些能力属于后续高级形态，或由 configured subpath 中的 factory 显式创建。
 
@@ -35,7 +36,7 @@ RuntimeConfigurer 解决显式接线问题。
 - 注入 runtime。
 - 注入默认 navigate options。
 - 注入默认 flush 配置。
-- 支持微前端或嵌套 router 场景。
+- 支持更多微前端或嵌套 router 场景。
 
 Provider store 与默认 singleton store 应互相隔离。
 

@@ -1,3 +1,4 @@
+import type { DataRouter } from 'react-router';
 import { toNavigateSearch, toSearchLocation } from './search';
 import type {
   NavigateSearch,
@@ -16,6 +17,11 @@ export type ReactRouterRuntimeInput = {
   navigate: ReactRouterNavigate;
 };
 
+export type ReactRouterInstance = Pick<
+  DataRouter,
+  'navigate' | 'state' | 'subscribe'
+>;
+
 export const createReactRouterRuntime = ({
   location,
   navigate,
@@ -24,6 +30,22 @@ export const createReactRouterRuntime = ({
     getLocation: () => toSearchLocation(location),
     navigate: (nextLocation, options) => {
       return navigate(toNavigateSearch(nextLocation), options);
+    },
+  };
+};
+
+export const createReactRouterInstanceRuntime = (
+  router: ReactRouterInstance,
+): SearchRuntime => {
+  return {
+    getLocation: () => toSearchLocation(router.state.location),
+    navigate: (nextLocation, options) => {
+      return router.navigate(toNavigateSearch(nextLocation), options);
+    },
+    subscribe: (listener) => {
+      return router.subscribe((state) => {
+        listener(toSearchLocation(state.location));
+      });
     },
   };
 };

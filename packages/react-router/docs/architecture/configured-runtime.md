@@ -29,6 +29,7 @@ const search = createReactRouterSearch()
 factory 会创建独立 store，并返回绑定该 store 的：
 
 - `RuntimeConfigurer`
+- `RouterRuntimeConfigurer`
 - `Provider`
 - `useSearchValues`
 - `useSearchValue`
@@ -38,6 +39,8 @@ factory 会创建独立 store，并返回绑定该 store 的：
 如果使用 `Provider`，Provider 会自动完成 runtime 接线。
 
 `RuntimeConfigurer` 只用于不使用 Provider、但仍希望显式完成接线的场景。
+
+如果 Provider 收到 `router` prop，则使用 router instance runtime 接线。
 
 ## BrowserRouter 使用约束
 
@@ -66,6 +69,42 @@ factory 会创建独立 store，并返回绑定该 store 的：
 
 如果 Route 页面先于 Provider 或 `RuntimeConfigurer` 完成接线，并且页面调用了绑定的 `useSearchValues` 或 `useSearchValue`，store 会因为 runtime 尚未配置而抛出初始化错误。
 
+## RouterProvider 使用约束
+
+`RouterProvider` / Data Router 场景可以把 router instance 直接传给 Provider：
+
+```tsx
+const router = createBrowserRouter(routes)
+const search = createReactRouterSearch()
+
+<search.Provider router={router}>
+  <RouterProvider router={router} />
+</search.Provider>
+```
+
+`router` 类型使用 React Router 的 `DataRouter` 能力边界：
+
+```ts
+type ReactRouterInstance = Pick<
+  DataRouter,
+  'navigate' | 'state' | 'subscribe'
+>
+```
+
+Provider 会使用：
+
+- `router.state.location` 读取当前 location。
+- `router.navigate('?search', options)` 持久化 search。
+- `router.subscribe` 接收 location change。
+
+如果不需要 Provider，也可以只使用 router instance 配置器：
+
+```tsx
+<search.RouterRuntimeConfigurer router={router} />
+```
+
+此配置器只负责接线，不提供 context。
+
 ## 与默认入口的关系
 
 默认入口保留零配置能力：
@@ -80,8 +119,12 @@ import { useSearchValue, useSearchValues } from '@decurl/react-router'
 
 ## Provider 边界
 
-`Provider` 提供 factory 绑定的 store，并通过内部 `RuntimeConfigurer` 自动完成 React Router hooks runtime 接线。
+`Provider` 提供 factory 绑定的 store，并自动完成 runtime 接线。
 
-它不负责自动寻找 Router，也不直接订阅 router instance。
+未传入 `router` 时，Provider 通过内部 `RuntimeConfigurer` 使用 React Router hooks runtime 接线。
 
-Data Router 的 `router.subscribe` 接入属于后续能力。
+传入 `router` 时，Provider 使用 router instance runtime 接线。
+
+Provider 不负责自动寻找 Router。
+
+开发者必须显式传入 router instance。
