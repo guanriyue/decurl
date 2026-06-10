@@ -7,22 +7,19 @@ import { useContextStore } from './SearchStateContext';
 import { useSearchStateSelector } from './selector';
 import { useConfigureRuntime } from './useConfigureRuntime';
 
-export type SetSearchState<TDefinition extends RecordCodec> = (
+export type SetSearchValues<TDefinition extends RecordCodec> = (
   patch: SearchPatch<TDefinition>,
   options?: SearchNavigateOptions,
 ) => void;
 
-export type UseSearchStateResult<TDefinition extends RecordCodec> = [
+export type UseSearchValuesResult<TDefinition extends RecordCodec> = [
   values: InferFieldValues<TDefinition>,
-  setValues: (
-    patch: SearchPatch<TDefinition>,
-    options?: SearchNavigateOptions,
-  ) => void,
+  setValues: SetSearchValues<TDefinition>,
 ];
 
-export const useSearchState = <TDefinition extends RecordCodec>(
+export const useSearchValues = <TDefinition extends RecordCodec>(
   schema: TDefinition,
-): UseSearchStateResult<TDefinition> => {
+): UseSearchValuesResult<TDefinition> => {
   useConfigureRuntime();
 
   const store = useContextStore();
@@ -38,7 +35,7 @@ export const useSearchState = <TDefinition extends RecordCodec>(
     getValuesSnapshot,
     getValuesSnapshot,
   );
-  const setValues = useCallback<SetSearchState<TDefinition>>(
+  const setValues = useCallback<SetSearchValues<TDefinition>>(
     (patch, options) => {
       store.addEntry({
         apply: (searchParams) => {

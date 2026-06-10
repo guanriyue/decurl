@@ -10,8 +10,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createSearchStore } from '../store/searchStore';
 import type { SearchStore } from '../store/types';
 import { SearchStateContext } from './SearchStateContext';
-import type { SetSearchState } from './useSearchState';
-import { useSearchState } from './useSearchState';
+import type { SetSearchValues } from './useSearchValues';
+import { useSearchValues } from './useSearchValues';
 
 const paginationSchema = {
   page: {
@@ -31,7 +31,7 @@ const keywordSchema = {
   },
 } satisfies Record<string, FieldCodec>;
 
-describe('useSearchState', () => {
+describe('useSearchValues', () => {
   afterEach(() => {
     cleanup();
     vi.clearAllTimers();
@@ -48,7 +48,7 @@ describe('useSearchState', () => {
 
   it('updates values optimistically before URL flush', () => {
     vi.useFakeTimers();
-    let setPagination: SetSearchState<typeof paginationSchema> | undefined;
+    let setPagination: SetSearchValues<typeof paginationSchema> | undefined;
 
     renderWithRouter(
       createElement(PaginationView, {
@@ -70,7 +70,7 @@ describe('useSearchState', () => {
 
   it('flushes optimistic values to React Router location', () => {
     vi.useFakeTimers();
-    let setPagination: SetSearchState<typeof paginationSchema> | undefined;
+    let setPagination: SetSearchValues<typeof paginationSchema> | undefined;
 
     renderWithRouter(
       createElement(
@@ -107,7 +107,7 @@ describe('useSearchState', () => {
 
   it('does not rerender a hook when unrelated selected values are unchanged', () => {
     vi.useFakeTimers();
-    let setKeyword: SetSearchState<typeof keywordSchema> | undefined;
+    let setKeyword: SetSearchValues<typeof keywordSchema> | undefined;
     let paginationRenderCount = 0;
 
     renderWithRouter(
@@ -140,7 +140,7 @@ describe('useSearchState', () => {
 });
 
 type PaginationViewProps = {
-  onReady?: (setValues: SetSearchState<typeof paginationSchema>) => void;
+  onReady?: (setValues: SetSearchValues<typeof paginationSchema>) => void;
   onRender?: () => void;
 };
 
@@ -148,7 +148,7 @@ const PaginationView = ({
   onReady,
   onRender,
 }: PaginationViewProps): React.ReactElement => {
-  const [values, setValues] = useSearchState(paginationSchema);
+  const [values, setValues] = useSearchValues(paginationSchema);
   onReady?.(setValues);
   onRender?.();
 
@@ -160,11 +160,11 @@ const PaginationView = ({
 };
 
 type KeywordViewProps = {
-  onReady?: (setValues: SetSearchState<typeof keywordSchema>) => void;
+  onReady?: (setValues: SetSearchValues<typeof keywordSchema>) => void;
 };
 
 const KeywordView = ({ onReady }: KeywordViewProps): React.ReactElement => {
-  const [values, setValues] = useSearchState(keywordSchema);
+  const [values, setValues] = useSearchValues(keywordSchema);
   onReady?.(setValues);
 
   return createElement(
@@ -209,4 +209,3 @@ const renderWithRouter = (
     ),
   );
 };
-
