@@ -1,4 +1,5 @@
 import type { FieldCodec } from '@decurl/core/codec';
+import { decodeFields, encodeFields } from '@decurl/core/codec';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type {
   SearchLocation,
@@ -6,6 +7,7 @@ import type {
   SearchRuntime,
 } from '../runtime/types';
 import { createSearchStore } from './searchStore';
+import type { SearchPatch, SearchStore } from './types';
 
 describe('createSearchStore', () => {
   const schema = {
@@ -100,7 +102,7 @@ describe('createSearchStore', () => {
     const listener = vi.fn();
     store.subscribe(listener);
 
-    store.setValues(schema, { keyword: 'decurl' });
+    addValues(store, schema, { keyword: 'decurl' });
 
     expect(store.getSnapshot().location).toEqual(
       location('/users', 'page=1&pageSize=20&q=decurl'),
@@ -113,10 +115,10 @@ describe('createSearchStore', () => {
       initialLocation: location('/users', 'page=1'),
     });
 
-    store.setValues(schema, (previousValues) => ({
+    addValues(store, schema, (previousValues) => ({
       page: previousValues.page + 1,
     }));
-    store.setValues(schema, (previousValues) => ({
+    addValues(store, schema, (previousValues) => ({
       page: previousValues.page + 1,
     }));
 
@@ -130,8 +132,8 @@ describe('createSearchStore', () => {
     });
     store.configureRuntime(runtime(navigate));
 
-    store.setValues(schema, { page: 2 }, { replace: false });
-    store.setValues(schema, { keyword: 'decurl' }, { preventScrollReset: true });
+    addValues(store, schema, { page: 2 }, { replace: false });
+    addValues(store, schema, { keyword: 'decurl' }, { preventScrollReset: true });
     store.flush();
 
     expect(navigate).toHaveBeenCalledWith(
@@ -151,7 +153,7 @@ describe('createSearchStore', () => {
     });
     store.configureRuntime(runtime(navigate));
 
-    store.setValues(schema, { page: 2 });
+    addValues(store, schema, { page: 2 });
 
     expect(navigate).not.toHaveBeenCalled();
 
@@ -172,9 +174,9 @@ describe('createSearchStore', () => {
     });
     store.configureRuntime(runtime(navigate));
 
-    store.setValues(schema, { page: 2 });
+    addValues(store, schema, { page: 2 });
     vi.advanceTimersByTime(50);
-    store.setValues(schema, { keyword: 'decurl' });
+    addValues(store, schema, { keyword: 'decurl' });
     vi.advanceTimersByTime(49);
 
     expect(navigate).not.toHaveBeenCalled();
@@ -197,9 +199,9 @@ describe('createSearchStore', () => {
     });
     store.configureRuntime(runtime(navigate));
 
-    store.setValues(schema, { page: 2 });
+    addValues(store, schema, { page: 2 });
     vi.advanceTimersByTime(50);
-    store.setValues(schema, { keyword: 'decurl' });
+    addValues(store, schema, { keyword: 'decurl' });
     vi.advanceTimersByTime(99);
 
     expect(navigate).not.toHaveBeenCalled();
@@ -222,8 +224,8 @@ describe('createSearchStore', () => {
     });
     store.configureRuntime(runtime(navigate));
 
-    store.setValues(schema, { page: 2 });
-    store.setValues(schema, { keyword: 'decurl' });
+    addValues(store, schema, { page: 2 });
+    addValues(store, schema, { keyword: 'decurl' });
 
     expect(navigate).not.toHaveBeenCalled();
 
@@ -246,7 +248,7 @@ describe('createSearchStore', () => {
     });
     store.configureRuntime(runtime(navigate));
 
-    store.setValues(schema, { page: 2 });
+    addValues(store, schema, { page: 2 });
     store.locationChanged(location('/users/1', 'tab=profile'));
     vi.advanceTimersByTime(100);
 
@@ -263,7 +265,7 @@ describe('createSearchStore', () => {
     });
     store.configureRuntime(runtime(navigate));
 
-    store.setValues(schema, { page: 2 });
+    addValues(store, schema, { page: 2 });
     store.flush();
     store.flush();
 
@@ -278,7 +280,7 @@ describe('createSearchStore', () => {
     });
     store.configureRuntime(runtime(navigate));
 
-    store.setValues(schema, { page: 2 });
+    addValues(store, schema, { page: 2 });
     store.flush();
     vi.advanceTimersByTime(100);
 
@@ -294,7 +296,7 @@ describe('createSearchStore', () => {
     const listener = vi.fn();
     store.subscribe(listener);
 
-    store.setValues(schema, { page: 2 });
+    addValues(store, schema, { page: 2 });
     listener.mockClear();
     store.flush();
     store.locationChanged(location('/users', 'page=2'));
@@ -309,8 +311,8 @@ describe('createSearchStore', () => {
     });
     store.configureRuntime(runtime(navigate));
 
-    store.setValues(schema, { page: 2 }, { replace: false });
-    store.setValues(schema, { keyword: 'decurl' });
+    addValues(store, schema, { page: 2 }, { replace: false });
+    addValues(store, schema, { keyword: 'decurl' });
     store.flush();
 
     expect(navigate).toHaveBeenCalledWith(
@@ -328,9 +330,9 @@ describe('createSearchStore', () => {
     });
     store.configureRuntime(runtime(navigate));
 
-    store.setValues(schema, { page: 3 });
+    addValues(store, schema, { page: 3 });
     store.flush();
-    store.setValues(schema, { page: 4 });
+    addValues(store, schema, { page: 4 });
     store.locationChanged(location('/users', 'page=3'));
 
     expect(store.getSnapshot().location).toEqual(location('/users', 'page=4'));
@@ -341,7 +343,7 @@ describe('createSearchStore', () => {
       initialLocation: location('/users', 'page=1'),
     });
 
-    store.setValues(schema, { page: 2 });
+    addValues(store, schema, { page: 2 });
     store.locationChanged(location('/users/1', 'tab=profile'));
 
     expect(store.getSnapshot().location).toEqual(
@@ -364,6 +366,24 @@ describe('createSearchStore', () => {
 
 const location = (pathname: string, search: string): SearchLocation => {
   return { pathname, search };
+};
+
+const addValues = <TDefinition extends Record<string, FieldCodec>>(
+  store: SearchStore,
+  schema: TDefinition,
+  patch: SearchPatch<TDefinition>,
+  options?: SearchNavigateOptions,
+): void => {
+  store.addEntry({
+    apply: (searchParams) => {
+      const previousValues = decodeFields(schema, searchParams);
+      const nextPatch =
+        typeof patch === 'function' ? patch(previousValues) : patch;
+
+      return encodeFields(schema, nextPatch, { base: searchParams });
+    },
+    options,
+  });
 };
 
 const runtime = (

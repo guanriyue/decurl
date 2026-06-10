@@ -13,8 +13,8 @@ import type {
 /**
  * 某个 search schema 对应的 decoded values 局部 patch。
  *
- * 对象 patch 会被直接应用。updater patch 会在 store replay 时重新执行，
- * 并使用 entry 自己的 schema 从中间 search string 中 decode 出 previous values。
+ * 对象 patch 会被直接应用。updater patch 应在 entry.apply replay 时重新执行，
+ * 并从中间 search string 中 decode 出 previous values。
  */
 export type SearchPatch<TDefinition extends RecordCodec> =
   | EncodeFieldsValues<TDefinition>
@@ -23,9 +23,35 @@ export type SearchPatch<TDefinition extends RecordCodec> =
     ) => EncodeFieldsValues<TDefinition>);
 
 /**
+ * Pending entry 在 replay 阶段执行的 search 转换函数。
+ *
+ * apply 必须被视为纯函数：相同的输入 search params 应得到相同的输出。
+ * Store 不关心 apply 内部使用 schema、field codec，还是其他写入策略。
+ */
+export type SearchEntryApply = (
+  searchParams: URLSearchParams,
+) => URLSearchParams;
+
+/**
+ * 添加 pending entry 时需要提供的行为描述。
+ */
+export type AddSearchEntryOptions = {
+  /** 将当前中间 search params 转换为下一份 search params。 */
+  apply: SearchEntryApply;
+
+  /**
+   * 随 entry 一起提交的可选 navigate options。
+   *
+   * Flush 时，只有被消费 entries 中最后一个 entry 的显式 options 会与默认
+   * navigate options 合并。
+   */
+  options?: SearchNavigateOptions;
+};
+
+/**
  * 已经影响 optimistic state，但尚未一定持久化到 router 的 pending mutation。
  */
-export type PendingEntry<TDefinition extends RecordCodec = RecordCodec> = {
+export type PendingEntry = {
   /** Store 分配的单调递增 id，用于调试和排序。 */
   id: number;
 
@@ -37,13 +63,8 @@ export type PendingEntry<TDefinition extends RecordCodec = RecordCodec> = {
    */
   baseLocation: SearchLocation;
 
-  /**
-   * Replay 时用于 decode updater previous values 和 encode patch 的 schema。
-   */
-  schema: TDefinition;
-
-  /** Hook 提交的 patch。 */
-  patch: SearchPatch<TDefinition>;
+  /** Replay 阶段执行的 search 转换函数。 */
+  apply: SearchEntryApply;
 
   /**
    * 随 entry 一起提交的可选 navigate options。
@@ -108,14 +129,8 @@ export type SearchStore = {
    */
   locationChanged: (location: SearchLocationLike) => void;
 
-  /**
-   * 添加 pending patch entry，并立即更新 optimistic state。
-   */
-  setValues: <TDefinition extends RecordCodec>(
-    schema: TDefinition,
-    patch: SearchPatch<TDefinition>,
-    options?: SearchNavigateOptions,
-  ) => void;
+  /** 添加 pending entry，并立即更新 optimistic state。 */
+  addEntry: (entry: AddSearchEntryOptions) => void;
 
   /**
    * 通过已配置的 runtime 持久化当前 optimistic location。

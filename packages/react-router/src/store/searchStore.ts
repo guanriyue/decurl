@@ -1,4 +1,3 @@
-import type { RecordCodec } from '@decurl/core/codec';
 import { toSearchLocation } from '../runtime/search';
 import type { SearchLocation, SearchRuntime } from '../runtime/types';
 import {
@@ -167,14 +166,13 @@ export const createSearchStore = (
       };
       notify();
     },
-    setValues: (schema, patch, entryOptions) => {
+    addEntry: (entryOptions) => {
       const baseLocation = state.inflightFlush ?? state.confirmedLocation;
-      const entry: PendingEntry<RecordCodec> = {
+      const entry: PendingEntry = {
         id: ++nextEntryId,
         baseLocation,
-        schema,
-        patch,
-        options: entryOptions,
+        apply: entryOptions.apply,
+        options: entryOptions.options,
       };
 
       state = {

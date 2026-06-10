@@ -45,9 +45,7 @@ const createEntry = (
   return {
     id: 1,
     baseLocation,
-    schema: {},
-    patch: {},
+    apply: (searchParams) => searchParams,
     options,
   };
 };
-

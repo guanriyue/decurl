@@ -1,5 +1,5 @@
 import type { InferFieldValues, RecordCodec } from '@decurl/core/codec';
-import { decodeFields } from '@decurl/core/codec';
+import { decodeFields, encodeFields } from '@decurl/core/codec';
 import { useCallback, useSyncExternalStore } from 'react';
 import type { SearchNavigateOptions } from '../runtime/types';
 import type { SearchPatch } from '../store/types';
@@ -40,7 +40,16 @@ export const useSearchState = <TDefinition extends RecordCodec>(
   );
   const setValues = useCallback<SetSearchState<TDefinition>>(
     (patch, options) => {
-      store.setValues(schema, patch, options);
+      store.addEntry({
+        apply: (searchParams) => {
+          const previousValues = decodeFields(schema, searchParams);
+          const nextPatch =
+            typeof patch === 'function' ? patch(previousValues) : patch;
+
+          return encodeFields(schema, nextPatch, { base: searchParams });
+        },
+        options,
+      });
     },
     [schema, store],
   );

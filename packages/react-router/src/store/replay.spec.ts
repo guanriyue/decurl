@@ -1,8 +1,9 @@
 import type { FieldCodec } from '@decurl/core/codec';
+import { decodeFields, encodeFields } from '@decurl/core/codec';
 import { describe, expect, it } from 'vitest';
 import type { SearchLocation } from '../runtime/types';
 import { replay } from './replay';
-import type { PendingEntry } from './types';
+import type { PendingEntry, SearchPatch } from './types';
 
 describe('replay', () => {
   const base: SearchLocation = {
@@ -97,15 +98,20 @@ describe('replay', () => {
 
 const createEntry = <TDefinition extends Record<string, FieldCodec>>(
   schema: TDefinition,
-  patch: PendingEntry<TDefinition>['patch'],
-): PendingEntry<TDefinition> => {
+  patch: SearchPatch<TDefinition>,
+): PendingEntry => {
   return {
     id: 1,
     baseLocation: {
       pathname: '/users',
       search: 'page=1&pageSize=20',
     },
-    schema,
-    patch,
+    apply: (searchParams) => {
+      const previousValues = decodeFields(schema, searchParams);
+      const nextPatch =
+        typeof patch === 'function' ? patch(previousValues) : patch;
+
+      return encodeFields(schema, nextPatch, { base: searchParams });
+    },
   };
 };
