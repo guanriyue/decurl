@@ -20,8 +20,8 @@ export type EncodeFieldOptions = {
 };
 
 export const decodeField = <TCodec extends FieldCodec>(
-  codec: TCodec,
   searchParams: URLSearchParams,
+  codec: TCodec,
   key: string | readonly string[],
 ): InferFieldValue<TCodec> => {
   const keys = typeof key === 'string' ? [key] : key;
@@ -85,22 +85,22 @@ export const encodeFieldValue = <TCodec extends FieldCodec>(
 };
 
 export const encodeField = <TCodec extends FieldCodec>(
-  codec: TCodec,
-  value: InferFieldValue<TCodec> | null | undefined,
   searchParams: URLSearchParams,
+  codec: TCodec,
   key: string | readonly string[],
+  value: InferFieldValue<TCodec> | null | undefined,
   options: EncodeFieldOptions = {},
 ): URLSearchParams => {
   const nextSearchParams = new URLSearchParams(searchParams);
 
-  return encodeFieldInternal(codec, value, nextSearchParams, key, options);
+  return encodeFieldInternal(nextSearchParams, codec, key, value, options);
 };
 
 export const encodeFieldInternal = <TCodec extends FieldCodec>(
-  codec: TCodec,
-  value: InferFieldValue<TCodec> | null | undefined,
   searchParams: URLSearchParams,
+  codec: TCodec,
   key: string | readonly string[],
+  value: InferFieldValue<TCodec> | null | undefined,
   options: EncodeFieldOptions = {},
 ): URLSearchParams => {
   const keys = typeof key === 'string' ? [key] : key;

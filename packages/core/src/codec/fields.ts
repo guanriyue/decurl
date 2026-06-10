@@ -20,7 +20,7 @@ export const decodeFields = <TDefinition extends RecordCodec>(
   return Object.fromEntries(
     Object.entries(definition).map(([key, codec]) => [
       key,
-      decodeField(codec, searchParams, getFieldNames(codec, key)),
+      decodeField(searchParams, codec, getFieldNames(codec, key)),
     ]),
   ) as InferFieldValues<TDefinition>;
 };
@@ -40,7 +40,7 @@ export const encodeFields = <TDefinition extends RecordCodec>(
     const searchKeys = getFieldNames(codec, key);
     const value = values[key as keyof EncodeFieldsValues<TDefinition>];
 
-    encodeFieldInternal(codec, value, searchParams, searchKeys, {
+    encodeFieldInternal(searchParams, codec, searchKeys, value, {
       preserveDefault: options.preserveDefault,
     });
   }

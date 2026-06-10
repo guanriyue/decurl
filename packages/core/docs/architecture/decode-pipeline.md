@@ -26,9 +26,9 @@ record 层负责把 schema key 和 `codec.name` 映射到最终 URLSearchParams 
 
 ## Key 解析边界
 
-`decodeField(codec, searchParams, key)` 要求 key 已经明确。
+`decodeField(searchParams, codec, key)` 要求 key 已经明确。
 
-`encodeField(codec, value, searchParams, key, options)` 同样要求 key 已经明确。它负责字段级 URLSearchParams 写入，返回新的 URLSearchParams，不修改传入对象。
+`encodeField(searchParams, codec, key, value, options)` 同样要求 key 已经明确。它负责字段级 URLSearchParams 写入，返回新的 URLSearchParams，不修改传入对象。
 
 `encodeFieldValue(codec, value)` 只负责把业务值转换为可写入 URLSearchParams 的字符串值，不负责删除 key、处理 alias、处理 default value 或写入 URLSearchParams。
 
