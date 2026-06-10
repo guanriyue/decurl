@@ -240,7 +240,7 @@ describe('encodeField', () => {
 
     const searchParams = encodeField(base, codec, 'page', 2);
 
-    expect(searchParams.toString()).toBe('sort=desc&page=2');
+    expect(searchParams.toString()).toBe('page=2&sort=desc');
     expect(base.toString()).toBe('page=1&sort=desc');
   });
 
@@ -271,7 +271,7 @@ describe('encodeField', () => {
       3,
     );
 
-    expect(searchParams.toString()).toBe('sort=desc&page_num=3');
+    expect(searchParams.toString()).toBe('page_num=3&sort=desc');
   });
 
   it('deletes a field when encoded value is undefined', () => {
@@ -339,7 +339,7 @@ describe('encodeFieldInternal', () => {
     );
 
     expect(nextSearchParams).toBe(searchParams);
-    expect(searchParams.toString()).toBe('sort=desc&page=2');
+    expect(searchParams.toString()).toBe('page=2&sort=desc');
   });
 });
 

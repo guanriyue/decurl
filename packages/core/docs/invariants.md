@@ -16,7 +16,9 @@
 
 Schema 级 encoder 会忽略未知 field。
 
-如果 field 配置了多个 name，schema 级 encoder 在处理该 field 时应删除所有 alias key，并只写入 canonical key。
+如果 field 配置了多个 name，schema 级 encoder 在处理该 field 后应只保留 canonical key，不保留 legacy alias。
+
+写入 single field 且 canonical key 已经存在时，应保留 canonical key 的原始顺序位置。写入 multi field 时，应删除所有候选 key，再按顺序追加 canonical key。
 
 如果 patch 未显式包含该 field，schema 级 encoder 不应改动 base 中的 alias key。
 

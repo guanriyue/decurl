@@ -126,18 +126,24 @@ export const encodeFieldInternal = <TCodec extends FieldCodec>(
 
   const encoded = encodeFieldValue(codec, value);
 
-  deleteSearchKeys(searchParams, keys);
-
   if (isUndefined(encoded)) {
+    deleteSearchKeys(searchParams, keys);
     return searchParams;
   }
 
-  if (Array.isArray(encoded)) {
+  if (isMultiFieldCodec(codec)) {
+    deleteSearchKeys(searchParams, keys);
+
+    if (!Array.isArray(encoded)) {
+      return searchParams;
+    }
+
     for (const item of encoded) {
       searchParams.append(canonicalKey, item);
     }
   } else {
-    searchParams.set(canonicalKey, encoded);
+    searchParams.set(canonicalKey, encoded as string);
+    deleteSearchKeys(searchParams, keys.slice(1));
   }
 
   return searchParams;

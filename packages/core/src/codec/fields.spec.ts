@@ -161,6 +161,22 @@ describe('encodeFields', () => {
     expect(searchParams.toString()).toBe('page=2&sort=desc&keyword=decurl');
   });
 
+  it('keeps the canonical key position when updating a single field', () => {
+    const definition = {
+      page: {
+        decode: (input) => Number(input),
+      },
+    } satisfies Record<string, FieldCodec>;
+
+    const searchParams = encodeFields(
+      definition,
+      { page: 2 },
+      { base: 'page=1&pageSize=10' },
+    );
+
+    expect(searchParams.toString()).toBe('page=2&pageSize=10');
+  });
+
   it('ignores keys outside the definition', () => {
     const definition = {
       page: {
@@ -260,7 +276,7 @@ describe('encodeFields', () => {
       { base: 'page_num=1&p=2&sort=desc' },
     );
 
-    expect(searchParams.toString()).toBe('sort=desc&page_num=3');
+    expect(searchParams.toString()).toBe('page_num=3&sort=desc');
   });
 
   it('keeps aliases in base when the field is omitted from the patch', () => {
