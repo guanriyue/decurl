@@ -1,18 +1,18 @@
 # Search State Store 状态机
 
-本文档用于记录 `useSearchState` 背后的 store 状态机设计。
+本文档用于记录 `useSearchValues` / `useSearchValue` 背后的 store 状态机设计。
 
 ## 核心原则
 
 每次 pending entry 都应被视为已经同步生效。
 
-这里的同步与 React `setState` 的时间机制类似：调用 `setValues` 后，业务读取到的 decoded data 必须立即反映这次更新。
+这里的同步与 React `setState` 的时间机制类似：调用 hook setter 后，业务读取到的 decoded data 必须立即反映这次更新。
 
 URL 写入是异步持久化。它可以延迟 flush，也可以等待 React Router 完成 location 同步。
 
 因此状态机的核心职责是保证时序正确：
 
-- `setValues` 立即改变 optimistic state。
+- hook setter 立即改变 optimistic state。
 - flush 只是把 optimistic state 持久化到 React Router。
 - React Router 后续发出的 location change 需要判断来源。
 - 如果 location change 来自 decurl 自己的 flush，则视为持久化确认。
@@ -74,20 +74,19 @@ optimisticLocation
 
 `optimisticLocation` 是业务当前应看到的 location。
 
-`useSearchState` decode 的永远是 `optimisticLocation.search`，而不是直接读取 React Router location。
+search hooks decode 的永远是 `optimisticLocation.search`，而不是直接读取 React Router location。
 
 ### pendingEntries
 
 `pendingEntries` 是已经同步生效，但尚未被 flush 持久化的变更。
 
-每个 entry 至少绑定创建时的上下文：
+每个 entry 至少绑定创建时的上下文和 search 转换函数：
 
 ```ts
-type PendingEntry<TDefinition extends RecordCodec = RecordCodec> = {
+type PendingEntry = {
   id: number
   baseLocation: SearchLocation
-  schema: TDefinition
-  patch: SearchPatch<TDefinition>
+  apply: (searchParams: URLSearchParams) => URLSearchParams
   options?: SearchNavigateOptions
 }
 ```
@@ -136,11 +135,11 @@ const optimisticLocation = replay(visibleBase, pendingEntries)
 
 Public setter 语义由 [Search State Hook 目标](search-state-hook.md) 定义。
 
-Store 接收的是已经绑定 schema 和创建上下文的 pending entry。
+Store 接收的是已经绑定创建上下文和 `apply` 函数的 pending entry。
 
-entry 的 patch 可以是普通 patch，也可以是 updater。
+Store 不关心 entry 来自 `useSearchValues`、`useSearchValue`，还是后续其他写入形态。
 
-Store replay 时可以重新执行 updater。
+如果 hook setter 接收的是 updater，updater 应封装在 entry 的 `apply` 中，并在 replay 时重新执行。
 
 entry 可以携带 navigate options。
 
@@ -149,21 +148,15 @@ entry 可以携带 navigate options。
 Replay 从 base location 开始，按顺序应用 pending entries。
 
 ```ts
-let search = base.search
+let search = new URLSearchParams(base.search)
 
 for (const entry of pendingEntries) {
-  const prev = decodeFields(entry.schema, new URLSearchParams(search))
-  const patch =
-    typeof entry.patch === 'function'
-      ? entry.patch(prev)
-      : entry.patch
-
-  search = encodeFields(entry.schema, patch, { base: search }).toString()
+  search = entry.apply(search)
 }
 
 return {
   pathname: base.pathname,
-  search,
+  search: search.toString(),
 }
 ```
 
@@ -171,15 +164,17 @@ Replay 必须保持顺序。
 
 后续 entry 不应覆盖它没有声明的字段。
 
-不同 schema 的 hook 可以共同作用于同一个 search string，因为每个 entry 携带自己的 schema。
+不同写入形态可以共同作用于同一个 search string，因为每个 entry 自己决定如何 apply。
 
-## setValues
+## addEntry
 
-`setValues` 的状态转移：
+Hook setter 最终会转换为 `store.addEntry`。
+
+`addEntry` 的状态转移：
 
 ```txt
 base = inflightFlush ?? confirmedLocation
-entry = createEntry(base, schema, patch, options)
+entry = createEntry(base, apply, options)
 pendingEntries.push(entry)
 optimisticLocation = replay(base, pendingEntries)
 notify subscribers

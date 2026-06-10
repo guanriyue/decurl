@@ -19,3 +19,4 @@
 - [Runtime 边界](architecture/runtime-boundary.md)
 - [React Bridge](architecture/react-bridge.md)
 - [Provider 边界](architecture/provider.md)
+- [配置化 Runtime 优化入口](architecture/configured-runtime.md)

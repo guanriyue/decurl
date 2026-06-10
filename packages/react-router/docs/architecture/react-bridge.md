@@ -122,7 +122,9 @@ Hook 不判断 location change 来源。
 
 ## Selector
 
-`useSearchState(schema)` 返回 decoded data。
+`useSearchValues(schema)` 返回 decoded data 对象。
+
+`useSearchValue(namedFieldCodec)` 返回单个 decoded field value。
 
 Hook 不应只依赖 `useMemo` 来保证 `values` 引用稳定。
 
@@ -202,7 +204,16 @@ Updater 必须交给 store，在 pending replay 时基于当时的 intermediate 
 
 ```ts
 const setValues = useCallback((patch, options) => {
-  store.setValues(schema, patch, options)
+  store.addEntry({
+    apply: (searchParams) => {
+      const previousValues = decodeFields(schema, searchParams)
+      const nextPatch =
+        typeof patch === 'function' ? patch(previousValues) : patch
+
+      return encodeFields(schema, nextPatch, { base: searchParams })
+    },
+    options,
+  })
 }, [schema])
 ```
 

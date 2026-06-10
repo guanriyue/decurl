@@ -4,10 +4,10 @@
 
 ## Public API
 
-P0 hook 形态：
+P0 多字段 hook 形态：
 
 ```ts
-const [values, setValues] = useSearchState(schema)
+const [values, setValues] = useSearchValues(schema)
 ```
 
 返回值采用 tuple，贴近 React `useState` 的使用心智。
@@ -33,6 +33,18 @@ Navigate options 支持作为 `setValues` 的第二参数。
 
 P0 默认采用 `replace: true`。
 
+P0 单字段 hook 形态：
+
+```ts
+const [value, setValue] = useSearchValue(namedFieldCodec)
+```
+
+`useSearchValue` 只接收 `NamedFieldCodec`。
+
+单字段场景没有 schema prop key，因此 URL key 必须由 `codec.name` 明确提供。
+
+`setValue(null)` 和 `setValue(undefined)` 表示删除该 field 对应的 search 参数。
+
 ## Decoded Data First
 
 业务开发者优先面对 decoded data。
@@ -43,7 +55,7 @@ P0 默认采用 `replace: true`。
 
 ## Core Codec Semantics
 
-`useSearchState` 的 encode/decode 行为应遵守 `@decurl/core/codec` 语义。
+`useSearchValues` 和 `useSearchValue` 的 encode/decode 行为应遵守 `@decurl/core/codec` 语义。
 
 react-router 不重新定义 codec 行为。
 

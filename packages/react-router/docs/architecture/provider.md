@@ -2,22 +2,30 @@
 
 本文档用于记录 Provider 的边界。
 
-Provider 不进入 P0。
+默认入口不提供 Provider。
 
 P0 默认使用 singleton store 和 React Router hooks runtime。
 
+配置化优化入口可以通过 `@decurl/react-router/configured` 创建绑定 store 的
+`Provider`。该 Provider 负责提供 factory 创建的 store，并自动通过 React Router
+hooks runtime 完成接线。
+
+Provider 解决多实例 store 问题。
+
+RuntimeConfigurer 解决显式接线问题。
+
+使用 Provider 时，不需要再额外渲染 RuntimeConfigurer。
+
 ## 非目标
 
-P0 不实现：
+默认入口不实现：
 
-- Provider 组件。
 - Provider 注入默认配置。
-- Provider 注入 runtime。
 - 多实例 store。
 - 微前端隔离。
 - 基于 router instance 的直接订阅。
 
-这些能力属于后续高级形态。
+这些能力属于后续高级形态，或由 configured subpath 中的 factory 显式创建。
 
 ## 后续边界
 
