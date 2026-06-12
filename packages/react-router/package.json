@@ -14,6 +14,14 @@
     "./configured": {
       "types": "./src/configured.tsx",
       "default": "./src/configured.tsx"
+    },
+    "./codec": {
+      "types": "./src/codec.ts",
+      "default": "./src/codec.ts"
+    },
+    "./decode": {
+      "types": "./src/decode.ts",
+      "default": "./src/decode.ts"
     }
   },
   "scripts": {
@@ -24,7 +32,25 @@
   "license": "MIT",
   "publishConfig": {
     "main": "./dist/index.js",
-    "types": "./dist/index.d.ts"
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./configured": {
+        "types": "./dist/configured.d.ts",
+        "default": "./dist/configured.js"
+      },
+      "./codec": {
+        "types": "./dist/codec.d.ts",
+        "default": "./dist/codec.js"
+      },
+      "./decode": {
+        "types": "./dist/decode.d.ts",
+        "default": "./dist/decode.js"
+      }
+    }
   },
   "dependencies": {
     "@decurl/core": "workspace:*"

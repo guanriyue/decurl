@@ -1,0 +1,23 @@
+export type {
+  DefinedFieldName,
+  DefinedFields,
+  DefineFieldsOptions,
+  FieldCodec,
+  FieldCodecOf,
+  FieldMode,
+  FieldName,
+  FieldsCodec,
+  InferFieldValue,
+  InferFieldValues,
+  MultiOptionalFieldCodec,
+  MultiRequiredFieldCodec,
+  NamedFieldCodec,
+  OptionalFieldCodec,
+  OptionalFieldCodecOf,
+  RecordCodec,
+  RequiredFieldCodec,
+  RequiredFieldCodecOf,
+  SingleOptionalFieldCodec,
+  SingleRequiredFieldCodec,
+} from '@decurl/core/codec';
+export { defineFields, field } from '@decurl/core/codec';
