@@ -8,7 +8,7 @@ import type {
 } from '@decurl/core/codec';
 import { act, cleanup, render, screen } from '@testing-library/react';
 import { createElement } from 'react';
-import { MemoryRouter, useLocation } from 'react-router-dom';
+import { MemoryRouter, useLocation } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createSearchStore } from '../store/searchStore';
 import type { SearchStore } from '../store/types';

@@ -12,7 +12,7 @@ import {
   MemoryRouter,
   RouterProvider,
   useLocation,
-} from 'react-router-dom';
+} from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ReactRouterSearch } from './configured';
 import { createReactRouterSearch } from './configured';

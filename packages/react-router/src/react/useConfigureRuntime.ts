@@ -1,5 +1,5 @@
 import { useLayoutEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import { toNavigateSearch } from '../runtime/search';
 import type { SearchStore } from '../store/types';
 import { useContextStore } from './SearchStateContext';
