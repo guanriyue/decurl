@@ -1,0 +1,12 @@
+[
+  {
+    "type": "file",
+    "name": "overview",
+    "label": "集成概览"
+  },
+  {
+    "type": "file",
+    "name": "optimistic-url-state",
+    "label": "乐观 URL 状态"
+  }
+]

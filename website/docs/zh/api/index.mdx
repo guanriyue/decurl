@@ -1,7 +1,32 @@
 ---
 title: API 概览
-description: Rspress 入门模板 API 区域和可用参考页面的概览。
+description: Decurl API 以 @decurl/react-router 为主入口，并通过 conditional exports 暴露 codec、decode 和 configured hooks。
 overview: true
 ---
 
-这是一个 API 概览页面，用于列出所有可用 API。
+# API 概览
+
+Decurl 面向应用开发者的 API 以 `@decurl/react-router` 为主入口。
+
+除了默认入口，`@decurl/react-router` 还通过 conditional exports 暴露 `configured`、`codec` 和 `decode` 子入口。
+
+## 入口
+
+| 包 | 入口 | 用途 |
+| --- | --- | --- |
+| `@decurl/react-router` | `@decurl/react-router` | 未绑定 store 的 hooks |
+| `@decurl/react-router` | `@decurl/react-router/configured` | 推荐入口，创建绑定 store 的 hooks 与 Provider |
+| `@decurl/react-router` | `@decurl/react-router/codec` | field、schema、URLSearchParams codec |
+| `@decurl/react-router` | `@decurl/react-router/decode` | decode primitive 与组合工具 |
+
+## 推荐阅读顺序
+
+1. 先读 [快速开始](/zh/guide/start/getting-started)。
+2. 再读 [Decode pipeline](/zh/guide/codec/decode-pipeline)。
+3. 然后读 [Schema 与 codec](/zh/guide/codec/schema-codec)。
+4. React Router 用户继续读 [集成概览](/zh/guide/react-router/overview)。
+
+## Reference
+
+- [Codec 与 decode](./codec)
+- [@decurl/react-router](./react-router)

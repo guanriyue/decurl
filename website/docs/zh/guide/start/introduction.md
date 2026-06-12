@@ -1,19 +1,59 @@
 ---
-description: 介绍 Rspress 的构建性能、AI 原生输出、MDX 支持、基础能力和扩展机制。
+description: Decurl 是面向 URLSearchParams 的类型安全状态管理库，强调显式 decode、schema 类型推导和 router 集成。
 ---
 
-# 介绍
+# Decurl 是什么
 
-Rspress 是一个基于 [Rsbuild](https://rsbuild.rs/) 的静态站点生成器，使用 React 框架渲染。它内置默认文档主题，你可以用 Rspress 快速构建文档站点。
+Decurl 是一个专注 `URLSearchParams` 场景的类型安全状态管理库。
 
-## 为什么选择 Rspress
+它解决的问题很窄：把 URL query string 里的原始值解析成可用的业务状态，并把业务状态按确定的规则写回 URL。
 
-- **构建性能**。核心编译模块基于 Rust 前端工具链，提供毫秒级启动和更极致的开发体验。
-- **AI 原生**。技术文档不仅服务人类读者，也可以通过 SSG-MD 更好地被 AI 理解和使用。
-- **MDX 支持**。MDX 是一种强大的内容编写方式，可以在 Markdown 中使用 React 组件。
-- **基础能力**。包括全文搜索、国际化、多版本支持、组件库文档等。
-- **可扩展性**。提供内置插件系统，支持通过插件 API 扩展 Rspress。
+```txt
+string | string[] | null -> typed value
+```
 
-## 试用 Rspress
+这听起来像 validation，但 Decurl 不想成为通用校验库。它更关心 URL 场景里的几个长期问题：
 
-前往 [快速开始](/guide/start/getting-started) 了解如何使用 Rspress 构建文档站点。
+- URL 中所有值一开始都是字符串、字符串数组或缺失值。
+- query 参数经常需要默认值、别名、数组、多值字段和兼容旧链接。
+- 前端状态更新通常是 patch，而不是完整替换整个 search object。
+- router 集成需要在用户交互时先给出乐观状态，再把结果刷新到 URL。
+
+## 包结构
+
+当前文档围绕两个包展开：
+
+| 入口 | 职责 |
+| --- | --- |
+| `@decurl/react-router/configured` | 创建绑定 store 的 hooks、Provider 和 React Router runtime 接线 |
+| `@decurl/react-router/codec` | field、schema、类型推导、URLSearchParams decode/encode |
+| `@decurl/react-router/decode` | decode pipeline 与基础解析工具 |
+
+使用者只需要安装 `@decurl/react-router`。codec 和 decode 能力通过这个包的 conditional exports 暴露，和 React Router hooks 共享同一份 schema。
+
+## 设计取向
+
+Decurl 倾向显式组合，而不是提供一组很宽的成品 parser。
+
+```ts
+pipe(trim, shape.integer, toNumber, min(1))
+```
+
+上面的 pipeline 能直接读出解析策略：清理空白、要求整数形状、转换为 number、限制最小值。每一步都可以单独测试，也方便 review。
+
+## 什么时候适合用
+
+Decurl 适合这些场景：
+
+- 搜索、筛选、排序、分页等状态需要进入 URL。
+- URL 参数需要类型推导，而不是到处手写 `Number(searchParams.get('page'))`。
+- 项目需要兼容旧 URL key，例如从 `p` 迁移到 `page`。
+- React Router 应用希望把 URL search 当成一个可订阅、可更新的状态源。
+
+Decurl 不适合这些场景：
+
+- 你需要完整的表单校验、错误树、schema introspection。
+- 你只想解析一个孤立字符串，和 URLSearchParams 没有关系。
+- 你希望所有规则都由一个大型 validation schema 接管。
+
+下一步可以从 [快速开始](./getting-started) 进入一个完整的小例子。

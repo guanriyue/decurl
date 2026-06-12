@@ -1,0 +1,186 @@
+---
+description: "@decurl/react-router 把 Decurl schema 接入 React Router，并以 hooks 暴露 URL search state。"
+---
+
+import { QueryFormDemo, QueryInputDemo } from '../../../../components/ReactRouterDemos';
+
+# React Router 集成
+
+`@decurl/react-router` 把 Decurl 的 schema 接入 React Router。它的目标是让 URL search 像普通 React state 一样被读取和更新，同时保持 URL 是最终状态来源。
+
+## 在 Rspress 中使用
+
+Rspress 支持在 MDX 中 import 并渲染 React 组件，因此可以把 Decurl 的 React Router demo 直接写成组件后嵌入文档页。
+
+Rspress 文档页自身已经运行在路由环境中，demo 不需要再创建一层 `BrowserRouter`。组件可以直接使用 `@decurl/react-router` 的 hooks，把当前文档页 URL 的 query 参数作为演示状态。
+
+## 开箱即用 hooks
+
+最小使用方式是直接导入 hooks 和 schema 工具：
+
+```tsx
+import { useSearchValue } from '@decurl/react-router';
+import { defineFields, field } from '@decurl/react-router/codec';
+import { pipe, shape, trim } from '@decurl/react-router/decode';
+
+const fields = defineFields({
+  keyword: field({
+    name: 'q',
+    decode: pipe(trim, shape(/.+/)),
+  }),
+});
+
+function SearchInput() {
+  const [keyword, setKeyword] = useSearchValue(fields.keyword);
+
+  return (
+    <input
+      value={keyword ?? ''}
+      onChange={(event) => {
+        const value = event.currentTarget.value.trim();
+        setKeyword(value === '' ? undefined : value);
+      }}
+    />
+  );
+}
+```
+
+这种方式适合单个应用只需要一份默认 search store 的场景。
+
+主入口 hooks 不要求你手动创建 Provider。`useSearchValue` 和 `useSearchValues` 会使用默认 search store，并自动把当前 React Router runtime 接上。
+
+## 输入框 demo
+
+下面的输入框直接使用开箱即用 hooks。输入内容会同步到当前页面 URL 的 `demo_q` 参数。
+
+<QueryInputDemo />
+
+## 查询表单 demo
+
+下面的表单同样直接使用主入口 `useSearchValues`。表单从 URL 初始化本地表单状态；提交时再把表单值 patch 到 URL。
+
+<QueryFormDemo />
+
+## 绑定 store 的优化入口
+
+`createReactRouterSearch` 会创建一组绑定到同一个 store 的 Provider 和 hooks。
+
+```tsx
+import { createReactRouterSearch } from '@decurl/react-router/configured';
+
+const search = createReactRouterSearch({
+  flushMode: 'debounce',
+  flushDelay: 80,
+});
+```
+
+这个入口适合更完整的应用集成：
+
+- Provider 明确圈定某一组 hooks 使用的 store，但它不是主入口 hooks 的前置条件。
+- 多个字段更新可以先进入 optimistic snapshot，再按 flush 策略写回 URL。
+- `flushMode` 和 `flushDelay` 可以减少高频交互造成的 router 更新次数。
+- 需要隔离多套 search state 时，可以创建多个绑定实例。
+
+## 应用集成
+
+```tsx
+import { BrowserRouter } from 'react-router';
+
+export function App() {
+  return (
+    <BrowserRouter>
+      <SearchPanel />
+    </BrowserRouter>
+  );
+}
+```
+
+只要组件位于 React Router 环境中，就可以直接使用主入口 hooks。
+
+## 读取多个字段
+
+```tsx
+function SearchPanel() {
+  const [values, setValues] = search.useSearchValues(searchFields);
+
+  return (
+    <form>
+      <input
+        value={values.q ?? ''}
+        onChange={(event) => {
+          setValues({ q: event.currentTarget.value, page: 1 });
+        }}
+      />
+      <button
+        type="button"
+        onClick={() => {
+          setValues({ page: values.page + 1 });
+        }}
+      >
+        Next page
+      </button>
+    </form>
+  );
+}
+```
+
+`useSearchValues` 返回：
+
+- 当前 schema decode 后的 values。
+- 一个 patch setter，用来更新部分 search values。
+
+## 读取单个字段
+
+如果只关心一个字段，可以使用 `useSearchValue`。
+
+```tsx
+function PageButton() {
+  const [page, setPage] = search.useSearchValue(searchFields.page);
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        setPage(page + 1);
+      }}
+    >
+      Next page
+    </button>
+  );
+}
+```
+
+单字段 hook 需要传入 named field codec。通常它来自 `defineFields` 的返回值。
+
+## Router instance 模式
+
+如果应用使用 data router instance，可以把 router 传给 Provider。
+
+```tsx
+<search.Provider router={router}>
+  <AppRoutes />
+</search.Provider>
+```
+
+这种模式下，Decurl 会通过 router instance 读取 location、执行 navigate，并订阅 router state。
+
+## 和 codec 子入口的关系
+
+React Router hooks 不重新定义 URL schema。schema 通过 `@decurl/react-router/codec` 定义，再交给 hooks 复用：
+
+```ts
+import { defineFields, field } from '@decurl/react-router/codec';
+
+const searchFields = defineFields({
+  page: field({
+    decode: decodePage,
+    defaultValue: 1,
+  }),
+});
+```
+
+同一份 schema 可以同时用于：
+
+- URLSearchParams decode/encode。
+- React Router hooks。
+- 测试和 fixture。

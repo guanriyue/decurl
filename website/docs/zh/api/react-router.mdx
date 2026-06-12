@@ -1,0 +1,111 @@
+---
+description: @decurl/react-router 提供 React Router 环境下的 search state hooks 和配置化 runtime。
+---
+
+# @decurl/react-router
+
+`@decurl/react-router` 把 URLSearchParams codec 接入 React Router，并通过 conditional exports 暴露 schema 定义能力。
+
+## 推荐入口
+
+推荐从 `@decurl/react-router/configured` 导入 `createReactRouterSearch`。
+
+```tsx
+import { createReactRouterSearch } from '@decurl/react-router/configured';
+
+const search = createReactRouterSearch();
+```
+
+返回对象包含：
+
+| API | 说明 |
+| --- | --- |
+| `store` | 当前 factory 绑定的 search store |
+| `Provider` | 提供绑定 store，并自动接线 React Router runtime |
+| `ContextProvider` | `Provider` 的兼容别名 |
+| `RuntimeConfigurer` | 在组件式 Router 内接线当前 React Router runtime |
+| `RouterRuntimeConfigurer` | 使用 data router instance 接线 runtime |
+| `useSearchValues` | 读取和更新多个 search values |
+| `useSearchValue` | 读取和更新单个 search value |
+
+## Provider
+
+```tsx
+import { BrowserRouter } from 'react-router';
+import { createReactRouterSearch } from '@decurl/react-router/configured';
+
+const search = createReactRouterSearch();
+
+export function App() {
+  return (
+    <BrowserRouter>
+      <search.Provider>
+        <SearchPanel />
+      </search.Provider>
+    </BrowserRouter>
+  );
+}
+```
+
+如果使用 data router instance：
+
+```tsx
+<search.Provider router={router}>
+  <SearchPanel />
+</search.Provider>
+```
+
+## `useSearchValues`
+
+```tsx
+function SearchPanel() {
+  const [values, setValues] = search.useSearchValues(searchFields);
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        setValues({ page: values.page + 1 });
+      }}
+    >
+      Next page
+    </button>
+  );
+}
+```
+
+`setValues` 接收 patch。只会更新传入的字段，未传入字段保持不变。
+
+## `useSearchValue`
+
+```tsx
+function PageButton() {
+  const [page, setPage] = search.useSearchValue(searchFields.page);
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        setPage(page + 1);
+      }}
+    >
+      Next page
+    </button>
+  );
+}
+```
+
+`useSearchValue` 适合只订阅一个字段的组件。字段应来自 `defineFields` 的返回值，这样它已经拥有确定的 `name`。
+
+## Store options
+
+`createReactRouterSearch` 可接收 store options，用于控制 flush 行为。
+
+```ts
+const search = createReactRouterSearch({
+  flushDelay: 80,
+  flushMode: 'debounce',
+});
+```
+
+当前文档会在后续补充完整 options reference。

@@ -1,0 +1,17 @@
+[
+  {
+    "type": "file",
+    "name": "decode-pipeline",
+    "label": "Decode pipeline"
+  },
+  {
+    "type": "file",
+    "name": "schema-codec",
+    "label": "Schema 与 codec"
+  },
+  {
+    "type": "file",
+    "name": "url-search-params",
+    "label": "URLSearchParams"
+  }
+]

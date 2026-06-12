@@ -1,0 +1,108 @@
+---
+description: @decurl/react-router/codec 与 @decurl/react-router/decode 提供 field codec、schema define、URLSearchParams codec 和 decode primitive。
+---
+
+# Codec 与 decode
+
+`@decurl/react-router` 暴露了两个子入口，用来定义 URLSearchParams schema：
+
+| 入口 | 用途 |
+| --- | --- |
+| `@decurl/react-router/decode` | decode primitive 与组合工具 |
+| `@decurl/react-router/codec` | field、schema、URLSearchParams codec |
+
+这些入口和 `@decurl/react-router/configured` 搭配使用。应用代码通常不需要安装额外的 Decurl 包。
+
+## `@decurl/react-router/decode`
+
+Decode primitive 是小型解析函数，用于把 URL 原始值转换为业务值。
+
+### Composition
+
+| API | 说明 |
+| --- | --- |
+| `pipe` | 按顺序组合多个 decode step |
+| `mapItems` | 对数组中每一项执行 pipe-like decode |
+
+### String shapes
+
+| API | 说明 |
+| --- | --- |
+| `shape(regexp)` | 要求字符串符合指定正则 |
+| `shape.integer` | 要求十进制整数形状 |
+| `shape.number` | 要求十进制数字形状 |
+| `shape.boolish` | 要求 `'true'` 或 `'false'` |
+| `shape.month` | 要求 `YYYY-MM` |
+| `shape.date` | 要求 `YYYY-MM-DD` |
+| `shape.datetime` | 要求常见日期时间字符串结构 |
+
+### Conversions
+
+| API | 说明 |
+| --- | --- |
+| `toNumber` | 转换为 number |
+| `toBoolean` | 把 `'true'` / `'false'` 转换为 boolean |
+
+### Predicates
+
+| API | 说明 |
+| --- | --- |
+| `where` | 使用 predicate 或 type guard 过滤值 |
+| `startsWith` | 要求字符串以前缀开头 |
+| `elementOf` | 要求值属于数组或 enum |
+| `min` | 要求 number 大于等于指定值 |
+| `max` | 要求 number 小于等于指定值 |
+| `length` | 要求输入值的 length 满足约束 |
+
+### Array utilities
+
+| API | 说明 |
+| --- | --- |
+| `unique` | 按 `Object.is` 去重并保留首次出现顺序 |
+| `unique.by` | 按 identity 结果去重 |
+
+## `@decurl/react-router/codec`
+
+Codec API 描述 URLSearchParams 字段如何被读取、写入和推导类型。
+
+### Field
+
+| API | 说明 |
+| --- | --- |
+| `field` | 定义单个 field codec，并保留类型推导 |
+| `defineFields` | 固化字段 name，处理 alias，并保留类型推导 |
+| `createURLSearchParamsCodec` | 创建 `{ decode, encode }` codec |
+
+### Types
+
+常用类型：
+
+- `FieldCodec`
+- `RecordCodec`
+- `NamedFieldCodec`
+- `InferFieldValue`
+- `InferFieldValues`
+- `URLSearchParamsCodec`
+
+## 示例
+
+```ts
+import { createURLSearchParamsCodec, defineFields, field } from '@decurl/react-router/codec';
+import { min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+
+const fields = defineFields({
+  page: field({
+    name: ['page', 'p'],
+    decode: pipe(trim, shape.integer, toNumber, min(1)),
+    defaultValue: 1,
+  }),
+});
+
+const codec = createURLSearchParamsCodec(fields);
+
+codec.decode(new URLSearchParams('?p=2'));
+// { page: 2 }
+
+codec.encode({ page: 3 }).toString();
+// page=3
+```

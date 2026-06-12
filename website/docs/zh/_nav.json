@@ -10,7 +10,8 @@
     "activeMatch": "/api/"
   },
   {
-    "text": "文档",
-    "link": "https://rspress.rs/"
+    "text": "设计边界",
+    "link": "/guide/design/comparison",
+    "activeMatch": "/guide/design/"
   }
 ]

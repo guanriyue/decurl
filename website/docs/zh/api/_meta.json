@@ -6,7 +6,12 @@
   },
   {
     "type": "file",
-    "name": "commands",
-    "label": "命令"
+    "name": "codec",
+    "label": "Codec 与 decode"
+  },
+  {
+    "type": "file",
+    "name": "react-router",
+    "label": "@decurl/react-router"
   }
 ]

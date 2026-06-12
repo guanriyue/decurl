@@ -1,55 +1,109 @@
 ---
-description: 了解 Rspress 项目结构、本地开发、生产构建、本地预览和后续学习路径。
+description: 使用 @decurl/react-router 的 codec/decode 子入口定义 URLSearchParams schema，并在 React Router hooks 中复用。
 ---
 
 # 快速开始
 
-## 项目结构
+先从 `@decurl/react-router` 的 codec/decode 子入口开始。应用只需要安装 `@decurl/react-router`，schema 定义和 hooks 可以共享同一份字段定义。
 
-使用 `create-rspress` 创建项目后，你会得到以下项目结构：
+## 定义字段
 
-- `docs/`：文档源码目录，通过 `rspress.config.ts` 中的 `root` 配置。
-- `docs/_nav.json`：导航栏配置。
-- `docs/guide/_meta.json`：指南区域的侧边栏配置。
-- `docs/public/`：静态资源目录。
-- `theme/`：可选的自定义主题目录，在选择自定义主题模板时生成。
-- `rspress.config.ts`：Rspress 配置文件。
+```ts
+import { createURLSearchParamsCodec, defineFields, field } from '@decurl/react-router/codec';
+import { elementOf, min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
 
-## 本地开发
-
-启动本地开发服务器：
-
-```bash
-npm run dev
+const searchFields = defineFields({
+  q: field({
+    decode: pipe(trim, shape(/.+/)),
+  }),
+  page: field({
+    name: ['page', 'p'],
+    decode: pipe(trim, shape.integer, toNumber, min(1)),
+    defaultValue: 1,
+  }),
+  sort: field({
+    decode: elementOf(['relevance', 'latest']),
+    defaultValue: 'relevance',
+  }),
+});
 ```
 
-:::tip
+这里有几件事值得注意：
 
-你可以使用 `--port` 或 `--host` 指定端口号或主机，例如 `rspress dev --port 8080 --host 0.0.0.0`。
+- `q` 没有写 `name`，会使用 schema property key，也就是 `q`。
+- `page` 有两个 name，`page` 是 canonical key，`p` 是 legacy alias。
+- `page` 和 `sort` 有 `defaultValue`，所以 decode 后一定有值。
+- `decode` 是显式 pipeline，每一步都能独立阅读和测试。
 
-:::
+## 解析 URLSearchParams
 
-## 生产构建
+```ts
+const codec = createURLSearchParamsCodec(searchFields);
 
-构建生产站点：
+const values = codec.decode(new URLSearchParams('?q=router&p=2&sort=latest'));
 
-```bash
-npm run build
+// values:
+// {
+//   q: 'router',
+//   page: 2,
+//   sort: 'latest',
+// }
 ```
 
-默认情况下，Rspress 会输出到 `doc_build` 目录。
+如果 canonical key 缺失，Decurl 会尝试 legacy alias。上面的 URL 使用的是 `p=2`，但 decode 后得到的是业务字段 `page`。
 
-## 预览
+## 写回 URLSearchParams
 
-本地预览生产构建结果：
+```ts
+const nextSearch = codec.encode(
+  { page: 3 },
+  { base: '?q=router&p=2&sort=latest' },
+);
 
-```bash
-npm run preview
+nextSearch.toString();
+// q=router&sort=latest&page=3
 ```
 
-## 下一步
+`encode` 默认是 patch 语义：
 
-- 学习如何在文档中使用 [MDX 与 React 组件](/guide/use-mdx/components)。
-- 了解 [代码块](/guide/use-mdx/code-blocks/) 的语法高亮和行高亮。
-- 学习用于提示、警告等内容的 [自定义容器](/guide/use-mdx/container)。
-- 浏览完整的 [Rspress 文档](https://rspress.rs/zh/) 了解高级能力。
+- 只处理 patch 中出现的字段。
+- 保留 base 中未触碰的字段。
+- 写入 alias 字段时使用 canonical key。
+- 写入 default value 时默认删除对应 key。
+
+## 在 React Router 中使用
+
+React Router hooks 会复用同一套 field codec。
+
+```tsx
+import { BrowserRouter } from 'react-router';
+import { createReactRouterSearch } from '@decurl/react-router/configured';
+
+const search = createReactRouterSearch();
+
+export function App() {
+  return (
+    <BrowserRouter>
+      <search.Provider>
+        <SearchPanel />
+      </search.Provider>
+    </BrowserRouter>
+  );
+}
+
+function SearchPanel() {
+  const [values, setValues] = search.useSearchValues(searchFields);
+
+  return (
+    <button onClick={() => setValues({ page: values.page + 1 })}>
+      Next page
+    </button>
+  );
+}
+```
+
+继续阅读：
+
+- [Decode pipeline](../codec/decode-pipeline)
+- [Schema 与 codec](../codec/schema-codec)
+- [React Router 集成](../react-router/overview)

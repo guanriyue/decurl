@@ -1,0 +1,113 @@
+---
+description: Decode pipeline 是 Decurl 解析 URLSearchParams 原始字符串的基础组合方式。
+---
+
+# Decode pipeline
+
+URLSearchParams 的原始值不是业务值。
+
+```txt
+?page=2&enabled=true&tag=react&tag=router
+```
+
+在 JavaScript 里读出来时，它们只会是：
+
+- `string`
+- `string[]`
+- `null`
+
+Decurl 的 decode primitive 用小函数描述每一步转换，再用 `pipe` 组合成完整解析策略。
+
+## 单字段解析
+
+```ts
+import { min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+
+const decodePage = pipe(trim, shape.integer, toNumber, min(1));
+
+decodePage(' 2 ');
+// 2
+
+decodePage('0');
+// undefined
+
+decodePage('abc');
+// undefined
+```
+
+`pipe` 会按顺序执行。任一步返回 `null` 或 `undefined`，后续步骤就不会继续执行，整体结果视为解析失败。
+
+## 字符串形状先于转换
+
+推荐先用 `shape` 限定字符串形状，再做转换。
+
+```ts
+import { pipe, shape, toNumber } from '@decurl/react-router/decode';
+
+const decodeInteger = pipe(shape.integer, toNumber);
+const decodeNumber = pipe(shape.number, toNumber);
+```
+
+这样可以避免把 URL 中意外出现的值隐式转换成业务值。
+
+```ts
+Number('');
+// 0
+
+Number('1e3');
+// 1000
+```
+
+这些转换对普通 JavaScript 是合法的，但在 URL schema 中通常并不够可审查。Decurl 倾向显式声明哪些字符串形状可以进入业务层。
+
+## 枚举字段
+
+```ts
+import { elementOf } from '@decurl/react-router/decode';
+
+const decodeSort = elementOf(['relevance', 'latest']);
+
+decodeSort('latest');
+// 'latest'
+
+decodeSort('random');
+// undefined
+```
+
+`elementOf` 不负责类型转换，只判断输入是否属于给定集合。
+
+## 多值字段
+
+URLSearchParams 允许同一个 key 出现多次：
+
+```txt
+?tag=react&tag=router&tag=state
+```
+
+多值字段的 decode 输入是 `string[]`。可以用 `mapItems` 对每个元素执行 pipe-like 解析。
+
+```ts
+import { length, mapItems, pipe, unique } from '@decurl/react-router/decode';
+
+const decodeTags = pipe(
+  mapItems(length([1, 32])),
+  unique,
+);
+
+decodeTags(['react', '', 'router', 'react']);
+// ['react', 'router']
+```
+
+无效项会被过滤掉，数组顺序会按首次出现保留。
+
+## 为什么不是一个大 parser
+
+Decurl 的 decode primitive 故意保持小而显式。
+
+这让解析策略更容易被维护者、reviewer 和代码 agent 理解：
+
+```ts
+pipe(trim, shape.integer, toNumber, min(1))
+```
+
+这段代码直接表达了 URL 参数进入业务层前经历的每个约束。它没有隐藏在一个宽泛的 `number().min(1)` builder 后面。
