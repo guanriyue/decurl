@@ -20,4 +20,8 @@ export type {
   SingleOptionalFieldCodec,
   SingleRequiredFieldCodec,
 } from '@decurl/core/codec';
-export { defineFields, field } from '@decurl/core/codec';
+export {
+  createURLSearchParamsCodec,
+  defineFields,
+  field,
+} from '@decurl/core/codec';
