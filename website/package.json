@@ -1,0 +1,28 @@
+{
+  "name": "decurl-website",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "rspress build",
+    "dev": "rspress dev",
+    "preview": "rspress preview"
+  },
+  "dependencies": {
+    "@decurl/react-router": "workspace:^",
+    "@rspress/core": "^2.0.13",
+    "react-router": "^7.17.0"
+  },
+  "devDependencies": {
+    "@rspress/plugin-llms": "^2.0.14",
+    "@rspress/plugin-playground": "^2.0.14",
+    "@rspress/plugin-preview": "^2.0.14",
+    "@rspress/plugin-sitemap": "^2.0.14",
+    "@rspress/plugin-twoslash": "^2.0.14",
+    "@rspress/plugin-typedoc": "^2.0.14",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
+  }
+}
