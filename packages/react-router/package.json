@@ -25,7 +25,8 @@
     }
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "vite build && tsc -p tsconfig.build.json",
+    "test": "vitest run --pool=threads --maxWorkers=1 --no-file-parallelism"
   },
   "keywords": [],
   "author": "wangyuze0319@outlook.com",
