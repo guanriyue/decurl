@@ -4,11 +4,12 @@ import type { FieldCodec, FieldName, RecordCodec } from './types';
 
 export type DefinedFieldName = string | readonly [string, ...string[]];
 
-export type NamedFieldCodec<TCodec extends FieldCodec> = Prettier<
-  Omit<TCodec, 'name'> & {
-    name: DefinedFieldName;
-  }
->;
+export type NamedFieldCodec<TCodec extends FieldCodec> = Omit<
+  TCodec,
+  'name'
+> & {
+  name: DefinedFieldName;
+};
 
 export type DefinedFields<TDefinition extends RecordCodec> = Prettier<{
   [key in keyof TDefinition]: NamedFieldCodec<TDefinition[key]>;
