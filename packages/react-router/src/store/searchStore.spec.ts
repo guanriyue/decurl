@@ -338,6 +338,66 @@ describe('createSearchStore', () => {
     expect(store.getSnapshot().location).toEqual(location('/users', 'page=4'));
   });
 
+  it('keeps optimistic location when an older inflight flush is confirmed', () => {
+    const navigate = vi.fn();
+    const store = createSearchStore({
+      initialLocation: location('/users', 'page=1'),
+    });
+    store.configureRuntime(runtime(navigate));
+    const listener = vi.fn();
+    store.subscribe(listener);
+
+    addValues(store, schema, { page: 2 });
+    store.flush();
+    addValues(store, schema, { page: 3 });
+    store.flush();
+    listener.mockClear();
+
+    store.locationChanged(location('/users', 'page=2'));
+
+    expect(store.getSnapshot().location).toEqual(location('/users', 'page=3'));
+    expect(listener).not.toHaveBeenCalled();
+  });
+
+  it('replays pending entries from the latest inflight flush when an older inflight flush is confirmed', () => {
+    const navigate = vi.fn();
+    const store = createSearchStore({
+      initialLocation: location('/users', 'page=1'),
+    });
+    store.configureRuntime(runtime(navigate));
+
+    addValues(store, schema, { page: 2 });
+    store.flush();
+    addValues(store, schema, { page: 3 });
+    store.flush();
+    addValues(store, schema, { keyword: 'decurl' });
+    store.locationChanged(location('/users', 'page=2'));
+
+    expect(store.getSnapshot().location).toEqual(
+      location('/users', 'page=3&q=decurl'),
+    );
+  });
+
+  it('drops inflight flushes and pending entries when an external location change arrives', () => {
+    vi.useFakeTimers();
+    const navigate = vi.fn();
+    const store = createSearchStore({
+      initialLocation: location('/users', 'page=1'),
+    });
+    store.configureRuntime(runtime(navigate));
+
+    addValues(store, schema, { page: 2 });
+    store.flush();
+    addValues(store, schema, { page: 3 });
+    store.locationChanged(location('/orders', 'tab=active'));
+    vi.advanceTimersByTime(100);
+
+    expect(store.getSnapshot().location).toEqual(
+      location('/orders', 'tab=active'),
+    );
+    expect(navigate).toHaveBeenCalledTimes(1);
+  });
+
   it('drops pending entries when an external location change arrives', () => {
     const store = createSearchStore({
       initialLocation: location('/users', 'page=1'),

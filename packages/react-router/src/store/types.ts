@@ -76,11 +76,6 @@ export type PendingEntry = {
 };
 
 /**
- * 已发送给 runtime.navigate，但尚未被匹配 location change 确认的 location。
- */
-export type InflightFlush = SearchLocation;
-
-/**
  * Store 内部状态。
  */
 export type SearchStoreState = {
@@ -93,8 +88,6 @@ export type SearchStoreState = {
   /** 应用在当前 visible base 上的 pending entries。 */
   pendingEntries: PendingEntry[];
 
-  /** 等待 runtime 确认的 flush target。 */
-  inflightFlush?: InflightFlush;
 };
 
 /**

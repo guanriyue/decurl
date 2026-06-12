@@ -5,7 +5,6 @@ import {
   type FlushSchedulerMode,
 } from './flushScheduler';
 import { resolveNavigateOptions } from './navigateOptions';
-import { replay } from './replay';
 import type {
   PendingEntry,
   SearchStore,
@@ -41,6 +40,8 @@ export const createSearchStore = (
   let isLocationInitialized = typeof options.initialLocation !== 'undefined';
   let runtime: SearchRuntime | undefined;
   let nextEntryId = 0;
+  let latestInflightFlushLocation: SearchLocation | undefined;
+  let inflightFlushes: string[] = [];
   let state: SearchStoreState = {
     confirmedLocation,
     optimisticLocation: confirmedLocation,
@@ -80,9 +81,31 @@ export const createSearchStore = (
     notify();
   };
 
-  const recomputeOptimisticLocation = (): void => {
-    const base = state.inflightFlush ?? state.confirmedLocation;
-    setOptimisticLocation(replay(base, state.pendingEntries));
+  const applyEntryToLocation = (
+    location: SearchLocation,
+    entry: PendingEntry,
+  ): SearchLocation => {
+    const searchParams = entry.apply(new URLSearchParams(location.search));
+
+    return {
+      pathname: location.pathname,
+      search: searchParams.toString(),
+    };
+  };
+
+  const getLatestInflightFlushLocation = (): SearchLocation | undefined => {
+    return latestInflightFlushLocation;
+  };
+
+  const consumeInflightSearch = (search: string): boolean => {
+    const index = inflightFlushes.lastIndexOf(search);
+
+    if (index < 0) {
+      return false;
+    }
+
+    inflightFlushes = inflightFlushes.slice(index + 1);
+    return true;
   };
 
   const flush = (): void => {
@@ -105,11 +128,12 @@ export const createSearchStore = (
     const flushTarget = state.optimisticLocation;
     const resolvedOptions = resolveNavigateOptions(flushEntries);
 
+    inflightFlushes = [...inflightFlushes, flushTarget.search];
     state = {
       ...state,
-      inflightFlush: flushTarget,
       pendingEntries: [],
     };
+    latestInflightFlushLocation = flushTarget;
     void runtime.navigate(flushTarget, resolvedOptions);
   };
 
@@ -140,34 +164,46 @@ export const createSearchStore = (
         optimisticLocation: location,
         pendingEntries: [],
       };
+      inflightFlushes = [];
+      latestInflightFlushLocation = undefined;
       isLocationInitialized = true;
     },
     locationChanged: (nextLocation) => {
       const location = toSearchLocation(nextLocation);
-
-      if (
-        typeof state.inflightFlush !== 'undefined' &&
-        isSameLocation(state.inflightFlush, location)
-      ) {
+      const reset = (): void => {
+        flushScheduler.cancel();
         state = {
-          ...state,
           confirmedLocation: location,
-          inflightFlush: undefined,
+          optimisticLocation: location,
+          pendingEntries: [],
         };
-        recomputeOptimisticLocation();
+        inflightFlushes = [];
+        latestInflightFlushLocation = undefined;
+        notify();
+      };
+
+      if (location.pathname !== state.confirmedLocation.pathname) {
+        reset();
         return;
       }
 
-      flushScheduler.cancel();
-      state = {
-        confirmedLocation: location,
-        optimisticLocation: location,
-        pendingEntries: [],
-      };
-      notify();
+      if (consumeInflightSearch(location.search)) {
+        state = {
+          ...state,
+          confirmedLocation: location,
+        };
+        return;
+      }
+
+      if (location.search === state.confirmedLocation.search) {
+        return;
+      }
+
+      reset();
     },
     addEntry: (entryOptions) => {
-      const baseLocation = state.inflightFlush ?? state.confirmedLocation;
+      const baseLocation =
+        getLatestInflightFlushLocation() ?? state.confirmedLocation;
       const entry: PendingEntry = {
         id: ++nextEntryId,
         baseLocation,
@@ -179,7 +215,9 @@ export const createSearchStore = (
         ...state,
         pendingEntries: [...state.pendingEntries, entry],
       };
-      recomputeOptimisticLocation();
+      setOptimisticLocation(
+        applyEntryToLocation(state.optimisticLocation, entry),
+      );
       flushScheduler.schedule();
     },
     flush,
