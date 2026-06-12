@@ -1,8 +1,4 @@
-import type {
-  FieldCodec,
-  NamedFieldCodec,
-  RecordCodec,
-} from '@decurl/core/codec';
+import type { RecordCodec } from '@decurl/core/codec';
 import { useLayoutEffect, useMemo } from 'react';
 import {
   SearchStateContext,
@@ -10,6 +6,7 @@ import {
 } from './react/SearchStateContext';
 import { useConfigureRuntimeStore } from './react/useConfigureRuntime';
 import type {
+  SearchValueCodec,
   SetSearchValue,
   UseSearchValueResult,
 } from './react/useSearchValue';
@@ -75,8 +72,8 @@ export type ReactRouterSearch = {
   ) => UseSearchValuesResult<TDefinition>;
 
   /** 使用绑定 store 的单字段 search value hook，不会自动配置 runtime。 */
-  useSearchValue: <TCodec extends FieldCodec>(
-    codec: NamedFieldCodec<TCodec>,
+  useSearchValue: <TCodec extends SearchValueCodec>(
+    codec: TCodec,
   ) => UseSearchValueResult<TCodec>;
 };
 

@@ -13,7 +13,7 @@ import {
   RouterProvider,
   useLocation,
 } from 'react-router';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import type { ReactRouterSearch } from './configured';
 import { createReactRouterSearch } from './configured';
 import type { SetSearchValue } from './react/useSearchValue';
@@ -142,6 +142,7 @@ const PageView = ({
   onRender,
 }: PageViewProps): React.ReactElement => {
   const [page, setPage] = search.useSearchValue(pageCodec);
+  expectTypeOf(page).toEqualTypeOf<number>();
   onReady?.(setPage);
   onRender?.();
 

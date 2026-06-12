@@ -1,4 +1,5 @@
 export {
+  type SearchValueCodec,
   type SearchValuePatch,
   type SetSearchValue,
   type UseSearchValueResult,
