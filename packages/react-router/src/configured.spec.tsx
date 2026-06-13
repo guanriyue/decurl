@@ -3,8 +3,8 @@
  */
 
 import type {
-  NamedFieldCodec,
   SingleRequiredFieldCodec,
+  WithDefinedFieldName,
 } from '@decurl/core/codec';
 import { act, cleanup, render, screen } from '@testing-library/react';
 import {
@@ -22,7 +22,7 @@ const pageCodec = {
   name: 'page',
   decode: (input) => Number(input),
   defaultValue: 1,
-} satisfies NamedFieldCodec<SingleRequiredFieldCodec<number>>;
+} satisfies WithDefinedFieldName<SingleRequiredFieldCodec<number>>;
 
 describe('createReactRouterSearch', () => {
   afterEach(() => {

@@ -1,11 +1,7 @@
 import type {
   FieldCodec,
   InferFieldValue,
-  MultiOptionalFieldCodec,
-  MultiRequiredFieldCodec,
   NamedFieldCodec,
-  SingleOptionalFieldCodec,
-  SingleRequiredFieldCodec,
 } from '@decurl/core/codec';
 import {
   decodeField,
@@ -19,15 +15,6 @@ import { useContextStore } from './SearchStateContext';
 import { useEqualityCheckedSelector } from './selector';
 import { useConfigureRuntime } from './useConfigureRuntime';
 
-export type SearchValueCodec =
-  // biome-ignore lint/suspicious/noExplicitAny: 用于表达任意具名 FieldCodec 分支
-  | NamedFieldCodec<SingleOptionalFieldCodec<any>>
-  // biome-ignore lint/suspicious/noExplicitAny: 用于表达任意具名 FieldCodec 分支
-  | NamedFieldCodec<SingleRequiredFieldCodec<any>>
-  // biome-ignore lint/suspicious/noExplicitAny: 用于表达任意具名 FieldCodec 分支
-  | NamedFieldCodec<MultiOptionalFieldCodec<any>>
-  // biome-ignore lint/suspicious/noExplicitAny: 用于表达任意具名 FieldCodec 分支
-  | NamedFieldCodec<MultiRequiredFieldCodec<any>>;
 
 export type SearchValuePatch<TCodec extends FieldCodec> =
   | InferFieldValue<TCodec>
@@ -47,7 +34,7 @@ export type UseSearchValueResult<TCodec extends FieldCodec> = [
   setValue: SetSearchValue<TCodec>,
 ];
 
-export const useSearchValue = <TCodec extends SearchValueCodec>(
+export const useSearchValue = <TCodec extends NamedFieldCodec>(
   codec: TCodec,
 ): UseSearchValueResult<TCodec> => {
   useConfigureRuntime();
@@ -57,7 +44,7 @@ export const useSearchValue = <TCodec extends SearchValueCodec>(
   return useSearchValueStore(store, codec);
 };
 
-export const useSearchValueStore = <TCodec extends SearchValueCodec>(
+export const useSearchValueStore = <TCodec extends NamedFieldCodec>(
   store: SearchStore,
   codec: TCodec,
 ): UseSearchValueResult<TCodec> => {

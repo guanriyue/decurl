@@ -19,6 +19,7 @@ export type {
   RequiredFieldCodecOf,
   SingleOptionalFieldCodec,
   SingleRequiredFieldCodec,
+  WithDefinedFieldName,
 } from '@decurl/core/codec';
 export {
   createURLSearchParamsCodec,
