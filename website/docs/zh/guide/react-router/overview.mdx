@@ -55,6 +55,25 @@ function SearchInput() {
 ```tsx file="./_demos/shared-key-hooks.tsx" preview
 ```
 
+## Equality 与稳定引用
+
+Hooks 会在 decode 后比较前后值。当前后值相等时，hook 会复用上一次的值引用。
+
+这对 `useSearchValues` 尤其重要：它每次都会从 URLSearchParams decode 出一个 values object，但如果每个 field 的值都没有变化，返回给组件的 values 会保持稳定引用。
+
+默认比较规则来自 field codec：
+
+- single field 默认使用 `Object.is`。
+- multi field 默认按数组顺序做浅比较。
+- 如果 field codec 提供了自定义 `eq`，会使用自定义比较。
+
+这意味着组件可以把 hook 返回值放进 `useMemo`、`useEffect` dependency 或传给 memoized child。只要 search 中相关字段没有变化，就不会因为重新 decode 而得到一个全新的引用。
+
+下面的 demo 展示了这个差异：修改 watched key 时，`values` 引用会变化；修改 unrelated key 时，组件可能因为 React Router location 更新而重新渲染，但 `useSearchValues` 返回的 `values` 引用会保持稳定。
+
+```tsx file="./_demos/equality-stable-reference.tsx" preview
+```
+
 ## 【反例】同 key 不同规则 demo
 
 同一个 key 如果使用不同的 `defaultValue`，当 URL 中缺失该 key 时，不同 hook 可能读到不同结果。不推荐在同一页面这样使用；应尽量让同一个 Search Param key 保持一致的 field codec 规则。
