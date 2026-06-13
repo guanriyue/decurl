@@ -6,6 +6,11 @@
   },
   {
     "type": "file",
+    "name": "configured-store",
+    "label": "绑定 Store"
+  },
+  {
+    "type": "file",
     "name": "optimistic-url-state",
     "label": "乐观 URL 状态"
   }

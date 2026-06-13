@@ -69,26 +69,6 @@ function SearchInput() {
 ```tsx file="./_demos/query-form.tsx" preview
 ```
 
-## 绑定 store 的优化入口
-
-`createReactRouterSearch` 会创建一组绑定到同一个 store 的 Provider 和 hooks。
-
-```tsx
-import { createReactRouterSearch } from '@decurl/react-router/configured';
-
-const search = createReactRouterSearch({
-  flushMode: 'debounce',
-  flushDelay: 80,
-});
-```
-
-这个入口适合更完整的应用集成：
-
-- Provider 明确圈定某一组 hooks 使用的 store，但它不是主入口 hooks 的前置条件。
-- 多个字段更新可以先进入 optimistic snapshot，再按 flush 策略写回 URL。
-- `flushMode` 和 `flushDelay` 可以减少高频交互造成的 router 更新次数。
-- 需要隔离多套 search state 时，可以创建多个绑定实例。
-
 ## 应用集成
 
 ```tsx
@@ -105,11 +85,13 @@ export function App() {
 
 只要组件位于 React Router 环境中，就可以直接使用主入口 hooks。
 
+如果需要绑定 store、配置 flush 策略或隔离多套 search state，可以阅读 [绑定 Store](./configured-store)。
+
 ## 读取多个字段
 
 ```tsx
 function SearchPanel() {
-  const [values, setValues] = search.useSearchValues(searchFields);
+  const [values, setValues] = useSearchValues(searchFields);
 
   return (
     <form>
@@ -143,7 +125,7 @@ function SearchPanel() {
 
 ```tsx
 function PageButton() {
-  const [page, setPage] = search.useSearchValue(searchFields.page);
+  const [page, setPage] = useSearchValue(searchFields.page);
 
   return (
     <button

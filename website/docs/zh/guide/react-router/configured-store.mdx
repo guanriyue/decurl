@@ -1,0 +1,101 @@
+---
+description: createReactRouterSearch 创建绑定 store 的 Provider 和 hooks，用于隔离 search state、配置 flush 策略并减少不必要渲染。
+---
+
+# 绑定 Store
+
+主入口 `useSearchValue` 和 `useSearchValues` 可以直接使用，不需要手动创建 Provider。它们使用默认的单例 search store，适合大多数只有一个 React Router runtime 的应用。
+
+当应用需要隔离 store、绑定到指定 router runtime，或者希望减少一部分无关更新时，可以使用 `@decurl/react-router/configured`：
+
+```tsx
+import { createReactRouterSearch } from '@decurl/react-router/configured';
+
+const search = createReactRouterSearch({
+  flushMode: 'debounce',
+  flushDelay: 80,
+});
+```
+
+`createReactRouterSearch` 会返回一组绑定到同一个 store 的 API：
+
+- `Provider`
+- `useSearchValue`
+- `useSearchValues`
+- `store`
+
+## 基础用法
+
+```tsx
+import { BrowserRouter } from 'react-router';
+import { createReactRouterSearch } from '@decurl/react-router/configured';
+
+const search = createReactRouterSearch();
+
+export function App() {
+  return (
+    <BrowserRouter>
+      <search.Provider>
+        <SearchPanel />
+      </search.Provider>
+    </BrowserRouter>
+  );
+}
+```
+
+`Provider` 会把当前 React Router runtime 接到这份绑定 store 上。Provider 内部使用 `search.useSearchValue` 和 `search.useSearchValues`，就会共享同一份 optimistic search snapshot。
+
+## Flush 配置
+
+业务中一般不需要很长的 `flushDelay`。它通常用于降低输入、筛选器等高频交互触发 router navigation 的频率。
+
+```tsx
+const search = createReactRouterSearch({
+  flushMode: 'debounce',
+  flushDelay: 80,
+});
+```
+
+常见取值可以从几十毫秒开始，按交互类型调整。输入类交互更适合 `debounce`；点击类交互通常可以使用默认策略或较短 delay。
+
+## 长延时观测 demo
+
+下面的 demo 故意把 `flushDelay` 设置得比较长。它不是业务推荐配置，而是为了让你清楚观察两个阶段：
+
+- 点击后，监听对应 key 的消费者立即响应。
+- URL 确认后，父级 route tree 可能重渲染；未 memo 的子组件会被父级带着渲染，memo 子组件可以挡住这层传导。
+
+```tsx file="./_demos/configured-store-delay.tsx" preview
+```
+
+## 额外渲染来源 demo
+
+下面的 demo 有两个组件，分别监听 `demo_bound_a` 和 `demo_bound_b`。
+
+点击“更新 A”时，`countA` 会先通过 optimistic state 立即更新；React Router location 会在观测用 `flushDelay` 后才确认 URL 变化。这个 demo 用来强调额外渲染的来源：
+
+- Decurl store 自身触发的 optimistic 更新。
+- React Router 监听到 location 变化后带来的页面树更新。
+
+```tsx file="./_demos/configured-store-renders.tsx" preview
+```
+
+如果完全不使用 `memo`，React Router location 确认后仍可能让当前文档页的组件树重新渲染，因此 demo 里无关组件的 render count 可能在 URL 确认阶段增加一次。这不是 Decurl 主动通知无关 field 变化，而是 React Router location 更新带来的父级渲染传导。
+
+这个入口仍然能减少一部分渲染，主要原因是：
+
+- 绑定 hooks 消费的是绑定 store 的 snapshot，不会像主入口 hooks 那样在 hook 内部直接依赖 React Router 的 `useLocation`。
+- React Router location 确认时，绑定 hooks 不会因为自身调用了 `useLocation` 而必然重新执行。
+
+## 什么时候使用
+
+优先直接使用主入口 hooks。出现下面情况时，再考虑绑定 store：
+
+- 应用中存在多个 React Router runtime。主入口 hooks 使用默认单例 store，多 router 实例共享同一个默认 store 容易让 runtime 边界变得不清晰；此时可以为每个 router 实例创建一组绑定 store。
+- 需要减少 React Router location 变化带来的 hook consumer 渲染次数。绑定 hooks 不直接依赖 React Router 的 `useLocation`，因此可以少受 location 确认阶段的影响。
+- 希望为某一组 hooks 统一配置 `flushMode` 或 `flushDelay`。
+- 需要通过 data router instance 显式接线 runtime。
+
+绑定 store 是隔离和优化入口，不是基础 hooks 的使用前提。
+
+需要注意的是，React Router 在 location 确认后仍可能让 route tree 重新渲染。绑定 store 可以避免 hook consumer 自己直接订阅 `useLocation`，但无法阻止 React Router 父级渲染向子组件传导。对稳定的重型子组件，可以配合 `React.memo` 或 `useMemo` 做进一步优化。
