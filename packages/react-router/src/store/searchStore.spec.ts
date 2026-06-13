@@ -7,7 +7,7 @@ import type {
   SearchRuntime,
 } from '../runtime/types';
 import { createSearchStore } from './searchStore';
-import type { SearchPatch, SearchStore } from './types';
+import type { SearchPatch, SearchStore, SearchStoreState } from './types';
 
 describe('createSearchStore', () => {
   const schema = {
@@ -338,6 +338,43 @@ describe('createSearchStore', () => {
     expect(store.getSnapshot().location).toEqual(location('/users', 'page=4'));
   });
 
+  it('derives the latest inflight location from the last inflight search', () => {
+    const navigate = vi.fn();
+    const store = createSearchStore({
+      initialLocation: location('/users', 'page=1'),
+    });
+    store.configureRuntime(runtime(navigate));
+
+    addValues(store, schema, { page: 2 });
+    store.flush();
+    addValues(store, schema, { page: 3 });
+    store.flush();
+
+    expect(debugState(store).inflightFlushes).toEqual(['page=2', 'page=3']);
+    expect(debugState(store).latestInflightFlushLocation).toEqual(
+      location('/users', 'page=3'),
+    );
+  });
+
+  it('keeps the latest inflight location after consuming an older inflight search', () => {
+    const navigate = vi.fn();
+    const store = createSearchStore({
+      initialLocation: location('/users', 'page=1'),
+    });
+    store.configureRuntime(runtime(navigate));
+
+    addValues(store, schema, { page: 2 });
+    store.flush();
+    addValues(store, schema, { page: 3 });
+    store.flush();
+    store.locationChanged(location('/users', 'page=2'));
+
+    expect(debugState(store).inflightFlushes).toEqual(['page=3']);
+    expect(debugState(store).latestInflightFlushLocation).toEqual(
+      location('/users', 'page=3'),
+    );
+  });
+
   it('keeps optimistic location when an older inflight flush is confirmed', () => {
     const navigate = vi.fn();
     const store = createSearchStore({
@@ -426,6 +463,20 @@ describe('createSearchStore', () => {
 
 const location = (pathname: string, search: string): SearchLocation => {
   return { pathname, search };
+};
+
+type SearchStoreDebugState = {
+  state: SearchStoreState;
+  inflightFlushes: string[];
+  latestInflightFlushLocation?: SearchLocation;
+};
+
+type SearchStoreWithDebug = SearchStore & {
+  __debug: () => SearchStoreDebugState;
+};
+
+const debugState = (store: SearchStore): SearchStoreDebugState => {
+  return (store as SearchStoreWithDebug).__debug();
 };
 
 const addValues = <TDefinition extends Record<string, FieldCodec>>(
