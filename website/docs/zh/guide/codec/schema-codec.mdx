@@ -81,6 +81,9 @@ import type { InferFieldValues } from '@decurl/react-router/codec';
 import { defineFields, field } from '@decurl/react-router/codec';
 import { elementOf, min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
 
+type Sort = 'relevance' | 'latest';
+const sortValues: readonly Sort[] = ['relevance', 'latest'];
+
 const fields = defineFields({
   q: field({
     decode: pipe(trim, shape(/.+/)),
@@ -91,7 +94,7 @@ const fields = defineFields({
     defaultValue: 1,
   }),
   sort: field({
-    decode: elementOf(['relevance', 'latest'] as const),
+    decode: elementOf(sortValues),
     defaultValue: 'relevance',
   }),
 });

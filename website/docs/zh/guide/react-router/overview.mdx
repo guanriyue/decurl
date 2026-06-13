@@ -2,19 +2,11 @@
 description: "@decurl/react-router 把 Decurl schema 接入 React Router，并以 hooks 暴露 URL search state。"
 ---
 
-import { QueryFormDemo, QueryInputDemo } from '../../../../components/ReactRouterDemos';
-
 # React Router 集成
 
 `@decurl/react-router` 把 Decurl 的 schema 接入 React Router。它的目标是让 URL search 像普通 React state 一样被读取和更新，同时保持 URL 是最终状态来源。
 
-## 在 Rspress 中使用
-
-Rspress 支持在 MDX 中 import 并渲染 React 组件，因此可以把 Decurl 的 React Router demo 直接写成组件后嵌入文档页。
-
-Rspress 文档页自身已经运行在路由环境中，demo 不需要再创建一层 `BrowserRouter`。组件可以直接使用 `@decurl/react-router` 的 hooks，把当前文档页 URL 的 query 参数作为演示状态。
-
-## 开箱即用 hooks
+## hooks
 
 最小使用方式是直接导入 hooks 和 schema 工具：
 
@@ -51,15 +43,17 @@ function SearchInput() {
 
 ## 输入框 demo
 
-下面的输入框直接使用开箱即用 hooks。输入内容会同步到当前页面 URL 的 `demo_q` 参数。
+下面的输入框直接使用 hooks。输入内容会同步到当前页面 URL 的 `demo_q` 参数。
 
-<QueryInputDemo />
+```tsx file="./_demos/query-input.tsx" preview
+```
 
 ## 查询表单 demo
 
-下面的表单同样直接使用主入口 `useSearchValues`。表单从 URL 初始化本地表单状态；提交时再把表单值 patch 到 URL。
+下面的表单同样直接使用主入口 `useSearchValues`。URL values 变化时，demo 会把值同步到表单元素；提交时再通过 `FormData` 读取原始 input，并把结果 patch 到 URL。
 
-<QueryFormDemo />
+```tsx file="./_demos/query-form.tsx" preview
+```
 
 ## 绑定 store 的优化入口
 
