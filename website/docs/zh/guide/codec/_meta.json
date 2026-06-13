@@ -1,6 +1,11 @@
 [
   {
     "type": "file",
+    "name": "field-codec",
+    "label": "FieldCodec 定义"
+  },
+  {
+    "type": "file",
     "name": "decode-pipeline",
     "label": "Decode pipeline"
   },

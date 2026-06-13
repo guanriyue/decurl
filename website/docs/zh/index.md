@@ -14,6 +14,9 @@ hero:
       text: 查看 API
       link: /zh/api/
 features:
+  - title: FieldCodec
+    details: 用单个 field 描述 URL key、decode、默认值、写回和相等性语义。
+    link: /zh/guide/codec/field-codec
   - title: Decode first
     details: Search Params 的难点不是写入，而是把 URL 中的原始字符串安全地解析为业务值。
     link: /zh/guide/codec/decode-pipeline

@@ -1,0 +1,191 @@
+---
+description: FieldCodec 描述单个 URL 字段如何 decode、encode、设置默认值和比较值。
+---
+
+# FieldCodec 定义
+
+FieldCodec 描述单个 URL 字段如何映射到业务值。它是 Decurl codec 层的最小单元：schema、URLSearchParams codec 和 React Router hooks 都会复用同一份 field codec。
+
+FieldCodec 的核心字段是 `decode`。它决定 URL 原始字符串如何变成业务值，也决定 TypeScript 能推导出的值类型。其他字段不是另一套解析规则，而是在特定时机补充 URL key、写回、默认值和相等性语义。
+
+## 最小定义
+
+```ts
+const keyword = {
+  decode: (value) => {
+    const nextValue = value.trim();
+
+    return nextValue === '' ? undefined : nextValue;
+  },
+};
+```
+
+`decode` 是唯一必填字段，它可以是普通函数。最简定义甚至不需要调用 `field(...)`：只要对象满足 FieldCodec 形状，就可以被 schema 和 hooks 使用。
+
+不过在实际代码中，仍然推荐使用 `field(...)` 固化 codec 类型。它能让 TypeScript 更早检查 `mode`、`decode` 输入、`defaultValue` 和 `encode` 是否匹配，也能避免对象字面量在后续组合时被不必要地拓宽。
+
+没有 `defaultValue` 时，字段 decode 后可能是 `undefined`；带 `defaultValue` 时，字段 decode 后一定有值。
+
+`@decurl/react-router/decode` 提供的是一组可组合的 helper。使用它们不是 FieldCodec 的要求，只是为了减少重复编码，并让常见解析规则更容易阅读。
+
+```ts
+import { field } from '@decurl/react-router/codec';
+import { min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+
+const page = field({
+  decode: pipe(trim, shape.integer, toNumber, min(1)),
+  defaultValue: 1,
+});
+```
+
+## 属性概览
+
+概念上，一个 field codec 可以理解为：
+
+```ts
+type FieldCodec<TValue, TRaw extends string | string[] = string> = {
+  mode?: 'single' | 'multi';
+  name?: string | readonly string[];
+  decode: (raw: TRaw) => TValue | null | undefined;
+  encode?: (value: NonNullable<TValue>) => TRaw | null | undefined;
+  defaultValue?: NonNullable<TValue>;
+  eq?: (left: NonNullable<TValue>, right: NonNullable<TValue>) => boolean;
+};
+```
+
+实际类型会根据 `mode`、是否存在 `defaultValue`、`decode` 输出类型拆成更精确的 union，以获得更好的类型推导。
+
+| 属性 | 必填 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `decode` | 是 | `(raw: TRaw) => TValue \| null \| undefined` | 读取 URL 时发挥作用。<br/>把 URL 中的 raw value 转成业务值；返回 `null` 或 `undefined` 表示当前 raw value 无效，会继续尝试 alias，最后回退到 `defaultValue` 或 `undefined`。 |
+| `mode` | 否 | `'single' \| 'multi'` | 读取和写入 URL 时发挥作用。<br/>默认是 `'single'`；`single` 读取一个值，`multi` 读取同一个 key 的所有值，并在写入时生成多个同名 key。 |
+| `name` | 否 | `string \| readonly string[]` | schema 固化、读取、写入时发挥作用。<br/>覆盖 URL key；数组第一项是 canonical key，后续项是 legacy alias。没有提供时使用 schema property key。 |
+| `defaultValue` | 否 | `NonNullable<TValue>` | decode 失败或 key 缺失时发挥作用，也会影响写入默认值时的行为。<br/>存在时字段 decode 后一定有值，并影响类型推导；写入等于默认值的值时，默认会从 URL 中省略这个 key。 |
+| `encode` | 否 | `(value: NonNullable<TValue>) => TRaw \| null \| undefined` | 写入 URL 时发挥作用。<br/>默认会用 `String(value)` 序列化；只有业务值需要特殊序列化时才需要提供。返回 `null` 或 `undefined` 表示不写入该 key。 |
+| `eq` | 否 | `(left: NonNullable<TValue>, right: NonNullable<TValue>) => boolean` | 比较前后 decoded value 时发挥作用。<br/>用于判断值是否相等，影响 hooks 返回值的稳定引用、默认值省略判断等。未提供时，`single` 使用 `Object.is`，`multi` 使用顺序敏感的 shallow array equality。 |
+
+## 读取时机
+
+`single` 和 `multi` 的区别在于传给 `decode` 的 raw input 形状。`single` 字段读取一个 URL value，`decode` 接收 `string`；`multi` 字段读取同一个 key 的所有 values，`decode` 接收 `string[]`。
+
+`defaultValue` 是字段无法从 URL 得到有效业务值时的 fallback。URLSearchParams 没有对应 key 时会直接使用 `defaultValue`，不会执行 `decode`；key 存在但 `decode` 返回 `null` / `undefined` 时，也会使用 `defaultValue`。如果 `decode` 抛出错误，预期行为同样是回退到 `defaultValue`。
+
+大多数字段不需要自定义 `encode` 或 `eq`。只有 Date、对象、压缩字符串、特殊数组序列化这类值需要自定义写回格式时，才需要 `encode`；只有对象、Date、无序数组这类值需要业务相等性时，才需要 `eq`。
+
+## TypeScript
+
+### 类型推导
+
+```ts twoslash
+import type { InferFieldValue } from '@decurl/react-router/codec';
+import { field } from '@decurl/react-router/codec';
+import { min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+
+const keyword = field({
+  decode: trim,
+});
+
+type Keyword = InferFieldValue<typeof keyword>;
+//   ^?
+
+
+const page = field({
+  decode: pipe(trim, shape.integer, toNumber, min(1)),
+  defaultValue: 1,
+});
+
+type Page = InferFieldValue<typeof page>;
+//   ^?
+```
+
+`defaultValue` 不能是 `null` 或 `undefined`。这条限制保证了“有默认值就一定有业务值”的类型承诺。
+
+字面量对象也可以被推导，但推荐使用 `field(...)` 固化 codec 类型。这样每个字段的模式、默认值和 decode 输入形状会更早被 TypeScript 检查，也能避免对象被后续组合时发生不必要的类型拓宽。
+
+```ts twoslash
+import type { InferFieldValue } from '@decurl/react-router/codec';
+import { field } from '@decurl/react-router/codec';
+import { trim } from '@decurl/react-router/decode';
+
+const literalCodec = {
+  decode: trim,
+};
+
+type LiteralValue = InferFieldValue<typeof literalCodec>;
+//   ^?
+
+
+const stableCodec = field({
+  decode: trim,
+});
+
+type StableValue = InferFieldValue<typeof stableCodec>;
+//   ^?
+```
+
+### Hooks 推导
+
+`useSearchValue` 读取单个 named field codec。通常它来自 `defineFields` 的返回值。
+
+```ts twoslash
+import { useSearchValue } from '@decurl/react-router';
+import { defineFields, field } from '@decurl/react-router/codec';
+import { trim } from '@decurl/react-router/decode';
+
+const fields = defineFields({
+  keyword: field({
+    name: 'q',
+    decode: trim,
+  }),
+});
+
+const SearchInput = () => {
+  const [keyword, setKeyword] = useSearchValue(fields.keyword);
+
+  keyword;
+// ^?
+
+
+  setKeyword;
+// ^?
+
+  return null;
+};
+```
+
+`useSearchValues` 读取一组 field codec。下面的 schema 同时覆盖了 single optional、multi optional、single required 和 multi required 四种 field。
+
+```ts twoslash
+import { useSearchValues } from '@decurl/react-router';
+import { defineFields, field } from '@decurl/react-router/codec';
+import { elementOf, mapItems, min, pipe, shape, toNumber, trim, unique } from '@decurl/react-router/decode';
+
+const fields = defineFields({
+  keyword: field({
+    decode: trim,
+  }),
+  tags: field({
+    mode: 'multi',
+    decode: pipe(mapItems(elementOf(['react', 'router', 'docs'])), unique),
+  }),
+  page: field({
+    decode: pipe(trim, shape.integer, toNumber, min(1)),
+    defaultValue: 1,
+  }),
+  views: field({
+    mode: 'multi',
+    decode: pipe(mapItems(elementOf(['list', 'grid'])), unique),
+    defaultValue: ['list'],
+  }),
+});
+
+const SearchPanel = () => {
+  const [values, setValues] = useSearchValues(fields);
+
+  values;
+
+  setValues;
+
+  return null;
+};
+```
