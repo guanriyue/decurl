@@ -14,9 +14,9 @@ const toSearchText = (search: string): string => {
   return search.length > 0 ? search : '(empty)';
 };
 
-export default function QueryInputDemo() {
+const QueryInputDemo = () => {
   const location = useLocation();
-  const [keyword, setKeyword] = useSearchValue(fields.keyword)
+  const [keyword, setKeyword] = useSearchValue(fields.keyword);
 
   return (
     <div className="decurl-demo">
@@ -41,4 +41,6 @@ export default function QueryInputDemo() {
       </div>
     </div>
   );
-}
+};
+
+export default QueryInputDemo;

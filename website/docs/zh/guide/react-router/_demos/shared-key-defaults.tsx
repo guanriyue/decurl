@@ -23,7 +23,7 @@ const toSearchText = (search: string): string => {
   return search.length > 0 ? search : '(empty)';
 };
 
-export default function SharedKeyDefaultsDemo() {
+const SharedKeyDefaultsDemo = () => {
   const location = useLocation();
   const [leftValue, setLeftValue] = useSearchValue(leftField.value);
   const [rightValues, setRightValues] = useSearchValues(rightSchema);
@@ -73,4 +73,6 @@ export default function SharedKeyDefaultsDemo() {
       </div>
     </div>
   );
-}
+};
+
+export default SharedKeyDefaultsDemo;

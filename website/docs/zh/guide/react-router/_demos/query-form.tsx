@@ -69,7 +69,7 @@ const normalizeCategory = (value: FormDataEntryValue | undefined) => {
   return value === 'docs' || value === 'api' ? value : 'all';
 };
 
-export default function QueryFormDemo() {
+const QueryFormDemo = () => {
   const location = useLocation();
   const formRef = useRef<HTMLFormElement>(null);
   const [values, setValues] = useSearchValues(fields);
@@ -147,4 +147,6 @@ export default function QueryFormDemo() {
       </div>
     </form>
   );
-}
+};
+
+export default QueryFormDemo;

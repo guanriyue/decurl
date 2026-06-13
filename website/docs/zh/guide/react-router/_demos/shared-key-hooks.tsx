@@ -21,7 +21,7 @@ const toSearchText = (search: string): string => {
   return search.length > 0 ? search : '(empty)';
 };
 
-export default function SharedKeyHooksDemo() {
+const SharedKeyHooksDemo = () => {
   const location = useLocation();
   const [keyword, setKeyword] = useSearchValue(singleField.keyword);
   const [values, setValues] = useSearchValues(valuesSchema);
@@ -68,4 +68,6 @@ export default function SharedKeyHooksDemo() {
       </div>
     </div>
   );
-}
+};
+
+export default SharedKeyHooksDemo;
