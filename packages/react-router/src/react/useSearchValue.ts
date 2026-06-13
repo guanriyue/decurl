@@ -83,8 +83,15 @@ export const useSearchValueStore = <TCodec extends SearchValueCodec>(
     (patch, options) => {
       store.addEntry({
         apply: (searchParams) => {
+          if (typeof patch !== 'function') {
+            return encodeField(searchParams, codec, codec.name, patch);
+          }
+
           const previousValue = decodeField(searchParams, codec, codec.name);
-          const nextValue = resolveSearchValuePatch(patch, previousValue);
+          const updater = patch as (
+            previousValue: InferFieldValue<TCodec>,
+          ) => InferFieldValue<TCodec> | null | undefined;
+          const nextValue = updater(previousValue);
 
           return encodeField(searchParams, codec, codec.name, nextValue);
         },
@@ -95,19 +102,4 @@ export const useSearchValueStore = <TCodec extends SearchValueCodec>(
   );
 
   return [value, setValue];
-};
-
-const resolveSearchValuePatch = <TCodec extends FieldCodec>(
-  patch: SearchValuePatch<TCodec>,
-  previousValue: InferFieldValue<TCodec>,
-): InferFieldValue<TCodec> | null | undefined => {
-  if (typeof patch === 'function') {
-    const updater = patch as (
-      previousValue: InferFieldValue<TCodec>,
-    ) => InferFieldValue<TCodec> | null | undefined;
-
-    return updater(previousValue);
-  }
-
-  return patch;
 };

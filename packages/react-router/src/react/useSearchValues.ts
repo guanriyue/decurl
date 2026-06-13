@@ -47,9 +47,12 @@ export const useSearchValuesStore = <TDefinition extends RecordCodec>(
     (patch, options) => {
       store.addEntry({
         apply: (searchParams) => {
+          if (typeof patch !== 'function') {
+            return encodeFields(schema, patch, { base: searchParams });
+          }
+
           const previousValues = decodeFields(schema, searchParams);
-          const nextPatch =
-            typeof patch === 'function' ? patch(previousValues) : patch;
+          const nextPatch = patch(previousValues);
 
           return encodeFields(schema, nextPatch, { base: searchParams });
         },
