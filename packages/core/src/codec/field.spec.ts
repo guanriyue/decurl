@@ -1,4 +1,4 @@
-import { describe, expect, expectTypeOf, it, vi } from 'vitest';
+import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import {
   decodeField,
   encodeField,
@@ -12,6 +12,10 @@ import type {
   SingleOptionalFieldCodec,
   SingleRequiredFieldCodec,
 } from './types';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe('decodeField', () => {
   it('decodes a single field by explicit key', () => {
@@ -82,6 +86,39 @@ describe('decodeField', () => {
     expect(decodeField(new URLSearchParams('page=x'), codec, 'page')).toBe(1);
   });
 
+  it('falls back to defaultValue when single decode throws', () => {
+    const error = new Error('Invalid page');
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    const codec = {
+      decode: () => {
+        throw error;
+      },
+      defaultValue: 1,
+    } satisfies SingleRequiredFieldCodec<number>;
+
+    expect(decodeField(new URLSearchParams('page=x'), codec, 'page')).toBe(1);
+    expect(consoleError).toHaveBeenNthCalledWith(
+      1,
+      '[decurl] Field decode threw an exception.',
+    );
+    expect(consoleError).toHaveBeenNthCalledWith(2, error);
+  });
+
+  it('returns undefined when optional single decode throws', () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const codec = {
+      decode: () => {
+        throw new Error('Invalid page');
+      },
+    } satisfies SingleOptionalFieldCodec<number>;
+
+    expect(
+      decodeField(new URLSearchParams('page=x'), codec, 'page'),
+    ).toBeUndefined();
+  });
+
   it('decodes multi fields from all values in order', () => {
     const decode = vi.fn((input: string[]) => input.map(Number));
     const codec = {
@@ -123,6 +160,21 @@ describe('decodeField', () => {
     expect(decode).not.toHaveBeenCalled();
   });
 
+  it('falls back to defaultValue when multi decode throws', () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const codec = {
+      mode: 'multi',
+      decode: () => {
+        throw new Error('Invalid tags');
+      },
+      defaultValue: ['default'],
+    } satisfies MultiRequiredFieldCodec<string[]>;
+
+    const value = decodeField(new URLSearchParams('tag=a&tag=b'), codec, 'tag');
+
+    expect(value).toEqual(['default']);
+  });
+
   it('decodes from a later alias when earlier aliases are missing', () => {
     const codec = {
       decode: (input) => Number(input),
@@ -140,6 +192,29 @@ describe('decodeField', () => {
     const decode = vi.fn((input: string) =>
       input === 'bad' ? undefined : Number(input),
     );
+    const codec = {
+      decode,
+    } satisfies SingleOptionalFieldCodec<number>;
+
+    const value = decodeField(new URLSearchParams('page_num=bad&p=2'), codec, [
+      'page_num',
+      'p',
+    ]);
+
+    expect(value).toBe(2);
+    expect(decode).toHaveBeenCalledWith('bad');
+    expect(decode).toHaveBeenCalledWith('2');
+  });
+
+  it('continues to later aliases when decode throws', () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const decode = vi.fn((input: string) => {
+      if (input === 'bad') {
+        throw new Error('Invalid page');
+      }
+
+      return Number(input);
+    });
     const codec = {
       decode,
     } satisfies SingleOptionalFieldCodec<number>;

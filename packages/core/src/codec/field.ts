@@ -9,6 +9,12 @@ import type {
   MultiRequiredFieldCodec,
 } from './types';
 
+declare const process: {
+  env: {
+    NODE_ENV?: string;
+  };
+};
+
 export type EncodedFieldValue<TCodec extends FieldCodec> = TCodec extends {
   mode: 'multi';
 }
@@ -32,7 +38,7 @@ export const decodeField = <TCodec extends FieldCodec>(
         continue;
       }
 
-      const decoded = codec.decode(searchParams.getAll(fieldKey));
+      const decoded = decodeSafely(codec.decode, searchParams.getAll(fieldKey));
 
       if (!isNil(decoded)) {
         return decoded as never;
@@ -49,7 +55,7 @@ export const decodeField = <TCodec extends FieldCodec>(
       continue;
     }
 
-    const decoded = codec.decode(raw);
+    const decoded = decodeSafely(codec.decode, raw);
 
     if (!isNil(decoded)) {
       return decoded as never;
@@ -179,6 +185,24 @@ const isMultiFieldCodec = <TValue>(
   | MultiOptionalFieldCodec<TValue>
   | MultiRequiredFieldCodec<TValue> => {
   return codec.mode === 'multi';
+};
+
+const decodeSafely = <TInput, TValue>(
+  decode: (input: TInput) => TValue | null | undefined,
+  input: TInput,
+): TValue | null | undefined => {
+  try {
+    return decode(input);
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('[decurl] Field decode threw an exception.');
+      console.error(error);
+    }
+
+    // A thrown decode means this raw value cannot produce a valid field value.
+    // Treat it like a nullish decode result so aliases can still be tried.
+    return undefined;
+  }
 };
 
 const deleteSearchKeys = (

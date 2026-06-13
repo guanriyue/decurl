@@ -51,6 +51,8 @@ type FieldCodec = {
 
 如果 decode 无法产生有效值，返回 `null` 或 `undefined`。实现代码可以在内部按需归一化为 `undefined`。
 
+如果 decode 抛出异常，field 级 decode 应将其视为当前 raw value decode 失败，并回退到后续 alias、`defaultValue` 或 `undefined`。开发环境下应输出错误日志，方便定位异常 decode。
+
 Decode helper 应保持小而显式。除非 helper 名称清楚表达，否则避免隐式 trim 或宽松数字解析这类隐藏行为。
 
 ## Encode
