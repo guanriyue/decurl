@@ -6,9 +6,12 @@ import type {
   InferFieldValues,
   MultiOptionalFieldCodec,
   MultiRequiredFieldCodec,
+  NamedFieldCodec,
   SingleOptionalFieldCodec,
   SingleRequiredFieldCodec,
+  WithDefinedFieldName,
 } from './types';
+import { field } from './types';
 
 describe('FieldCodec types', () => {
   it('infers optional single field values as value or undefined', () => {
@@ -165,5 +168,58 @@ describe('FieldCodec types', () => {
         | SingleOptionalFieldCodec<number[]>
         | MultiOptionalFieldCodec<number[]>;
     }>();
+  });
+
+  it('infers named single field codecs from explicit string names', () => {
+    const codec = field({
+      name: 'keyword',
+      decode: (input) => input,
+    });
+
+    expectTypeOf(codec).toEqualTypeOf<
+      WithDefinedFieldName<SingleOptionalFieldCodec<string>>
+    >();
+    expectTypeOf(codec).toExtend<NamedFieldCodec>();
+  });
+
+  it('infers named multi field codecs from explicit non-empty alias tuples', () => {
+    const codec = field({
+      mode: 'multi',
+      name: ['tag', 't'] as const,
+      decode: (input) => input,
+    });
+
+    expectTypeOf(codec).toEqualTypeOf<
+      WithDefinedFieldName<MultiOptionalFieldCodec<string[]>>
+    >();
+    expectTypeOf(codec).toExtend<NamedFieldCodec>();
+  });
+
+  it('uses NamedFieldCodec as the concrete named field codec type', () => {
+    const codec: NamedFieldCodec = field({
+      name: 'keyword',
+      decode: (input) => input,
+    });
+
+    void codec;
+  });
+
+  it('does not infer named field codecs from empty name arrays', () => {
+    const codec = field({
+      name: [],
+      decode: (input) => input,
+    });
+
+    expectTypeOf(codec).toEqualTypeOf<SingleOptionalFieldCodec<string>>();
+  });
+
+  it('does not infer named field codecs from unknown-length name arrays', () => {
+    const names: string[] = ['keyword'];
+    const codec = field({
+      name: names,
+      decode: (input) => input,
+    });
+
+    expectTypeOf(codec).toEqualTypeOf<SingleOptionalFieldCodec<string>>();
   });
 });

@@ -5,6 +5,8 @@ export type FieldMode = 'single' | 'multi';
 
 export type FieldName = string | readonly string[];
 
+export type DefinedFieldName = string | readonly [string, ...string[]];
+
 export type FieldCodecBase<TValue> = {
   eq?: (left: NonNullable<TValue>, right: NonNullable<TValue>) => boolean;
   name?: FieldName;
@@ -51,6 +53,17 @@ export type FieldCodec<TValue = any> =
   | OptionalFieldCodec<TValue>
   | RequiredFieldCodec<TValue>;
 
+export type WithDefinedFieldName<TCodec extends FieldCodec> = {
+  name: DefinedFieldName;
+} & Omit<TCodec, 'name'>;
+
+// biome-ignore lint/suspicious/noExplicitAny: 用于表达任意具名 FieldCodec 分支
+export type NamedFieldCodec<T = any> = 
+  | WithDefinedFieldName<SingleOptionalFieldCodec<T>>
+  | WithDefinedFieldName<SingleRequiredFieldCodec<T>>
+  | WithDefinedFieldName<MultiOptionalFieldCodec<T>>
+  | WithDefinedFieldName<MultiRequiredFieldCodec<T>>;
+
 export type RecordCodec = Record<string, FieldCodec>;
 
 export type OptionalFieldCodecOf<TValue> = TValue extends readonly unknown[]
@@ -80,6 +93,22 @@ export type InferFieldValue<TCodec> =
 export type InferFieldValues<TDefinition extends RecordCodec> = Prettier<{
   [key in keyof TDefinition]: InferFieldValue<TDefinition[key]>;
 }>;
+
+export function field<TValue>(
+  definition: SingleOptionalFieldCodec<TValue> & { name: DefinedFieldName },
+): WithDefinedFieldName<SingleOptionalFieldCodec<TValue>>;
+
+export function field<TValue>(
+  definition: SingleRequiredFieldCodec<TValue> & { name: DefinedFieldName },
+): WithDefinedFieldName<SingleRequiredFieldCodec<TValue>>;
+
+export function field<TValue>(
+  definition: MultiOptionalFieldCodec<TValue> & { name: DefinedFieldName },
+): WithDefinedFieldName<MultiOptionalFieldCodec<TValue>>;
+
+export function field<TValue>(
+  definition: MultiRequiredFieldCodec<TValue> & { name: DefinedFieldName },
+): WithDefinedFieldName<MultiRequiredFieldCodec<TValue>>;
 
 export function field<TValue>(
   definition: SingleOptionalFieldCodec<TValue>,

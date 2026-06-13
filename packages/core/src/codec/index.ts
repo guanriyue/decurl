@@ -1,9 +1,7 @@
 export {
-  type DefinedFieldName,
   type DefinedFields,
   type DefineFieldsOptions,
   defineFields,
-  type NamedFieldCodec,
 } from './definition';
 export {
   decodeField,
@@ -21,6 +19,7 @@ export {
   isFieldValuesEqual,
 } from './fields';
 export {
+  type DefinedFieldName,
   type FieldCodec,
   type FieldCodecOf,
   type FieldMode,
@@ -31,6 +30,7 @@ export {
   type InferFieldValues,
   type MultiOptionalFieldCodec,
   type MultiRequiredFieldCodec,
+  type NamedFieldCodec,
   type OptionalFieldCodec,
   type OptionalFieldCodecOf,
   type RecordCodec,
@@ -38,6 +38,7 @@ export {
   type RequiredFieldCodecOf,
   type SingleOptionalFieldCodec,
   type SingleRequiredFieldCodec,
+  type WithDefinedFieldName,
 } from './types';
 export {
   createURLSearchParamsCodec,

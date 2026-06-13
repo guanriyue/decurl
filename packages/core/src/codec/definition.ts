@@ -1,18 +1,14 @@
 import { isUndefined } from '../_internal/isUndefined';
 import type { Prettier } from '../_internal/types';
-import type { FieldCodec, FieldName, RecordCodec } from './types';
-
-export type DefinedFieldName = string | readonly [string, ...string[]];
-
-export type NamedFieldCodec<TCodec extends FieldCodec> = Omit<
-  TCodec,
-  'name'
-> & {
-  name: DefinedFieldName;
-};
+import type {
+  DefinedFieldName,
+  FieldName,
+  RecordCodec,
+  WithDefinedFieldName,
+} from './types';
 
 export type DefinedFields<TDefinition extends RecordCodec> = Prettier<{
-  [key in keyof TDefinition]: NamedFieldCodec<TDefinition[key]>;
+  [key in keyof TDefinition]: WithDefinedFieldName<TDefinition[key]>;
 }>;
 
 export type DefineFieldsOptions = {
