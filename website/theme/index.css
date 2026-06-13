@@ -22,22 +22,6 @@
   background: var(--rp-c-bg-soft); */
 }
 
-.decurl-demo__header {
-  display: grid;
-  gap: 4px;
-}
-
-.decurl-demo__header h3 {
-  margin: 0;
-  font-size: 18px;
-  line-height: 1.4;
-}
-
-.decurl-demo__header p {
-  margin: 0;
-  color: var(--rp-c-text-2);
-}
-
 .decurl-demo__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

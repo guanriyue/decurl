@@ -20,10 +20,6 @@ export default function QueryInputDemo() {
 
   return (
     <div className="decurl-demo">
-      <div className="decurl-demo__header">
-        <h3>输入框与 URL 联动</h3>
-        <p>输入内容会立即写入 query 参数，清空输入框会删除参数。</p>
-      </div>
       <label className="decurl-demo__field">
         <span>关键词</span>
         <input

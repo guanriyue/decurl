@@ -106,10 +106,6 @@ export default function QueryFormDemo() {
         });
       }}
     >
-      <div className="decurl-demo__header">
-        <h3>查询表单初始化与提交</h3>
-        <p>表单从 URL 初始化；提交后用 schema patch 更新 URL。</p>
-      </div>
       <div className="decurl-demo__grid">
         <label className="decurl-demo__field">
           <span>关键词</span>

@@ -48,6 +48,13 @@ function SearchInput() {
 ```tsx file="./_demos/query-input.tsx" preview
 ```
 
+## 共享 URL key demo
+
+不同 hook 可以监听同一个 URL key。只要 field codec 映射到同一个 `name`，它们就会从同一份 URL search state 中读取值。
+
+```tsx file="./_demos/shared-key-hooks.tsx" preview
+```
+
 ## 查询表单 demo
 
 下面的表单同样直接使用主入口 `useSearchValues`。URL values 变化时，demo 会把值同步到表单元素；提交时再通过 `FormData` 读取原始 input，并把结果 patch 到 URL。
