@@ -16,9 +16,14 @@ type FieldName = string | readonly string[]
 
 type URLSearchParamsCodecDefinition = Record<string, FieldCodec>
 
-type NamedFieldCodec<TValue> = FieldCodec<TValue> & {
+type NamedFieldCodec = FieldCodec & {
   name: string | readonly [string, ...string[]]
 }
+
+type WithDefinedFieldName<TCodec extends FieldCodec> =
+  Omit<TCodec, 'name'> & {
+    name: string | readonly [string, ...string[]]
+  }
 ```
 
 Core 可以提供一个 schema define 方法，例如：
@@ -33,7 +38,7 @@ const schema = defineFields({
 })
 ```
 
-`defineFields` 返回的 schema 应尽量让每个 field 都成为 named field。这样上层集成包可以在单独使用 field codec 时避免魔法字符串：
+`defineFields` 返回的 schema 应尽量让每个 field 都成为 named field，并通过 `WithDefinedFieldName<TCodec>` 保留每个 field 的具体子类型。这样上层集成包可以在单独使用 field codec 时避免魔法字符串：
 
 ```ts
 useSearchValue(schema.text)

@@ -135,12 +135,19 @@ useSearchValue('text', schema.text)
 ```ts
 type FieldName = string | readonly [string, ...string[]]
 
-type NamedFieldCodec<TValue> = FieldCodec<TValue> & {
+type NamedFieldCodec = FieldCodec & {
   name: FieldName
 }
+
+type WithDefinedFieldName<TCodec extends FieldCodec> =
+  Omit<TCodec, 'name'> & {
+    name: FieldName
+  }
 ```
 
 `name: []` 不是 named codec，因为它没有提供可独立使用的 key。空数组只在 schema definition 阶段有意义：它表示回退到 schema property key。
+
+`NamedFieldCodec` 用于表达“任意携带有效 name 的 field codec”。`WithDefinedFieldName<TCodec>` 是类型变换工具，用于保留具体 codec 子类型并覆盖 name 类型。
 
 Core 可以提供 schema define 能力，把未携带 name 或携带空数组 name 的 codec 固化为 named codec。具体框架包可以消费 `NamedFieldCodec`，从而设计不需要显式 key 参数的 API。
 
