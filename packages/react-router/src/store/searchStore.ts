@@ -40,7 +40,6 @@ export const createSearchStore = (
   let isLocationInitialized = typeof options.initialLocation !== 'undefined';
   let runtime: SearchRuntime | undefined;
   let nextEntryId = 0;
-  let latestInflightFlushLocation: SearchLocation | undefined;
   let inflightFlushes: string[] = [];
   let state: SearchStoreState = {
     confirmedLocation,
@@ -94,7 +93,16 @@ export const createSearchStore = (
   };
 
   const getLatestInflightFlushLocation = (): SearchLocation | undefined => {
-    return latestInflightFlushLocation;
+    const search = inflightFlushes.at(-1);
+
+    if (typeof search === 'undefined') {
+      return undefined;
+    }
+
+    return {
+      pathname: state.confirmedLocation.pathname,
+      search,
+    };
   };
 
   const consumeInflightSearch = (search: string): boolean => {
@@ -133,7 +141,6 @@ export const createSearchStore = (
       ...state,
       pendingEntries: [],
     };
-    latestInflightFlushLocation = flushTarget;
     void runtime.navigate(flushTarget, resolvedOptions);
   };
 
@@ -165,7 +172,6 @@ export const createSearchStore = (
         pendingEntries: [],
       };
       inflightFlushes = [];
-      latestInflightFlushLocation = undefined;
       isLocationInitialized = true;
     },
     locationChanged: (nextLocation) => {
@@ -178,7 +184,6 @@ export const createSearchStore = (
           pendingEntries: [],
         };
         inflightFlushes = [];
-        latestInflightFlushLocation = undefined;
         notify();
       };
 
@@ -222,6 +227,19 @@ export const createSearchStore = (
     },
     flush,
   };
+
+  if (process.env.NODE_ENV === 'test') {
+    Object.defineProperty(store, '__debug', {
+      value: () => ({
+        state: {
+          ...state,
+          pendingEntries: [...state.pendingEntries],
+        },
+        inflightFlushes: [...inflightFlushes],
+        latestInflightFlushLocation: getLatestInflightFlushLocation(),
+      }),
+    });
+  }
 
   return store;
 };
