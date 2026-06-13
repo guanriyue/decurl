@@ -55,6 +55,13 @@ function SearchInput() {
 ```tsx file="./_demos/shared-key-hooks.tsx" preview
 ```
 
+## 【反例】同 key 不同规则 demo
+
+同一个 key 如果使用不同的 `defaultValue`，当 URL 中缺失该 key 时，不同 hook 可能读到不同结果。不推荐在同一页面这样使用；应尽量让同一个 Search Param key 保持一致的 field codec 规则。
+
+```tsx file="./_demos/shared-key-defaults.tsx" preview
+```
+
 ## 查询表单 demo
 
 下面的表单同样直接使用主入口 `useSearchValues`。URL values 变化时，demo 会把值同步到表单元素；提交时再通过 `FormData` 读取原始 input，并把结果 patch 到 URL。
