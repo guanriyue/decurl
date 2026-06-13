@@ -10,7 +10,7 @@ const singleField = defineFields({
   }),
 });
 
-const valuesSchema = defineFields({
+const valuesFields = defineFields({
   query: field({
     name: 'demo_shared',
     decode: trim,
@@ -24,7 +24,7 @@ const toSearchText = (search: string): string => {
 const SharedKeyHooksDemo = () => {
   const location = useLocation();
   const [keyword, setKeyword] = useSearchValue(singleField.keyword);
-  const [values, setValues] = useSearchValues(valuesSchema);
+  const [values, setValues] = useSearchValues(valuesFields);
 
   return (
     <div className="decurl-demo">

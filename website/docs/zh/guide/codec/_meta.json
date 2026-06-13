@@ -11,8 +11,8 @@
   },
   {
     "type": "file",
-    "name": "schema-codec",
-    "label": "Schema 与 codec"
+    "name": "search-fields",
+    "label": "Search Fields"
   },
   {
     "type": "file",

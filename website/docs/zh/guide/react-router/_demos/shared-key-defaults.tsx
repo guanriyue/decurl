@@ -11,7 +11,7 @@ const leftField = defineFields({
   }),
 });
 
-const rightSchema = defineFields({
+const rightFields = defineFields({
   value: field({
     name: 'demo_shared_default',
     decode: trim,
@@ -26,7 +26,7 @@ const toSearchText = (search: string): string => {
 const SharedKeyDefaultsDemo = () => {
   const location = useLocation();
   const [leftValue, setLeftValue] = useSearchValue(leftField.value);
-  const [rightValues, setRightValues] = useSearchValues(rightSchema);
+  const [rightValues, setRightValues] = useSearchValues(rightFields);
 
   return (
     <div className="decurl-demo">

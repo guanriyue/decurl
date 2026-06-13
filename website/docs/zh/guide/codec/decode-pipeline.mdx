@@ -64,7 +64,7 @@ Number('1e3');
 // 1000
 ```
 
-这些转换对普通 JavaScript 是合法的，但在 URL schema 中通常不够可审查。Decode pipeline 倾向于先声明哪些字符串形状可以进入业务层。
+这些转换对普通 JavaScript 是合法的，但在 URL search fields 中通常不够可审查。Decode pipeline 倾向于先声明哪些字符串形状可以进入业务层。
 
 ## 条件约束
 
@@ -154,8 +154,8 @@ Decode primitive 只关心普通值的转换、过滤和组合。它不理解 UR
 这些边界分别由后续文档说明：
 
 - [FieldCodec 定义](./field-codec)：单个字段如何使用 `decode`，以及 `defaultValue`、`encode`、`eq` 如何发挥作用。
-- [Schema 与 codec](./schema-codec)：多个 field 如何组成一份 search object。
-- [URLSearchParams](./url-search-params)：schema 如何 decode 和 patch encode URLSearchParams。
+- [Search Fields](./search-fields)：多个 field 如何组成一份 search object。
+- [URLSearchParams](./url-search-params)：Search Fields 如何 decode 和 patch encode URLSearchParams。
 
 ## 为什么不是成品 parser
 

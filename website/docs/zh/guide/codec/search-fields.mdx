@@ -1,0 +1,232 @@
+---
+description: Search Fields 将一组 field codec 固化为稳定的 URL search params 字段映射。
+---
+
+# Search Fields
+
+Search Fields 是一组已经固化 URL key 的 field codec。它描述当前页面或功能区域关心哪些 URL search params，以及这些 params 如何被读取、写入和推导类型。
+
+`defineFields` 的职责不是执行 decode 或 encode，而是在定义阶段建立确定性：
+
+- 为没有 `name` 的 field 固化 URL key。
+- 保留 canonical key 和 legacy alias。
+- 让单个 field 可以被 hooks 直接使用。
+- 为整个 search values object 保留类型推导。
+
+FieldCodec 的属性细节见 [FieldCodec 定义](./field-codec)，`decode` helper 的组合方式见 [Decode pipeline](./decode-pipeline)。
+
+## defineFields
+
+`defineFields` 接收一组 field codec，并返回一组 named field codec。
+
+```ts
+import { defineFields, field } from '@decurl/react-router/codec';
+import { elementOf, min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+
+const searchFields = defineFields({
+  keyword: field({
+    name: 'q',
+    decode: pipe(trim, shape(/.+/)),
+  }),
+  page: field({
+    name: ['page', 'p'],
+    decode: pipe(trim, shape.integer, toNumber, min(1)),
+    defaultValue: 1,
+  }),
+  sort: field({
+    decode: elementOf(['relevance', 'latest']),
+    defaultValue: 'relevance',
+  }),
+});
+```
+
+上面的定义中：
+
+- `keyword` 显式使用 URL key `q`。
+- `page` 使用 `page` 作为 canonical key，并兼容旧 key `p`。
+- `sort` 没有提供 `name`，会使用 field property key，也就是 `sort`。
+
+## Name 固化
+
+`defineFields` 会把每个 field 的 URL key 固化成非空 name：
+
+- 未提供 `name` 时，使用 field property key。
+- `name` 是字符串时，直接作为 URL key。
+- `name` 是非空数组时，第一项是 canonical key，后续项是 legacy alias。
+- `name` 是空数组时，回退到 field property key。
+
+固化后的第一项是 canonical key。后续项是 legacy alias，主要用于兼容旧 URL。
+
+如果开发者自己已经明确提供了 `name`，`defineFields` 不是必须的。单个 named field codec 可以直接交给 `useSearchValue` 使用。
+
+`defineFields` 更适合定义一组页面级 Search Fields：它会批量固化缺失的 `name`，并在开发环境下检查重复 URL key。对于需要被多人维护的页面 search params，推荐仍然使用 `defineFields` 把字段集中定义出来。
+
+## Named Field
+
+Search Fields 让单个 field codec 自带 URL key，因此上层 API 不需要再传一个魔法字符串。
+
+```tsx
+import { useSearchValue } from '@decurl/react-router';
+
+const SearchInput = () => {
+  const [keyword, setKeyword] = useSearchValue(searchFields.keyword);
+
+  return (
+    <input
+      value={keyword ?? ''}
+      onChange={(event) => {
+        setKeyword(event.currentTarget.value);
+      }}
+    />
+  );
+};
+```
+
+这比下面这种 API 更容易维护：
+
+```ts
+useSearchValue('q', keywordCodec);
+```
+
+字符串 key 一旦写错，不容易排查；而 `searchFields.keyword` 同时携带 decode 规则和 URL key。
+
+## Alias 迁移
+
+Alias 的目标是兼容旧链接。
+
+```ts
+const searchFields = defineFields({
+  page: field({
+    name: ['page', 'p'],
+    decode: pipe(shape.integer, toNumber, min(1)),
+    defaultValue: 1,
+  }),
+});
+```
+
+读取时，Decurl 会先尝试 `page`，再尝试 `p`。
+
+写入时，只使用第一个 name，也就是 canonical key `page`。
+
+这样可以做到：
+
+```txt
+旧链接: ?p=2
+新写回: ?page=3
+```
+
+## TypeScript
+
+显式定义了 `name` 的 field codec 可以直接传给 `useSearchValue`：
+
+```ts twoslash
+import { useSearchValue } from '@decurl/react-router';
+import { trim } from '@decurl/react-router/decode';
+
+const keywordField = {
+  name: 'q',
+  decode: trim,
+};
+
+const SearchInput = () => {
+  const [keyword, setKeyword] = useSearchValue(keywordField);
+
+  keyword;
+  setKeyword;
+
+  return null;
+};
+```
+
+如果 field codec 不包含 `name`，单字段 hook 无法知道应该读写哪个 URL key，TypeScript 会阻止这种用法：
+
+```ts twoslash
+import { useSearchValue } from '@decurl/react-router';
+import { trim } from '@decurl/react-router/decode';
+
+// @noErrorValidation
+useSearchValue({
+  decode: x => Number(x)
+});
+```
+
+一组 Search Fields 可以继续通过 `InferFieldValues` 推导完整 values 类型：
+
+```ts twoslash
+import type { InferFieldValues } from '@decurl/react-router/codec';
+import { defineFields, field } from '@decurl/react-router/codec';
+import { elementOf, min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+
+const searchFields = defineFields({
+  keyword: field({
+    name: 'q',
+    decode: pipe(trim, shape(/.+/)),
+  }),
+  page: field({
+    name: ['page', 'p'],
+    decode: pipe(trim, shape.integer, toNumber, min(1)),
+    defaultValue: 1,
+  }),
+  sort: field({
+    decode: elementOf(['relevance', 'latest']),
+    defaultValue: 'relevance',
+  }),
+});
+
+type SearchValues = InferFieldValues<typeof searchFields>;
+```
+
+业务代码不需要再手写一份 query state 类型。Search Fields 是 URL 字段映射和 TypeScript values 类型的共同来源。
+
+## Name 冲突
+
+同一组 Search Fields 中，多个字段不应该共享同一个 URL key。
+
+```ts
+defineFields({
+  page: field({ name: ['page', 'p'], decode: decodePage }),
+  currentPage: field({ name: 'p', decode: decodePage }),
+});
+```
+
+这会让 decode 和 encode 产生歧义。Decurl 会在开发环境下给出重复 name warning，帮助尽早发现字段定义问题。
+
+## 为什么不动态传 key
+
+Decurl 不支持把 URL key 和 field codec 分开传入：
+
+```ts
+useSearchValue('test', searchFields.keyword);
+```
+
+这种写法看起来更灵活，但拼写错误则难于排查。例如 `test` 和 `text` 这类相近单词，拼写错误不属于类型系统能分析的问题；如果没有智能分析工具辅助（比如 AI），通常很难在 review 阶段察觉。URL search params 本质上是字符串解析和序列化；对于某个页面或功能区域，把规则写成明确的静态 Search Fields，比在调用点动态拼装更容易维护。
+
+固化 `name` 也意味着同一个 field codec 对象不适合在多个 URL key 之间复用。这是有意的取舍：Decurl 更看重字段定义的明确性和边界性，而不是用同一个 codec 对象减少几行代码。复用 codec 对象可能让不同页面或不同字段共享了不该共享的 URL 语义，问题通常更难排查。
+
+如果需要复用，推荐复用更小的函数粒度，例如 decode primitive 或业务自定义的 decode helper：
+
+```ts
+const decodeKeyword = pipe(trim, shape(/.+/));
+
+const searchFields = defineFields({
+  keyword: field({
+    name: 'q',
+    decode: decodeKeyword,
+  }),
+  fallbackKeyword: field({
+    name: 'keyword',
+    decode: decodeKeyword,
+  }),
+});
+```
+
+这样可以复用解析逻辑，同时让每个 URL key 的归属保持清楚。
+
+## 边界
+
+Search Fields 只负责固化字段映射。它不负责解释单个 field 的 `defaultValue`、`encode`、`eq`，也不负责真正读写 URLSearchParams。
+
+这些内容分别由后续文档说明：
+
+- [FieldCodec 定义](./field-codec)：单个 field 如何 decode、encode、设置默认值和比较值。
+- [URLSearchParams](./url-search-params)：Search Fields 如何被编译成 `{ decode, encode }` codec。

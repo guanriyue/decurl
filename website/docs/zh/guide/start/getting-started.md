@@ -1,10 +1,10 @@
 ---
-description: 使用 @decurl/react-router 的 codec/decode 子入口定义 URLSearchParams schema，并在 React Router hooks 中复用。
+description: 使用 @decurl/react-router 的 codec/decode 子入口定义 Search Fields，并在 React Router hooks 中复用。
 ---
 
 # 快速开始
 
-先从 `@decurl/react-router` 的 codec/decode 子入口开始。应用只需要安装 `@decurl/react-router`，schema 定义和 hooks 可以共享同一份字段定义。
+先从 `@decurl/react-router` 的 codec/decode 子入口开始。应用只需要安装 `@decurl/react-router`，Search Fields 和 hooks 可以共享同一份字段定义。
 
 ## 定义字段
 
@@ -30,7 +30,7 @@ const searchFields = defineFields({
 
 这里有几件事值得注意：
 
-- `q` 没有写 `name`，会使用 schema property key，也就是 `q`。
+- `q` 没有写 `name`，会使用 field property key，也就是 `q`。
 - `page` 有两个 name，`page` 是 canonical key，`p` 是 legacy alias。
 - `page` 和 `sort` 有 `defaultValue`，所以 decode 后一定有值。
 - `decode` 是显式 pipeline，每一步都能独立阅读和测试。
@@ -106,5 +106,5 @@ function SearchPanel() {
 
 - [FieldCodec 定义](../codec/field-codec)
 - [Decode pipeline](../codec/decode-pipeline)
-- [Schema 与 codec](../codec/schema-codec)
+- [Search Fields](../codec/search-fields)
 - [React Router 集成](../react-router/overview)

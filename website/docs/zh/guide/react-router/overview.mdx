@@ -1,14 +1,14 @@
 ---
-description: "@decurl/react-router 把 Decurl schema 接入 React Router，并以 hooks 暴露 URL search state。"
+description: "@decurl/react-router 把 Decurl Search Fields 接入 React Router，并以 hooks 暴露 URL search state。"
 ---
 
 # React Router 集成
 
-`@decurl/react-router` 把 Decurl 的 schema 接入 React Router。它的目标是让 URL search 像普通 React state 一样被读取和更新，同时保持 URL 是最终状态来源。
+`@decurl/react-router` 把 Decurl 的 Search Fields 接入 React Router。它的目标是让 URL search 像普通 React state 一样被读取和更新，同时保持 URL 是最终状态来源。
 
 ## hooks
 
-最小使用方式是直接导入 hooks 和 schema 工具：
+最小使用方式是直接导入 hooks 和 Search Fields 工具：
 
 ```tsx
 import { useSearchValue } from '@decurl/react-router';
@@ -99,7 +99,7 @@ export const App = () => {
 
 ## 和 codec 子入口的关系
 
-React Router hooks 不重新定义 URL schema。schema 通过 `@decurl/react-router/codec` 定义，再交给 hooks 复用：
+React Router hooks 不重新定义 URL 字段。Search Fields 通过 `@decurl/react-router/codec` 定义，再交给 hooks 复用：
 
 ```ts
 import { defineFields, field } from '@decurl/react-router/codec';
@@ -112,7 +112,7 @@ const searchFields = defineFields({
 });
 ```
 
-同一份 schema 可以同时用于：
+同一份 Search Fields 可以同时用于：
 
 - URLSearchParams decode/encode。
 - React Router hooks。

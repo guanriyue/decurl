@@ -33,7 +33,7 @@ URL state 库通常会提供更高层的 hook、parser 和 router adapter。
 
 Decurl 更强调 URL codec 与 router hook 的边界：
 
-- `@decurl/react-router/codec` 负责 URLSearchParams schema 语义。
+- `@decurl/react-router/codec` 负责 Search Fields 语义。
 - `@decurl/react-router/decode` 负责原始字符串的显式解析。
 - `@decurl/react-router/configured` 负责 React Router runtime 和 hooks。
 - decode pipeline 保持显式组合，方便 review 和测试。
@@ -61,7 +61,7 @@ const page = Number(searchParams.get('page'));
 - 参数缺失时默认值是什么。
 - 旧 key 是否还需要兼容。
 
-Decurl 把这些规则前置到 schema 中，让 URL 进入业务层之前就被显式处理。
+Decurl 把这些规则前置到 Search Fields 中，让 URL 进入业务层之前就被显式处理。
 
 ## 第一版文档优先级
 
@@ -69,7 +69,7 @@ Decurl 把这些规则前置到 schema 中，让 URL 进入业务层之前就被
 
 1. codec 子入口如何表达 URLSearchParams 语义。
 2. decode pipeline 如何组合。
-3. React Router hooks 如何复用同一份 schema。
+3. React Router hooks 如何复用同一份 Search Fields。
 4. Decurl 和通用 validation/router state 工具的边界。
 
 后续再补：

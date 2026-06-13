@@ -1,15 +1,15 @@
 ---
-description: @decurl/react-router/codec 与 @decurl/react-router/decode 提供 field codec、schema define、URLSearchParams codec 和 decode primitive。
+description: @decurl/react-router/codec 与 @decurl/react-router/decode 提供 field codec、Search Fields、URLSearchParams codec 和 decode primitive。
 ---
 
 # Codec 与 decode
 
-`@decurl/react-router` 暴露了两个子入口，用来定义 URLSearchParams schema：
+`@decurl/react-router` 暴露了两个子入口，用来定义 URL search fields：
 
 | 入口 | 用途 |
 | --- | --- |
 | `@decurl/react-router/decode` | decode primitive 与组合工具 |
-| `@decurl/react-router/codec` | field、schema、URLSearchParams codec |
+| `@decurl/react-router/codec` | FieldCodec、Search Fields、URLSearchParams codec |
 
 这些入口和 `@decurl/react-router/configured` 搭配使用。应用代码通常不需要安装额外的 Decurl 包。
 
