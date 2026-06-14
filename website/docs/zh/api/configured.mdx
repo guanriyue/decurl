@@ -1,36 +1,55 @@
 ---
-description: @decurl/react-router/configured 的 API reference。
+description: '@decurl/react-router/configured 的 API reference。'
 ---
 
 # @decurl/react-router/configured
 
-`@decurl/react-router/configured` 提供绑定 store 的集成入口。它适合需要隔离多个 React Router runtime，或者希望组件不直接依赖 React Router `useLocation` 的场景。
+`@decurl/react-router/configured` 用于创建一组绑定同一个 search store 的 hooks 与 runtime 配置组件。
+
+主入口 hooks 可以直接使用；configured 入口更适合这些场景：
+
+- 应用中存在多套 React Router runtime，需要隔离 search state。
+- 希望显式持有 `store`。
+- 希望组件不直接依赖 React Router `useLocation`。
+- 需要配置 `flushDelay` 或 `flushMode`。
+
+```tsx
+import { createReactRouterSearch } from '@decurl/react-router/configured';
+```
 
 ## createReactRouterSearch
+
+```ts
+createReactRouterSearch(options?): ReactRouterSearch
+```
 
 `createReactRouterSearch(options?)` 创建一组绑定同一个 store 的 hooks 与配置组件。
 
 ```tsx
-import { createReactRouterSearch } from '@decurl/react-router/configured';
-
 const search = createReactRouterSearch();
 ```
 
-返回对象：
+### 返回对象
 
 | API | 说明 |
 | --- | --- |
 | `store` | 当前 factory 创建的 search store。 |
-| `Provider` | 提供绑定 store，并接线当前 React Router runtime。 |
+| `Provider` | 提供绑定 store，并接线 React Router runtime。 |
 | `ContextProvider` | `Provider` 的兼容别名。 |
 | `RuntimeConfigurer` | 在组件式 Router 内接线当前 React Router runtime。 |
 | `RouterRuntimeConfigurer` | 使用 data router instance 接线 runtime。 |
 | `useSearchValues` | 读取和更新多个 search values。 |
 | `useSearchValue` | 读取和更新单个 search value。 |
 
-## Provider
+configured hooks 必须和同一个 `search` 实例提供的 runtime/store 配套使用。
 
-`Provider` 一般放在 React Router 内部。
+## Runtime 配置
+
+configured hooks 不会自动配置 runtime。使用它们之前，需要先渲染同一个 `search` 实例上的 `Provider`、`RuntimeConfigurer` 或 `RouterRuntimeConfigurer`。
+
+### Provider
+
+`Provider` 是最常用的接线方式。使用 `BrowserRouter` 等组件式 Router 时，`Provider` 应放在 Router 内部，并包裹消费 configured hooks 的组件。
 
 ```tsx
 import { BrowserRouter } from 'react-router';
@@ -49,15 +68,15 @@ export const App = () => {
 };
 ```
 
-如果使用 data router instance，可以传入 `router`：
+如果使用 data router instance，可以把 `router` 传给 `Provider`：
 
 ```tsx
 <search.Provider router={router}>
-  <SearchPanel />
+  <RouterProvider router={router} />
 </search.Provider>
 ```
 
-## RuntimeConfigurer
+### RuntimeConfigurer
 
 `RuntimeConfigurer` 只负责接线 runtime，不额外包裹 children。它适合你已经在别处放置 `search.ContextProvider`，或者需要更明确地控制 provider 结构时使用。
 
@@ -70,9 +89,9 @@ export const App = () => {
 </search.ContextProvider>
 ```
 
-## RouterRuntimeConfigurer
+### RouterRuntimeConfigurer
 
-`RouterRuntimeConfigurer` 接收 data router instance。
+`RouterRuntimeConfigurer` 接收 data router instance，并把它接到当前 search store。
 
 ```tsx
 <search.ContextProvider>
@@ -121,6 +140,8 @@ const PageButton = () => {
 };
 ```
 
+setter 的 patch、`null` / `undefined` 删除字段、navigate options 等语义与 [@decurl/react-router](./react-router) 主入口一致。
+
 ## Options
 
 `createReactRouterSearch` 可接收 store options。
@@ -129,7 +150,7 @@ const PageButton = () => {
 | --- | --- | --- | --- |
 | `initialLocation` | `{ pathname: string; search: string }` | 当前 runtime location | 初始 location。通常不需要手动传入。 |
 | `flushDelay` | `number` | `100` | search 写入 URL 前的延迟毫秒数。负数会按 `0` 处理。 |
-| `flushMode` | `'throttle' \| 'debounce'` | `'throttle'` | `throttle` 固定窗口内只 flush 一次；`debounce` 会在持续更新时推迟 flush。 |
+| `flushMode` | `'throttle' \| 'debounce'` | `'throttle'` | flush 调度模式。 |
 
 ```ts
 const search = createReactRouterSearch({
@@ -137,6 +158,20 @@ const search = createReactRouterSearch({
   flushMode: 'debounce',
 });
 ```
+
+### flushMode
+
+`flushMode: 'throttle'` 表示第一次更新后启动固定窗口，窗口内重复更新不会推迟 flush。
+
+`flushMode: 'debounce'` 表示每次更新都会重新计时，持续更新会推迟 flush。
+
+业务中通常不需要设置很长的 `flushDelay`。如果只是为了观察渲染或 URL flush 行为，可以在测试或 demo 中临时放大。
+
+## Render behavior
+
+configured hooks 不直接依赖 React Router `useLocation`。在一些路由更新场景下，这可以减少额外渲染；是否完全避免额外渲染，还取决于组件树结构以及是否使用 `React.memo` 等 React 优化手段。
+
+更完整的观测示例见 [绑定 Store](/zh/guide/react-router/configured-store)。
 
 ## Types
 
@@ -148,3 +183,9 @@ const search = createReactRouterSearch({
 | `SetSearchValue<TCodec>` | `useSearchValue` setter 类型。 |
 | `UseSearchValuesResult<TFields>` | `useSearchValues` 返回元组类型。 |
 | `UseSearchValueResult<TCodec>` | `useSearchValue` 返回元组类型。 |
+
+## Related
+
+- [@decurl/react-router](./react-router)
+- [@decurl/react-router/codec](./codec)
+- [绑定 Store](/zh/guide/react-router/configured-store)
