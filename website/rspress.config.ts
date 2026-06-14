@@ -28,4 +28,5 @@ export default defineConfig({
   themeConfig: {
     enableContentAnimation: true,
   },
+  globalStyles: path.join(__dirname, "tailwind.css"),
 });
