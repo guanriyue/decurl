@@ -1,5 +1,5 @@
 ---
-description: createURLSearchParamsCodec 将 Search Fields 编译为 URLSearchParams 的 decode 和 patch encode 操作。
+description: createURLSearchParamsCodec 将 Search Fields 编译为类型安全的 URLSearchParams encode/decode 工具。
 ---
 
 # URLSearchParams
@@ -9,7 +9,7 @@ description: createURLSearchParamsCodec 将 Search Fields 编译为 URLSearchPar
 ```ts
 import { createURLSearchParamsCodec } from '@decurl/react-router/codec';
 
-const codec = createURLSearchParamsCodec(fields);
+const codec = createURLSearchParamsCodec(searchFields);
 ```
 
 它提供两个方法：
@@ -19,30 +19,93 @@ codec.decode(searchParams);
 codec.encode(values, options);
 ```
 
-## Decode
+大多数情况下，开发者不需要主动调用 `decode`。日常业务通常会通过更上层的状态读取 API 获取 values。
 
-```ts
-const values = codec.decode(
-  new URLSearchParams('?q=router&p=2&sort=latest'),
-);
+但 `encode` 仍然很重要。当你需要构造链接、跳转目标、分享 URL、测试 fixture，或者在非 React Router 环境中生成 search string 时，`encode` 可以复用同一份 Search Fields，避免手写 query string。
+
+## Encode
+
+### 类型安全的 search
+
+`encode` 的输入来自 Search Fields。字段名和字段值都会被 TypeScript 检查。
+
+```ts twoslash
+import { createURLSearchParamsCodec, defineFields, field } from '@decurl/react-router/codec';
+import { elementOf, min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+
+const searchFields = defineFields({
+  keyword: field({
+    name: 'q',
+    decode: trim,
+  }),
+  page: field({
+    decode: pipe(trim, shape.integer, toNumber, min(1)),
+    defaultValue: 1,
+  }),
+  sort: field({
+    decode: elementOf(['relevance', 'latest']),
+    defaultValue: 'relevance',
+  }),
+});
+
+const codec = createURLSearchParamsCodec(searchFields);
+
+const search = codec.encode({
+  keyword: 'router',
+  page: 2,
+  sort: 'latest',
+});
+
+search.toString();
+// q=router&page=2&sort=latest
 ```
 
-Decode 会遍历 Search Fields 中的每个字段：
+这比手写 query string 更可维护：
 
-- 使用字段的 canonical name 或 field property key 读取值。
-- 如果配置了 alias，会按顺序尝试。
-- single field 使用 `URLSearchParams.get(key)`。
-- multi field 使用 `URLSearchParams.getAll(key)`。
-- 缺失或解析失败时，回退到 `defaultValue` 或 `undefined`。
+```ts
+`?q=${keyword}&page=${page}&sort=${sort}`;
+```
 
-## Patch encode
+手写字符串会绕过 Search Fields：key 是否正确、value 是否需要 encode、默认值是否应该省略，都需要调用方自己记住。
+
+类型错误会在调用点暴露出来：
+
+```ts twoslash
+// @noErrorValidation
+import { createURLSearchParamsCodec, defineFields, field } from '@decurl/react-router/codec';
+import { elementOf, trim } from '@decurl/react-router/decode';
+
+const searchFields = defineFields({
+  keyword: field({
+    name: 'q',
+    decode: trim,
+  }),
+  sort: field({
+    decode: elementOf(['relevance', 'latest']),
+    defaultValue: 'relevance',
+  }),
+});
+
+const codec = createURLSearchParamsCodec(searchFields);
+
+codec.encode({
+  keyword: 'router',
+  sort: 'oldest',
+});
+
+codec.encode({
+  typo: 'router',
+});
+```
+
+### Patch encode
 
 `encode` 默认是 patch 语义。
 
 ```ts
 const nextSearch = codec.encode(
   { page: 3 },
-  { base: '?q=router&p=2&sort=latest' },
+  { base: '?q=router&page=2&sort=latest' },
 );
 
 nextSearch.toString();
@@ -52,57 +115,124 @@ nextSearch.toString();
 Patch encode 的规则：
 
 - 只处理 patch 中出现的 Search Fields field。
-- patch 中不存在的 Search Fields field 不会被修改。
+- patch 中不存在的 field 不会被修改。
 - patch 中不属于 Search Fields 的 key 会被忽略。
 - `null` 或 `undefined` 表示删除对应 URL key。
-- 写入 default value 时，默认删除对应 key。
-- `preserveDefault: true` 可以保留 default value。
-
-## Base search
-
-`base` 用来表示当前 URLSearchParams。
 
 ```ts
 codec.encode(
-  { page: 2 },
-  { base: new URLSearchParams('?q=router&debug=true') },
-);
-```
-
-结果会保留 Search Fields 未触碰的参数：
-
-```txt
-q=router&debug=true&page=2
-```
-
-这对真实页面很重要，因为 URL 里可能有当前组件不负责的参数。
-
-## 删除字段
-
-```ts
-codec.encode(
-  { q: undefined },
+  { keyword: undefined },
   { base: '?q=router&page=2' },
 ).toString();
 // page=2
 ```
 
-`null` 和 `undefined` 都表示删除字段。对带 alias 的字段，删除会移除所有 alias key。
+这不是 full update。URL search params 常常被多个组件或功能共享，patch encode 更适合局部更新。
 
-## 多值字段
+### Base search
+
+`base` 表示当前 URLSearchParams。传入 `base` 时，`encode` 会从它的拷贝开始，再叠加 patch。
 
 ```ts
-const fields = defineFields({
-  tag: field({
-    mode: 'multi',
-    decode: (values) => values.filter(Boolean),
+codec.encode(
+  { page: 2 },
+  { base: new URLSearchParams('?q=router&debug=true&utm_source=docs') },
+).toString();
+// q=router&debug=true&utm_source=docs&page=2
+```
+
+这对真实页面很重要，因为 URL 里可能有当前组件不负责的参数。Search Fields 只更新自己认识的字段，其余参数会被保留。
+
+## 写回规则
+
+### Canonical key
+
+当 field 有多个 `name` 时，第一项是 canonical key，后续项是 legacy alias。
+
+```ts
+const searchFields = defineFields({
+  page: field({
+    name: ['page', 'p'],
+    decode: pipe(shape.integer, toNumber, min(1)),
+    defaultValue: 1,
+  }),
+});
+```
+
+写回时总是使用 canonical key。
+
+```ts
+const codec = createURLSearchParamsCodec(searchFields);
+
+codec.encode(
+  { page: 3 },
+  { base: '?p=2' },
+).toString();
+// page=3
+```
+
+只要 patch 触碰该 field，encode 就会清理 legacy alias，避免新旧 key 同时留在 URL 中。
+
+```txt
+旧链接: ?p=2
+新写回: ?page=3
+```
+
+### Default value
+
+写入等于 `defaultValue` 的值时，默认会删除对应 URL key，让 URL 保持简洁。
+
+```ts
+const searchFields = defineFields({
+  page: field({
+    decode: pipe(shape.integer, toNumber, min(1)),
+    defaultValue: 1,
   }),
 });
 
-const codec = createURLSearchParamsCodec(fields);
+const codec = createURLSearchParamsCodec(searchFields);
+
+codec.encode({ page: 1 }).toString();
+// ''
+```
+
+如果希望默认值也出现在 URL 中，可以传入 `preserveDefault: true`。
+
+```ts
+codec.encode({ page: 1 }, { preserveDefault: true }).toString();
+// page=1
+```
+
+`preserveDefault` 是 encode 选项，不是 FieldCodec 属性。
+
+### Multi field
+
+Multi field 会按数组顺序写入多个同名 key。
+
+```ts
+import { mapItems, pipe, unique } from '@decurl/react-router/decode';
+
+const searchFields = defineFields({
+  tag: field({
+    mode: 'multi',
+    decode: pipe(mapItems(trim), unique),
+  }),
+});
+
+const codec = createURLSearchParamsCodec(searchFields);
 
 codec.encode({ tag: ['react', 'router'] }).toString();
 // tag=react&tag=router
 ```
 
-multi field 会按数组顺序写入多个同名 key。
+如果 multi field 有 alias，写回规则仍然一样：使用 canonical key，并在该 field 被 patch 时清理 legacy alias。
+
+## Decode
+
+`decode` 用于把 URLSearchParams 还原成完整 values。
+
+```ts
+const values = codec.decode(new URLSearchParams('?q=router&page=2'));
+```
+
+直接调用 `decode` 更适合测试、fixture、服务端逻辑，或需要从已有 URLSearchParams 生成 typed values 的工具代码。
