@@ -13,5 +13,10 @@
     "type": "file",
     "name": "react-router",
     "label": "@decurl/react-router"
+  },
+  {
+    "type": "file",
+    "name": "configured",
+    "label": "@decurl/react-router/configured"
   }
 ]

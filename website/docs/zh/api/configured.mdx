@@ -1,0 +1,150 @@
+---
+description: @decurl/react-router/configured 的 API reference。
+---
+
+# @decurl/react-router/configured
+
+`@decurl/react-router/configured` 提供绑定 store 的集成入口。它适合需要隔离多个 React Router runtime，或者希望组件不直接依赖 React Router `useLocation` 的场景。
+
+## createReactRouterSearch
+
+`createReactRouterSearch(options?)` 创建一组绑定同一个 store 的 hooks 与配置组件。
+
+```tsx
+import { createReactRouterSearch } from '@decurl/react-router/configured';
+
+const search = createReactRouterSearch();
+```
+
+返回对象：
+
+| API | 说明 |
+| --- | --- |
+| `store` | 当前 factory 创建的 search store。 |
+| `Provider` | 提供绑定 store，并接线当前 React Router runtime。 |
+| `ContextProvider` | `Provider` 的兼容别名。 |
+| `RuntimeConfigurer` | 在组件式 Router 内接线当前 React Router runtime。 |
+| `RouterRuntimeConfigurer` | 使用 data router instance 接线 runtime。 |
+| `useSearchValues` | 读取和更新多个 search values。 |
+| `useSearchValue` | 读取和更新单个 search value。 |
+
+## Provider
+
+`Provider` 一般放在 React Router 内部。
+
+```tsx
+import { BrowserRouter } from 'react-router';
+import { createReactRouterSearch } from '@decurl/react-router/configured';
+
+const search = createReactRouterSearch();
+
+export const App = () => {
+  return (
+    <BrowserRouter>
+      <search.Provider>
+        <SearchPanel />
+      </search.Provider>
+    </BrowserRouter>
+  );
+};
+```
+
+如果使用 data router instance，可以传入 `router`：
+
+```tsx
+<search.Provider router={router}>
+  <SearchPanel />
+</search.Provider>
+```
+
+## RuntimeConfigurer
+
+`RuntimeConfigurer` 只负责接线 runtime，不额外包裹 children。它适合你已经在别处放置 `search.ContextProvider`，或者需要更明确地控制 provider 结构时使用。
+
+```tsx
+<search.ContextProvider>
+  <BrowserRouter>
+    <search.RuntimeConfigurer />
+    <SearchPanel />
+  </BrowserRouter>
+</search.ContextProvider>
+```
+
+## RouterRuntimeConfigurer
+
+`RouterRuntimeConfigurer` 接收 data router instance。
+
+```tsx
+<search.ContextProvider>
+  <search.RouterRuntimeConfigurer router={router} />
+  <RouterProvider router={router} />
+</search.ContextProvider>
+```
+
+## Hooks
+
+configured hooks 和主入口 hooks 的调用方式一致，但它们绑定到当前 `createReactRouterSearch` 返回对象的 store。
+
+```tsx
+const SearchPanel = () => {
+  const [values, setValues] = search.useSearchValues(searchFields);
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        setValues({ page: values.page + 1 });
+      }}
+    >
+      Next page
+    </button>
+  );
+};
+```
+
+单字段读取：
+
+```tsx
+const PageButton = () => {
+  const [page, setPage] = search.useSearchValue(searchFields.page);
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        setPage(page + 1);
+      }}
+    >
+      Next page
+    </button>
+  );
+};
+```
+
+## Options
+
+`createReactRouterSearch` 可接收 store options。
+
+| 选项 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `initialLocation` | `{ pathname: string; search: string }` | 当前 runtime location | 初始 location。通常不需要手动传入。 |
+| `flushDelay` | `number` | `100` | search 写入 URL 前的延迟毫秒数。负数会按 `0` 处理。 |
+| `flushMode` | `'throttle' \| 'debounce'` | `'throttle'` | `throttle` 固定窗口内只 flush 一次；`debounce` 会在持续更新时推迟 flush。 |
+
+```ts
+const search = createReactRouterSearch({
+  flushDelay: 80,
+  flushMode: 'debounce',
+});
+```
+
+## Types
+
+| 类型 | 说明 |
+| --- | --- |
+| `CreateReactRouterSearchOptions` | `createReactRouterSearch` 的 options 类型。 |
+| `ReactRouterSearch` | `createReactRouterSearch` 的返回类型。 |
+| `SetSearchValues<TFields>` | `useSearchValues` setter 类型。 |
+| `SetSearchValue<TCodec>` | `useSearchValue` setter 类型。 |
+| `UseSearchValuesResult<TFields>` | `useSearchValues` 返回元组类型。 |
+| `UseSearchValueResult<TCodec>` | `useSearchValue` 返回元组类型。 |

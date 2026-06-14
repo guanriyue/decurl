@@ -1,65 +1,26 @@
 ---
-description: @decurl/react-router 提供 React Router 环境下的 search state hooks 和配置化 runtime。
+description: @decurl/react-router 主入口 hooks 的 API reference。
 ---
 
 # @decurl/react-router
 
-`@decurl/react-router` 把 URLSearchParams codec 接入 React Router，并通过 conditional exports 暴露 Search Fields 定义能力。
-
-## 推荐入口
-
-推荐从 `@decurl/react-router/configured` 导入 `createReactRouterSearch`。
+`@decurl/react-router` 主入口提供开箱即用的 React Router hooks。它们会在 hook 内部接线当前 React Router runtime，不需要手动放置 Provider。
 
 ```tsx
-import { createReactRouterSearch } from '@decurl/react-router/configured';
-
-const search = createReactRouterSearch();
+import { useSearchValue, useSearchValues } from '@decurl/react-router';
 ```
 
-返回对象包含：
+如果需要绑定 store、多 React Router runtime 隔离，或者减少组件对 React Router `useLocation` 的直接依赖，见 [@decurl/react-router/configured](./configured)。
 
-| API | 说明 |
-| --- | --- |
-| `store` | 当前 factory 绑定的 search store |
-| `Provider` | 提供绑定 store，并自动接线 React Router runtime |
-| `ContextProvider` | `Provider` 的兼容别名 |
-| `RuntimeConfigurer` | 在组件式 Router 内接线当前 React Router runtime |
-| `RouterRuntimeConfigurer` | 使用 data router instance 接线 runtime |
-| `useSearchValues` | 读取和更新多个 search values |
-| `useSearchValue` | 读取和更新单个 search value |
+## useSearchValues
 
-## Provider
+`useSearchValues(searchFields)` 读取和更新多个 search values。
 
 ```tsx
-import { BrowserRouter } from 'react-router';
-import { createReactRouterSearch } from '@decurl/react-router/configured';
+import { useSearchValues } from '@decurl/react-router';
 
-const search = createReactRouterSearch();
-
-export function App() {
-  return (
-    <BrowserRouter>
-      <search.Provider>
-        <SearchPanel />
-      </search.Provider>
-    </BrowserRouter>
-  );
-}
-```
-
-如果使用 data router instance：
-
-```tsx
-<search.Provider router={router}>
-  <SearchPanel />
-</search.Provider>
-```
-
-## `useSearchValues`
-
-```tsx
-function SearchPanel() {
-  const [values, setValues] = search.useSearchValues(searchFields);
+const SearchPanel = () => {
+  const [values, setValues] = useSearchValues(searchFields);
 
   return (
     <button
@@ -71,16 +32,28 @@ function SearchPanel() {
       Next page
     </button>
   );
-}
+};
 ```
 
-`setValues` 接收 patch。只会更新传入的字段，未传入字段保持不变。
+`setValues(patch, options?)` 接收 patch。只会更新传入字段，未传入字段保持不变。
 
-## `useSearchValue`
+patch 也可以是 updater：
 
 ```tsx
-function PageButton() {
-  const [page, setPage] = search.useSearchValue(searchFields.page);
+setValues((previousValues) => ({
+  page: previousValues.page + 1,
+}));
+```
+
+## useSearchValue
+
+`useSearchValue(codec)` 读取和更新单个 field。传入的 codec 必须已经拥有确定的 `name`，通常来自 `defineFields` 的返回值。
+
+```tsx
+import { useSearchValue } from '@decurl/react-router';
+
+const PageButton = () => {
+  const [page, setPage] = useSearchValue(searchFields.page);
 
   return (
     <button
@@ -92,20 +65,33 @@ function PageButton() {
       Next page
     </button>
   );
-}
+};
 ```
 
-`useSearchValue` 适合只订阅一个字段的组件。字段应来自 `defineFields` 的返回值，这样它已经拥有确定的 `name`。
+`setValue(patch, options?)` 同样支持直接值或 updater：
 
-## Store options
-
-`createReactRouterSearch` 可接收 store options，用于控制 flush 行为。
-
-```ts
-const search = createReactRouterSearch({
-  flushDelay: 80,
-  flushMode: 'debounce',
-});
+```tsx
+setPage((previousPage) => previousPage + 1);
 ```
 
-当前文档会在后续补充完整 options reference。
+## Navigate options
+
+setter 的第二个参数会透传给 React Router navigate。
+
+| 选项 | 类型 | 说明 |
+| --- | --- | --- |
+| `replace` | `boolean` | 是否替换当前 history entry。 |
+| `preventScrollReset` | `boolean` | 是否阻止滚动位置重置。 |
+
+```tsx
+setPage(1, { replace: true, preventScrollReset: true });
+```
+
+## Types
+
+| 类型 | 说明 |
+| --- | --- |
+| `SetSearchValues<TFields>` | `useSearchValues` setter 类型。 |
+| `SetSearchValue<TCodec>` | `useSearchValue` setter 类型。 |
+| `UseSearchValuesResult<TFields>` | `useSearchValues` 返回元组类型。 |
+| `UseSearchValueResult<TCodec>` | `useSearchValue` 返回元组类型。 |
