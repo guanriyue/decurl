@@ -1,5 +1,5 @@
 ---
-description: @decurl/react-router 主入口 hooks 的 API reference。
+description: '@decurl/react-router 主入口 hooks 的 API reference。'
 ---
 
 # @decurl/react-router
@@ -10,11 +10,32 @@ description: @decurl/react-router 主入口 hooks 的 API reference。
 import { useSearchValue, useSearchValues } from '@decurl/react-router';
 ```
 
+主入口 hooks 使用默认的单例 search store。对于一个应用只有一套 React Router runtime 的场景，通常直接使用即可。
+
+这些 hooks 需要运行在 React Router 上下文内，例如 `BrowserRouter`、`RouterProvider` 或其他 React Router runtime 内部。
+
 如果需要绑定 store、多 React Router runtime 隔离，或者减少组件对 React Router `useLocation` 的直接依赖，见 [@decurl/react-router/configured](./configured)。
 
 ## useSearchValues
 
 `useSearchValues(searchFields)` 读取和更新多个 search values。
+
+```ts
+useSearchValues(searchFields): [values, setValues]
+```
+
+参数：
+
+| 参数 | 说明 |
+| --- | --- |
+| `searchFields` | 一组 Search Fields，通常来自 `defineFields`。 |
+
+返回值：
+
+| 返回值 | 说明 |
+| --- | --- |
+| `values` | 从当前 URL search params decode 得到的 values object。 |
+| `setValues` | 更新多个字段的 setter。 |
 
 ```tsx
 import { useSearchValues } from '@decurl/react-router';
@@ -35,7 +56,9 @@ const SearchPanel = () => {
 };
 ```
 
-`setValues(patch, options?)` 接收 patch。只会更新传入字段，未传入字段保持不变。
+`setValues(patch, options?)` 接收 patch。只会更新传入字段，未传入字段保持不变。默认使用 `{ replace: true }` 写回 URL。
+
+传入 `null` 或 `undefined` 表示删除对应字段的 URL key。如果写入值等于 field 的 `defaultValue`，默认也会删除对应 key；是否保留 default value 由 URLSearchParams codec 的 encode 规则决定。
 
 patch 也可以是 updater：
 
@@ -48,6 +71,23 @@ setValues((previousValues) => ({
 ## useSearchValue
 
 `useSearchValue(codec)` 读取和更新单个 field。传入的 codec 必须已经拥有确定的 `name`，通常来自 `defineFields` 的返回值。
+
+```ts
+useSearchValue(codec): [value, setValue]
+```
+
+参数：
+
+| 参数 | 说明 |
+| --- | --- |
+| `codec` | 带有确定 `name` 的 field codec，通常来自 `defineFields` 的返回值。 |
+
+返回值：
+
+| 返回值 | 说明 |
+| --- | --- |
+| `value` | 从当前 URL search params decode 得到的单个 field value。 |
+| `setValue` | 更新单个字段的 setter。 |
 
 ```tsx
 import { useSearchValue } from '@decurl/react-router';
@@ -68,24 +108,32 @@ const PageButton = () => {
 };
 ```
 
-`setValue(patch, options?)` 同样支持直接值或 updater：
+`setValue(patch, options?)` 同样支持直接值或 updater。默认使用 `{ replace: true }` 写回 URL。
+
+传入 `null` 或 `undefined` 表示删除该 field 对应的 URL key。如果写入值等于 field 的 `defaultValue`，默认也会删除对应 key。
 
 ```tsx
 setPage((previousPage) => previousPage + 1);
 ```
 
+## Render behavior
+
+主入口 hooks 会直接接线当前 React Router runtime。某些路由更新可能让组件跟随 React Router 重新渲染；如果你需要绑定 store 或观察渲染次数优化，可以阅读 [@decurl/react-router/configured](./configured) 和 [绑定 Store](/zh/guide/react-router/configured-store)。
+
 ## Navigate options
 
-setter 的第二个参数会透传给 React Router navigate。
+setter 的第二个参数会透传给 React Router navigate。Decurl 默认使用 `replace: true`，避免频繁的 search params 更新写入大量 history entries。
 
-| 选项 | 类型 | 说明 |
-| --- | --- | --- |
-| `replace` | `boolean` | 是否替换当前 history entry。 |
-| `preventScrollReset` | `boolean` | 是否阻止滚动位置重置。 |
+| 选项 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `replace` | `boolean` | `true` | 是否替换当前 history entry。 |
+| `preventScrollReset` | `boolean` | React Router 默认行为 | 是否阻止滚动位置重置。它和 React Router `navigate` options 中的 `preventScrollReset` 是同一个概念。 |
 
 ```tsx
 setPage(1, { replace: true, preventScrollReset: true });
 ```
+
+如果同一次 flush 前发生多次 setter 调用，会使用最后一次调用传入的 navigate options 覆盖默认值。
 
 ## Types
 
@@ -95,3 +143,9 @@ setPage(1, { replace: true, preventScrollReset: true });
 | `SetSearchValue<TCodec>` | `useSearchValue` setter 类型。 |
 | `UseSearchValuesResult<TFields>` | `useSearchValues` 返回元组类型。 |
 | `UseSearchValueResult<TCodec>` | `useSearchValue` 返回元组类型。 |
+
+## Related
+
+- [@decurl/react-router/configured](./configured)
+- [@decurl/react-router/codec](./codec)
+- [React Router 集成概览](/zh/guide/react-router/overview)
