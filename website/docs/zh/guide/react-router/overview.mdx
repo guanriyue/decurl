@@ -120,7 +120,7 @@ const searchFields = defineFields({
 
 ## 【反例】同 key 不同规则
 
-同一个 key 如果使用不同的 `defaultValue`，当 URL 中缺失该 key 时，不同 hook 可能读到不同结果。不推荐在同一页面这样使用；应尽量让同一个 Search Param key 保持一致的 field codec 规则。
+同一个 key 如果使用不同的 `defaultValue`，当 URL 中缺失该 key 时，不同 hook 可能读到不同结果。不推荐在同一页面这样使用；应尽量让同一个 search param key 保持一致的 field codec 规则。
 
 ```tsx file="./_demos/shared-key-defaults.tsx" preview
 ```

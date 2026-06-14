@@ -176,7 +176,7 @@ const searchFields = defineFields({
 type SearchValues = InferFieldValues<typeof searchFields>;
 ```
 
-业务代码不需要再手写一份 query state 类型。Search Fields 是 URL 字段映射和 TypeScript values 类型的共同来源。
+业务代码不需要再手写一份 search values 类型。Search Fields 是 URL 字段映射和 TypeScript values 类型的共同来源。
 
 ## Name 冲突
 
@@ -199,7 +199,7 @@ Decurl 不支持把 URL key 和 field codec 分开传入：
 useSearchValue('test', searchFields.keyword);
 ```
 
-这种写法看起来更灵活，但拼写错误则难于排查。例如 `test` 和 `text` 这类相近单词，拼写错误不属于类型系统能分析的问题；如果没有智能分析工具辅助（比如 AI），通常很难在 review 阶段察觉。URL search params 本质上是字符串解析和序列化；对于某个页面或功能区域，把规则写成明确的静态 Search Fields，比在调用点动态拼装更容易维护。
+这种写法看起来更灵活，但拼写错误难以排查。例如 `test` 和 `text` 这类相近单词，拼写错误不属于类型系统能分析的问题；如果没有智能分析工具辅助（比如 AI），通常很难在 review 阶段察觉。URL search params 本质上是字符串解析和序列化；对于某个页面或功能区域，把规则写成明确的静态 Search Fields，比在调用点动态拼装更容易维护。
 
 固化 `name` 也意味着同一个 field codec 对象不适合在多个 URL key 之间复用。这是有意的取舍：Decurl 更看重字段定义的明确性和边界性，而不是用同一个 codec 对象减少几行代码。复用 codec 对象可能让不同页面或不同字段共享了不该共享的 URL 语义，问题通常更难排查。
 

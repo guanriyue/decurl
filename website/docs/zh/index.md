@@ -1,10 +1,10 @@
 ---
-description: Decurl 是面向 URL Search Params 的类型安全状态管理库，强调显式 decode、Search Fields 类型推导和 router 集成。
+description: Decurl 是面向 URL search params 的类型安全状态管理库，强调显式 decode、Search Fields 类型推导和 router 集成。
 pageType: home
 
 hero:
   name: Decurl
-  text: 面向 URL Search Params 的类型安全状态管理库
+  text: 面向 URL search params 的类型安全状态管理库
   tagline: 用显式 decode pipeline 把 string、string[]、null 变成可推导、可维护、可审查的业务状态。
   actions:
     - theme: brand
@@ -18,7 +18,7 @@ features:
     details: 用单个 field 描述 URL key、decode、默认值、写回和相等性语义。
     link: /zh/guide/codec/field-codec
   - title: Decode first
-    details: Search Params 的难点不是写入，而是把 URL 中的原始字符串安全地解析为业务值。
+    details: URL search params 的难点不是写入，而是把 URL 中的原始字符串安全地解析为业务值。
     link: /zh/guide/codec/decode-pipeline
   - title: TypeScript-first
     details: Search Fields 既描述 URL 字段，也推导出 values 类型，让 hook、codec 和业务代码共享同一份约束。
