@@ -32,7 +32,7 @@ const searchFields = defineFields({
 
 - [`field`](/zh/api/codec#field) 固化单个 FieldCodec 的类型。
 - [`defineFields`](/zh/api/codec#definefields) 定义一组 Search Fields，并为没有显式 `name` 的字段使用对象 key。
-- [`pipe`](/zh/api/codec#pipe)、[`shape`](/zh/api/codec#shape)、[`elementOf`](/zh/api/codec#predicates) 等 decode primitive 用于组合常见解析逻辑。
+- [`pipe`](/zh/api/decode#composition)、[`shape`](/zh/api/decode#shape--guard)、[`elementOf`](/zh/api/decode#shape--guard) 等 decode primitive 用于组合常见解析逻辑。
 
 ## 解析 URLSearchParams
 

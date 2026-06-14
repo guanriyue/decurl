@@ -1,0 +1,306 @@
+---
+description: '@decurl/react-router/decode 的 API reference。'
+---
+
+# @decurl/react-router/decode
+
+`@decurl/react-router/decode` 提供一组可选的 decode primitives。它们用于组合常见字符串解析逻辑，但不是必需品；复杂结构可以直接编写自定义 `decode`。
+
+```ts
+import { pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+```
+
+## 失败语义
+
+`Decode<TInput, TOutput>` 是一个同步函数。返回 `null` 或 `undefined` 表示解析失败，`pipe` 会停止后续 step。
+
+```ts
+import type { Decode } from '@decurl/react-router/decode';
+
+const compact: Decode<string, string> = (value) => {
+  const nextValue = value.trim();
+  return nextValue.length > 0 ? nextValue : undefined;
+};
+```
+
+## Composition
+
+组合工具负责组织 decode pipeline。
+
+### mapItems
+
+`mapItems(...steps)` 对数组中每一项执行 pipe-like decode。解析失败的 item 会被过滤。
+
+```ts
+import { mapItems, pipe, shape, toNumber, unique } from '@decurl/react-router/decode';
+
+const decodeIds = pipe(
+  mapItems(shape.integer, toNumber),
+  unique,
+);
+```
+
+### pipe
+
+`pipe(...steps)` 按顺序执行多个 decode step。输入类型来自第一个 step，输出类型来自最后一个 step。
+
+遇到 `null` / `undefined` 时，`pipe` 会停止后续 step，并返回 `undefined`。
+
+```ts
+import { min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+
+const decodePage = pipe(trim, shape.integer, toNumber, min(1));
+```
+
+## Normalize
+
+Normalize API 用于先把原始字符串整理成更适合后续解析的形式。
+
+### trim
+
+`trim(input)` 去除字符串两端空白。
+
+```ts
+import { trim } from '@decurl/react-router/decode';
+
+trim('  decurl  ');
+// 'decurl'
+```
+
+### trim.end
+
+`trim.end(input)` 去除字符串结尾空白。
+
+```ts
+trim.end('  decurl  ');
+// '  decurl'
+```
+
+### trim.start
+
+`trim.start(input)` 去除字符串开头空白。
+
+```ts
+trim.start('  decurl  ');
+// 'decurl  '
+```
+
+## Shape / Guard
+
+Shape 和 Guard API 只判断值是否符合要求，不负责转换值。不符合要求时返回 `undefined`。
+
+### elementOf
+
+`elementOf(values)` 要求值属于指定数组。它使用 `Object.is` 做成员判断，不做类型转换。
+
+```ts
+import { elementOf, pipe, shape, toNumber } from '@decurl/react-router/decode';
+
+const decodePageSize = pipe(
+  shape.integer,
+  toNumber,
+  elementOf([20, 50, 100]),
+);
+```
+
+### elementOf(enumDefinition)
+
+`elementOf(enumDefinition)` 要求值属于 enum definition 的 value。对于数字 enum，通常需要先自行转换为 number。
+
+```ts
+enum PageSize {
+  Small = 20,
+  Large = 50,
+}
+
+const decodePageSize = pipe(shape.integer, toNumber, elementOf(PageSize));
+```
+
+### shape
+
+`shape(regexp)` 要求字符串符合指定正则。输出仍然是原始字符串。
+
+```ts
+import { shape } from '@decurl/react-router/decode';
+
+const nonEmpty = shape(/.+/);
+```
+
+### shape.boolish
+
+`shape.boolish` 要求字符串是 `'true'` 或 `'false'`，并把类型收窄为 `'true' | 'false'`。
+
+```ts
+import { pipe, shape, toBoolean } from '@decurl/react-router/decode';
+
+const decodeEnabled = pipe(shape.boolish, toBoolean);
+```
+
+### shape.date
+
+`shape.date` 要求字符串是 `YYYY-MM-DD`，并检查真实日期。
+
+```ts
+shape.date('2026-02-30');
+// undefined
+```
+
+### shape.datetime
+
+`shape.datetime` 要求字符串符合常见日期时间结构，并检查日期和时间范围。
+
+```ts
+shape.datetime('2026-06-07T13:45:30Z');
+// '2026-06-07T13:45:30Z'
+```
+
+### shape.integer
+
+`shape.integer` 要求字符串符合十进制整数形状。它不把字符串转换为 number。
+
+```ts
+import { pipe, shape, toNumber } from '@decurl/react-router/decode';
+
+const decodeInteger = pipe(shape.integer, toNumber);
+```
+
+### shape.month
+
+`shape.month` 要求字符串是 `YYYY-MM`，并检查月份范围。
+
+```ts
+shape.month('2026-06');
+// '2026-06'
+```
+
+### shape.number
+
+`shape.number` 要求字符串符合十进制数字形状。它不把字符串转换为 number。
+
+```ts
+const decodeNumber = pipe(shape.number, toNumber);
+```
+
+### startsWith
+
+`startsWith(prefix)` 要求字符串以前缀开头，并把类型收窄为模板字面量类型。
+
+```ts
+import { startsWith } from '@decurl/react-router/decode';
+
+const decodeUserId = startsWith('user_');
+```
+
+### where
+
+`where(predicate)` 使用 predicate 或 type guard 过滤值。predicate 返回 `false` 时，decode 结果是 `undefined`。
+
+```ts
+import { where } from '@decurl/react-router/decode';
+
+const positive = where((value: number) => value > 0);
+```
+
+## Convert
+
+Convert API 负责把值转换成新的类型。
+
+### toBoolean
+
+`toBoolean(input)` 把 `'true'` / `'false'` 转换为 `boolean`。其他输入会得到 `undefined`。
+
+```ts
+import { shape, pipe, toBoolean } from '@decurl/react-router/decode';
+
+const decodeBoolean = pipe(shape.boolish, toBoolean);
+```
+
+### toNumber
+
+`toNumber(input)` 使用 `Number(input)` 转换，并要求结果是 finite number。
+
+```ts
+import { shape, pipe, toNumber } from '@decurl/react-router/decode';
+
+const decodeNumber = pipe(shape.number, toNumber);
+```
+
+## Constraint
+
+Constraint API 用于继续收窄有效范围。它们只做约束判断，不改变输入值。
+
+### length
+
+`length(size)` 要求输入值的 `length` 等于指定值。
+
+`length([min, max])` 要求输入值的 `length` 位于闭区间。
+
+```ts
+import { length, pipe, trim } from '@decurl/react-router/decode';
+
+const decodeCode = pipe(trim, length(6));
+const decodeKeyword = pipe(trim, length([1, 40]));
+```
+
+### length.max
+
+`length.max(value)` 要求输入值的 `length` 小于等于指定值。
+
+```ts
+const decodeKeyword = pipe(trim, length.max(40));
+```
+
+### length.min
+
+`length.min(value)` 要求输入值的 `length` 大于等于指定值。
+
+```ts
+const decodeKeyword = pipe(trim, length.min(1));
+```
+
+### max
+
+`max(value)` 要求 number 小于等于指定值。不改变输入值；不符合约束时返回 `undefined`。
+
+```ts
+import { max, pipe, shape, toNumber } from '@decurl/react-router/decode';
+
+const decodePercent = pipe(shape.number, toNumber, max(100));
+```
+
+### min
+
+`min(value)` 要求 number 大于等于指定值。不改变输入值；不符合约束时返回 `undefined`。
+
+```ts
+import { min, pipe, shape, toNumber } from '@decurl/react-router/decode';
+
+const decodePage = pipe(shape.integer, toNumber, min(1));
+```
+
+## Array
+
+Array API 用于数组级处理。
+
+### unique
+
+`unique(input)` 按 `Object.is` 去重并保留首次出现顺序。
+
+```ts
+import { mapItems, pipe, shape, toNumber, unique } from '@decurl/react-router/decode';
+
+const decodeIds = pipe(
+  mapItems(shape.integer, toNumber),
+  unique,
+);
+```
+
+### unique.by
+
+`unique.by(identity)` 按 identity 结果去重。
+
+```ts
+import { unique } from '@decurl/react-router/decode';
+
+const uniqueById = unique.by((item: { id: number }) => item.id);
+```

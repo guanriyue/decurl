@@ -7,7 +7,12 @@
   {
     "type": "file",
     "name": "codec",
-    "label": "Codec 与 decode"
+    "label": "@decurl/react-router/codec"
+  },
+  {
+    "type": "file",
+    "name": "decode",
+    "label": "@decurl/react-router/decode"
   },
   {
     "type": "file",

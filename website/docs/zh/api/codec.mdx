@@ -1,49 +1,62 @@
 ---
-description: @decurl/react-router/codec 与 @decurl/react-router/decode 的 API reference。
+description: '@decurl/react-router/codec 的 API reference。'
 ---
 
-# Codec 与 decode
+# @decurl/react-router/codec
 
-`@decurl/react-router` 通过 conditional exports 暴露 codec 和 decode 能力：
+`@decurl/react-router/codec` 用于定义 URL search params 的字段规则。它关注的是：URL key 如何映射到业务值，业务值又如何被序列化回 URLSearchParams。
 
-| 入口 | 用途 |
-| --- | --- |
-| `@decurl/react-router/codec` | FieldCodec、Search Fields、URLSearchParams codec |
-| `@decurl/react-router/decode` | decode primitive 与组合工具 |
+Decode 可以是普通函数，也可以使用 [`@decurl/react-router/decode`](./decode) 提供的 primitives。
 
-## @decurl/react-router/codec
+```ts
+import { createURLSearchParamsCodec, defineFields, field } from '@decurl/react-router/codec';
+```
 
-### field
+## field
 
 `field(definition)` 用于固化单个 FieldCodec 的类型。最简 codec 可以只是普通对象；但推荐使用 `field`，让 TypeScript 更稳定地保留 `defaultValue`、`multi`、`required` 等信息。
 
 ```ts
 import { field } from '@decurl/react-router/codec';
-import { min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
 
-const page = field({
-  decode: pipe(trim, shape.integer, toNumber, min(1)),
-  defaultValue: 1,
+const keyword = field({
+  decode: (value: string) => {
+    const nextValue = value.trim();
+    return nextValue.length > 0 ? nextValue : undefined;
+  },
 });
 ```
 
+常用属性：
+
+| 属性 | 必填 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `decode` | 是 | `(value) => TValue \| null \| undefined` | 从 URL 原始值解析业务值。 |
+| `name` | 否 | `string \| readonly string[]` | URL key。数组第一个值是 canonical key，后续值是 legacy alias。 |
+| `encode` | 否 | `(value: TValue) => string \| readonly string[] \| null \| undefined` | 自定义业务值如何写回 URL。 |
+| `defaultValue` | 否 | `TValue` | key 缺失、decode 失败、decode 返回空值时采用的默认值。 |
+| `multi` | 否 | `boolean` | 是否从 `URLSearchParams.getAll(name)` 读取多值。 |
+| `required` | 否 | `boolean` | 标记 field 是否必有业务值。通常由 `defaultValue` 推导。 |
+| `eq` | 否 | `(left: TValue, right: TValue) => boolean` | 判断前后值是否相等。 |
+
 更多设计说明见 [FieldCodec 定义](/zh/guide/codec/field-codec)。
 
-### defineFields
+## defineFields
 
 `defineFields(fields, options?)` 用于定义一组 Search Fields，并为没有显式 `name` 的字段使用对象 key 作为 URL key。
 
 ```ts
 import { defineFields, field } from '@decurl/react-router/codec';
-import { shape, trim } from '@decurl/react-router/decode';
 
 const searchFields = defineFields({
   keyword: field({
     name: ['keyword', 'q'],
-    decode: trim,
+    decode: (value: string) => value.trim() || undefined,
   }),
   view: field({
-    decode: shape(/^(list|grid)$/),
+    decode: (value: string) => {
+      return value === 'list' || value === 'grid' ? value : undefined;
+    },
     defaultValue: 'list',
   }),
 });
@@ -51,18 +64,25 @@ const searchFields = defineFields({
 
 如果字段上写了多个 `name`，第一个是 canonical key，后续是 legacy alias。更多说明见 [Search Fields](/zh/guide/codec/search-fields)。
 
-### createURLSearchParamsCodec
+## createURLSearchParamsCodec
 
-`createURLSearchParamsCodec(fields)` 创建 `{ decode, encode }`。`decode` 把 `URLSearchParams` 解析成业务对象；`encode` 把业务对象序列化为新的 `URLSearchParams`。
+`createURLSearchParamsCodec(fields)` 创建 `{ decode, encode }`。
+
+| 方法 | 说明 |
+| --- | --- |
+| `decode(searchParams)` | 把 `URLSearchParams` 解析成业务对象。 |
+| `encode(values, options?)` | 把业务对象序列化为新的 `URLSearchParams`。 |
 
 ```ts
 import { createURLSearchParamsCodec, defineFields, field } from '@decurl/react-router/codec';
-import { min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
 
 const fields = defineFields({
   page: field({
     name: ['page', 'p'],
-    decode: pipe(trim, shape.integer, toNumber, min(1)),
+    decode: (value: string) => {
+      const page = Number(value);
+      return Number.isInteger(page) && page >= 1 ? page : undefined;
+    },
     defaultValue: 1,
   }),
 });
@@ -80,7 +100,7 @@ const nextSearch = codec.encode({ page: 3 }, { base: '?p=2&keyword=router' });
 | `base` | `URLSearchParams \| string` | 基于已有 search params 做 patch，未触碰字段会保留。 |
 | `preserveDefault` | `boolean` | 写入 default value 时是否保留 canonical key。默认删除对应 key。 |
 
-### Types
+## Types
 
 | 类型 | 说明 |
 | --- | --- |
@@ -90,92 +110,3 @@ const nextSearch = codec.encode({ page: 3 }, { base: '?p=2&keyword=router' });
 | `InferFieldValue<TCodec>` | 从单个 field codec 推导 value 类型。 |
 | `InferFieldValues<TFields>` | 从 Search Fields 推导 values object 类型。 |
 | `URLSearchParamsCodec<TFields>` | `createURLSearchParamsCodec` 的返回类型。 |
-
-## @decurl/react-router/decode
-
-Decode primitive 是一组可选的小型函数。它们用于组合常见字符串解析逻辑，但不是必需品；复杂结构可以直接编写自定义 `decode`。
-
-### pipe
-
-`pipe(...steps)` 按顺序执行多个 decode step。任一步返回 `null` / `undefined`，后续 step 不再执行，最终结果会被视为无效值。
-
-```ts
-import { min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
-
-const decodePage = pipe(trim, shape.integer, toNumber, min(1));
-```
-
-### mapItems
-
-`mapItems(...steps)` 用于数组值。每个 item 会单独经过 pipe-like steps，解析失败的 item 会被过滤。
-
-```ts
-import { elementOf, mapItems, pipe, unique } from '@decurl/react-router/decode';
-
-const decodeTags = pipe(
-  mapItems(elementOf(['react', 'router', 'docs'])),
-  unique,
-);
-```
-
-### shape
-
-`shape` 用于约束字符串形状。
-
-| API | 说明 |
-| --- | --- |
-| `shape(regexp)` | 要求字符串符合指定正则。 |
-| `shape.integer` | 要求十进制整数形状。 |
-| `shape.number` | 要求十进制数字形状。 |
-| `shape.boolish` | 要求 `'true'` 或 `'false'`。 |
-| `shape.month` | 要求 `YYYY-MM`。 |
-| `shape.date` | 要求 `YYYY-MM-DD`。 |
-| `shape.datetime` | 要求常见日期时间字符串结构。 |
-
-### trim
-
-`trim` 用于去除字符串两端空白。
-
-| API | 说明 |
-| --- | --- |
-| `trim` | 去除两端空白。 |
-| `trim.start` | 去除开头空白。 |
-| `trim.end` | 去除结尾空白。 |
-
-### Conversions
-
-| API | 说明 |
-| --- | --- |
-| `toNumber` | 转换为 `number`。 |
-| `toBoolean` | 把 `'true'` / `'false'` 转换为 `boolean`。 |
-
-### Predicates
-
-| API | 说明 |
-| --- | --- |
-| `where(predicate)` | 使用 predicate 或 type guard 过滤值。 |
-| `startsWith(prefix)` | 要求字符串以前缀开头。 |
-| `elementOf(values)` | 要求值属于指定数组或 enum。 |
-| `min(value)` | 要求 `number` 大于等于指定值。 |
-| `max(value)` | 要求 `number` 小于等于指定值。 |
-| `length(options)` | 要求输入值的 `length` 满足约束。 |
-
-### Array utilities
-
-| API | 说明 |
-| --- | --- |
-| `unique` | 按 `Object.is` 去重并保留首次出现顺序。 |
-| `unique.by(identity)` | 按 identity 结果去重。 |
-
-### Decode
-
-`Decode<TInput, TOutput>` 表示一个 decode step 的类型。通常不需要手动标注，只有在编写公共工具函数时才会用到。
-
-```ts
-import type { Decode } from '@decurl/react-router/decode';
-
-const compact: Decode<string, string> = (value) => {
-  const nextValue = value.trim();
-  return nextValue.length > 0 ? nextValue : undefined;
-};
-```
