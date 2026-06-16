@@ -3,5 +3,10 @@
     "type": "file",
     "name": "search-box",
     "label": "Search Box"
+  },
+  {
+    "type": "file",
+    "name": "query-form",
+    "label": "Query Form"
   }
 ]

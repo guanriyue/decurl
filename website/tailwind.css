@@ -89,3 +89,7 @@
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
 }
+
+body[data-scroll-locked] {
+  padding-right: var(--removed-body-scroll-bar-size, 0px) !important;
+}
