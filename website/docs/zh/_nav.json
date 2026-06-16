@@ -10,6 +10,11 @@
     "activeMatch": "/api/"
   },
   {
+    "text": "Examples",
+    "link": "/examples/search-box",
+    "activeMatch": "/examples/"
+  },
+  {
     "text": "设计边界",
     "link": "/guide/design/comparison",
     "activeMatch": "/guide/design/"
