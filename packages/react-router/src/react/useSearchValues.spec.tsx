@@ -4,7 +4,6 @@
 
 import type { FieldCodec } from '@decurl/core/codec';
 import { act, cleanup, render, screen } from '@testing-library/react';
-import { createElement } from 'react';
 import { MemoryRouter, useLocation } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createSearchStore } from '../store/searchStore';
@@ -54,7 +53,7 @@ describe('useSearchValues', () => {
   });
 
   it('decodes initial values from React Router location', () => {
-    renderWithRouter(createElement(PaginationView), {
+    renderWithRouter(<PaginationView />, {
       initialEntry: '/users?page=2&pageSize=50',
     });
 
@@ -66,11 +65,11 @@ describe('useSearchValues', () => {
     let setPagination: SetSearchValues<typeof paginationSchema> | undefined;
 
     renderWithRouter(
-      createElement(PaginationView, {
-        onReady: (setValues) => {
+      <PaginationView
+        onReady={(setValues) => {
           setPagination = setValues;
-        },
-      }),
+        }}
+      />,
       {
         initialEntry: '/users?page=1&pageSize=20',
       },
@@ -88,16 +87,14 @@ describe('useSearchValues', () => {
     let setPagination: SetSearchValues<typeof paginationSchema> | undefined;
 
     renderWithRouter(
-      createElement(
-        App,
-        {},
-        createElement(PaginationView, {
-          onReady: (setValues) => {
+      <App>
+        <PaginationView
+          onReady={(setValues) => {
             setPagination = setValues;
-          },
-        }),
-        createElement(LocationView),
-      ),
+          }}
+        />
+        <LocationView />
+      </App>,
       {
         initialEntry: '/users?page=1&pageSize=20',
       },
@@ -126,20 +123,18 @@ describe('useSearchValues', () => {
     let paginationRenderCount = 0;
 
     renderWithRouter(
-      createElement(
-        App,
-        {},
-        createElement(PaginationView, {
-          onRender: () => {
+      <App>
+        <PaginationView
+          onRender={() => {
             paginationRenderCount += 1;
-          },
-        }),
-        createElement(KeywordView, {
-          onReady: (setValues) => {
+          }}
+        />
+        <KeywordView
+          onReady={(setValues) => {
             setKeyword = setValues;
-          },
-        }),
-      ),
+          }}
+        />
+      </App>,
       {
         initialEntry: '/users?page=1&pageSize=20',
       },
@@ -158,16 +153,14 @@ describe('useSearchValues', () => {
     let setSearch: SetSearchValues<typeof searchSchema> | undefined;
 
     renderWithRouter(
-      createElement(
-        App,
-        {},
-        createElement(SearchView, {
-          onReady: (setValues) => {
+      <App>
+        <SearchView
+          onReady={(setValues) => {
             setSearch = setValues;
-          },
-        }),
-        createElement(LocationView),
-      ),
+          }}
+        />
+        <LocationView />
+      </App>,
       {
         initialEntry: '/users?q=decurl&page=2&pageSize=50&sort=desc',
       },
@@ -196,16 +189,14 @@ describe('useSearchValues', () => {
     let setSearch: SetSearchValues<typeof searchSchema> | undefined;
 
     renderWithRouter(
-      createElement(
-        App,
-        {},
-        createElement(SearchView, {
-          onReady: (setValues) => {
+      <App>
+        <SearchView
+          onReady={(setValues) => {
             setSearch = setValues;
-          },
-        }),
-        createElement(LocationView),
-      ),
+          }}
+        />
+        <LocationView />
+      </App>,
       {
         initialEntry: '/users?q=decurl&page=2&pageSize=50&sort=desc',
       },
@@ -240,10 +231,10 @@ const PaginationView = ({
   onReady?.(setValues);
   onRender?.();
 
-  return createElement(
-    'div',
-    { 'data-testid': 'pagination' },
-    `${values.page}/${values.pageSize}`,
+  return (
+    <div data-testid="pagination">
+      {values.page}/{values.pageSize}
+    </div>
   );
 };
 
@@ -255,11 +246,7 @@ const KeywordView = ({ onReady }: KeywordViewProps): React.ReactElement => {
   const [values, setValues] = useSearchValues(keywordSchema);
   onReady?.(setValues);
 
-  return createElement(
-    'div',
-    { 'data-testid': 'keyword' },
-    values.keyword ?? '',
-  );
+  return <div data-testid="keyword">{values.keyword ?? ''}</div>;
 };
 
 type SearchViewProps = {
@@ -270,25 +257,28 @@ const SearchView = ({ onReady }: SearchViewProps): React.ReactElement => {
   const [values, setValues] = useSearchValues(searchSchema);
   onReady?.(setValues);
 
-  return createElement(
-    'div',
-    { 'data-testid': 'search' },
-    `${values.keyword ?? ''}/${values.page}/${values.pageSize}`,
+  return (
+    <div data-testid="search">
+      {values.keyword ?? ''}/{values.page}/{values.pageSize}
+    </div>
   );
 };
 
 const LocationView = (): React.ReactElement => {
   const location = useLocation();
 
-  return createElement(
-    'div',
-    { 'data-testid': 'location' },
-    `${location.pathname}${location.search}`,
+  return (
+    <div data-testid="location">
+      {location.pathname}
+      {location.search}
+    </div>
   );
 };
 
-const App = ({ children }: React.PropsWithChildren): React.ReactElement => {
-  return createElement('div', {}, children);
+const App = ({
+  children,
+}: React.PropsWithChildren): React.ReactElement => {
+  return <div>{children}</div>;
 };
 
 type RenderWithRouterOptions = {
@@ -301,14 +291,10 @@ const renderWithRouter = (
   { initialEntry, store = createSearchStore() }: RenderWithRouterOptions,
 ) => {
   return render(
-    createElement(
-      MemoryRouter,
-      { initialEntries: [initialEntry] },
-      createElement(
-        SearchStateContext.Provider,
-        { value: { store } },
-        children,
-      ),
-    ),
+    <MemoryRouter initialEntries={[initialEntry]}>
+      <SearchStateContext.Provider value={{ store }}>
+        {children}
+      </SearchStateContext.Provider>
+    </MemoryRouter>,
   );
 };

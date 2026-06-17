@@ -7,7 +7,6 @@ import type {
   WithDefinedFieldName,
 } from '@decurl/core/codec';
 import { act, cleanup, render, screen } from '@testing-library/react';
-import { createElement } from 'react';
 import { MemoryRouter, useLocation } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createSearchStore } from '../store/searchStore';
@@ -34,7 +33,7 @@ describe('useSearchValue', () => {
   });
 
   it('decodes value from named field codec aliases', () => {
-    renderWithRouter(createElement(PageView), {
+    renderWithRouter(<PageView />, {
       initialEntry: '/users?p=2',
     });
 
@@ -42,7 +41,7 @@ describe('useSearchValue', () => {
   });
 
   it('falls back to later aliases when an earlier alias cannot be decoded', () => {
-    renderWithRouter(createElement(PageView), {
+    renderWithRouter(<PageView />, {
       initialEntry: '/users?page_num=bad&p=3',
     });
 
@@ -54,16 +53,14 @@ describe('useSearchValue', () => {
     let setPage: SetSearchValue<typeof pageCodec> | undefined;
 
     renderWithRouter(
-      createElement(
-        App,
-        {},
-        createElement(PageView, {
-          onReady: (setValue) => {
+      <App>
+        <PageView
+          onReady={(setValue) => {
             setPage = setValue;
-          },
-        }),
-        createElement(LocationView),
-      ),
+          }}
+        />
+        <LocationView />
+      </App>,
       {
         initialEntry: '/users?tab=profile&p=2',
       },
@@ -92,16 +89,14 @@ describe('useSearchValue', () => {
     let setPage: SetSearchValue<typeof pageCodec> | undefined;
 
     renderWithRouter(
-      createElement(
-        App,
-        {},
-        createElement(PageView, {
-          onReady: (setValue) => {
+      <App>
+        <PageView
+          onReady={(setValue) => {
             setPage = setValue;
-          },
-        }),
-        createElement(LocationView),
-      ),
+          }}
+        />
+        <LocationView />
+      </App>,
       {
         initialEntry: '/users?tab=profile&page_num=3&p=2',
       },
@@ -131,21 +126,22 @@ const PageView = ({ onReady }: PageViewProps): React.ReactElement => {
   const [page, setPage] = useSearchValue(pageCodec);
   onReady?.(setPage);
 
-  return createElement('div', { 'data-testid': 'page' }, String(page));
+  return <div data-testid="page">{page}</div>;
 };
 
 const LocationView = (): React.ReactElement => {
   const location = useLocation();
 
-  return createElement(
-    'div',
-    { 'data-testid': 'location' },
-    `${location.pathname}${location.search}`,
+  return (
+    <div data-testid="location">
+      {location.pathname}
+      {location.search}
+    </div>
   );
 };
 
 const App = ({ children }: React.PropsWithChildren): React.ReactElement => {
-  return createElement('div', {}, children);
+  return <div>{children}</div>;
 };
 
 type RenderWithRouterOptions = {
@@ -158,14 +154,10 @@ const renderWithRouter = (
   { initialEntry, store = createSearchStore() }: RenderWithRouterOptions,
 ) => {
   return render(
-    createElement(
-      MemoryRouter,
-      { initialEntries: [initialEntry] },
-      createElement(
-        SearchStateContext.Provider,
-        { value: { store } },
-        children,
-      ),
-    ),
+    <MemoryRouter initialEntries={[initialEntry]}>
+      <SearchStateContext.Provider value={{ store }}>
+        {children}
+      </SearchStateContext.Provider>
+    </MemoryRouter>,
   );
 };
