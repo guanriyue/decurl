@@ -8,5 +8,10 @@
     "type": "file",
     "name": "query-form",
     "label": "Query Form"
+  },
+  {
+    "type": "file",
+    "name": "pagination",
+    "label": "Pagination"
   }
 ]
