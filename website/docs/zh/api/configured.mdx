@@ -140,7 +140,7 @@ const PageButton = () => {
 };
 ```
 
-setter 的 patch、`null` / `undefined` 删除字段、navigate options 等语义与 [@decurl/react-router](./react-router) 主入口一致。
+setter 的 patch、`setValues(undefined)` 清除当前 Search Fields、`null` / `undefined` 删除字段、navigate options 等语义与 [@decurl/react-router](./react-router) 主入口一致。
 
 ## Options
 
@@ -180,6 +180,7 @@ configured hooks 不直接依赖 React Router `useLocation`。在一些路由更
 | `CreateReactRouterSearchOptions` | `createReactRouterSearch` 的 options 类型。 |
 | `ReactRouterSearch` | `createReactRouterSearch` 的返回类型。 |
 | `SetSearchValues<TFields>` | `useSearchValues` setter 类型。 |
+| `SearchValuesPatch<TFields>` | `useSearchValues` setter 接收的 patch 类型。 |
 | `SetSearchValue<TCodec>` | `useSearchValue` setter 类型。 |
 | `UseSearchValuesResult<TFields>` | `useSearchValues` 返回元组类型。 |
 | `UseSearchValueResult<TCodec>` | `useSearchValue` 返回元组类型。 |

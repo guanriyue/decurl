@@ -60,6 +60,12 @@ const SearchPanel = () => {
 
 传入 `null` 或 `undefined` 表示删除对应字段的 URL key。如果写入值等于 field 的 `defaultValue`，默认也会删除对应 key；是否保留 default value 由 URLSearchParams codec 的 encode 规则决定。
 
+如果把整个 patch 传为 `undefined`，会删除当前 `searchFields` 中所有字段对应的 URL key，并保留 `searchFields` 之外的 search params：
+
+```tsx
+setValues(undefined);
+```
+
 patch 也可以是 updater：
 
 ```tsx
@@ -67,6 +73,8 @@ setValues((previousValues) => ({
   page: previousValues.page + 1,
 }));
 ```
+
+如果 updater 返回 `undefined`，语义与 `setValues(undefined)` 相同。
 
 ## useSearchValue
 
@@ -140,6 +148,7 @@ setPage(1, { replace: true, preventScrollReset: true });
 | 类型 | 说明 |
 | --- | --- |
 | `SetSearchValues<TFields>` | `useSearchValues` setter 类型。 |
+| `SearchValuesPatch<TFields>` | `useSearchValues` setter 接收的 patch 类型。 |
 | `SetSearchValue<TCodec>` | `useSearchValue` setter 类型。 |
 | `UseSearchValuesResult<TFields>` | `useSearchValues` 返回元组类型。 |
 | `UseSearchValueResult<TCodec>` | `useSearchValue` 返回元组类型。 |

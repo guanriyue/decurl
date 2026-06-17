@@ -1,14 +1,25 @@
-import type { InferFieldValues, RecordCodec } from '@decurl/core/codec';
+import type {
+  EncodeFieldsValues,
+  InferFieldValues,
+  RecordCodec,
+} from '@decurl/core/codec';
 import { decodeFields, encodeFields } from '@decurl/core/codec';
 import { useCallback, useSyncExternalStore } from 'react';
 import type { SearchNavigateOptions } from '../runtime/types';
-import type { SearchPatch, SearchStore } from '../store/types';
+import type { SearchStore } from '../store/types';
 import { useContextStore } from './SearchStateContext';
 import { useSearchStateSelector } from './selector';
 import { useConfigureRuntime } from './useConfigureRuntime';
 
+export type SearchValuesPatch<TDefinition extends RecordCodec> =
+  | EncodeFieldsValues<TDefinition>
+  | undefined
+  | ((
+      previousValues: InferFieldValues<TDefinition>,
+    ) => EncodeFieldsValues<TDefinition> | undefined);
+
 export type SetSearchValues<TDefinition extends RecordCodec> = (
-  patch: SearchPatch<TDefinition>,
+  patch: SearchValuesPatch<TDefinition>,
   options?: SearchNavigateOptions,
 ) => void;
 
@@ -48,13 +59,19 @@ export const useSearchValuesStore = <TDefinition extends RecordCodec>(
       store.addEntry({
         apply: (searchParams) => {
           if (typeof patch !== 'function') {
-            return encodeFields(schema, patch, { base: searchParams });
+            return encodeFields(schema, normalizeSearchPatch(schema, patch), {
+              base: searchParams,
+            });
           }
 
           const previousValues = decodeFields(schema, searchParams);
           const nextPatch = patch(previousValues);
 
-          return encodeFields(schema, nextPatch, { base: searchParams });
+          return encodeFields(
+            schema,
+            normalizeSearchPatch(schema, nextPatch),
+            { base: searchParams },
+          );
         },
         options,
       });
@@ -63,4 +80,17 @@ export const useSearchValuesStore = <TDefinition extends RecordCodec>(
   );
 
   return [values, setValues];
+};
+
+const normalizeSearchPatch = <TDefinition extends RecordCodec>(
+  schema: TDefinition,
+  patch: EncodeFieldsValues<TDefinition> | undefined,
+): EncodeFieldsValues<TDefinition> => {
+  if (typeof patch !== 'undefined') {
+    return patch;
+  }
+
+  return Object.fromEntries(
+    Object.keys(schema).map((key) => [key, undefined]),
+  ) as EncodeFieldsValues<TDefinition>;
 };

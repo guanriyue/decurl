@@ -19,10 +19,13 @@ const [values, setValues] = useSearchValues(schema)
 ```ts
 setValues({ foo: 'next' })
 setValues((prev) => ({ page: prev.page + 1 }))
+setValues(undefined)
 setValues({ page: 2 }, { replace: true, preventScrollReset: true })
 ```
 
 `setValues` 返回 `void`。
+
+`setValues(undefined)` 表示删除当前 schema 中所有 field 对应的 search 参数，等价于把当前 schema 的每个字段都 patch 为 `undefined`。schema 之外的 search 参数应保持不变。
 
 Navigate options 支持作为 `setValues` 的第二参数。
 
@@ -101,6 +104,8 @@ setValues((prev) => ({ page: prev.page + 1 }))
 ```
 
 updater 返回 patch，而不是完整 state。
+
+如果 updater 返回 `undefined`，语义与 `setValues(undefined)` 相同。
 
 updater 与 React `setState(updater)` 是同类机制，开发者有义务保证它是纯函数。
 

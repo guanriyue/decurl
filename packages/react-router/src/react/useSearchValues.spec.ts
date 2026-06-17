@@ -31,6 +31,21 @@ const keywordSchema = {
   },
 } satisfies Record<string, FieldCodec>;
 
+const searchSchema = {
+  keyword: {
+    name: 'q',
+    decode: (input) => input,
+  },
+  page: {
+    decode: (input) => Number(input),
+    defaultValue: 1,
+  },
+  pageSize: {
+    decode: (input) => Number(input),
+    defaultValue: 20,
+  },
+} satisfies Record<string, FieldCodec>;
+
 describe('useSearchValues', () => {
   afterEach(() => {
     cleanup();
@@ -137,6 +152,79 @@ describe('useSearchValues', () => {
 
     expect(paginationRenderCount).toBe(0);
   });
+
+  it('clears all schema fields when patch is undefined', () => {
+    vi.useFakeTimers();
+    let setSearch: SetSearchValues<typeof searchSchema> | undefined;
+
+    renderWithRouter(
+      createElement(
+        App,
+        {},
+        createElement(SearchView, {
+          onReady: (setValues) => {
+            setSearch = setValues;
+          },
+        }),
+        createElement(LocationView),
+      ),
+      {
+        initialEntry: '/users?q=decurl&page=2&pageSize=50&sort=desc',
+      },
+    );
+
+    act(() => {
+      setSearch?.(undefined);
+    });
+
+    expect(screen.getByTestId('search').textContent).toBe('/1/20');
+    expect(screen.getByTestId('location').textContent).toBe(
+      '/users?q=decurl&page=2&pageSize=50&sort=desc',
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+
+    expect(screen.getByTestId('location').textContent).toBe(
+      '/users?sort=desc',
+    );
+  });
+
+  it('clears all schema fields when updater returns undefined', () => {
+    vi.useFakeTimers();
+    let setSearch: SetSearchValues<typeof searchSchema> | undefined;
+
+    renderWithRouter(
+      createElement(
+        App,
+        {},
+        createElement(SearchView, {
+          onReady: (setValues) => {
+            setSearch = setValues;
+          },
+        }),
+        createElement(LocationView),
+      ),
+      {
+        initialEntry: '/users?q=decurl&page=2&pageSize=50&sort=desc',
+      },
+    );
+
+    act(() => {
+      setSearch?.(() => undefined);
+    });
+
+    expect(screen.getByTestId('search').textContent).toBe('/1/20');
+
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+
+    expect(screen.getByTestId('location').textContent).toBe(
+      '/users?sort=desc',
+    );
+  });
 });
 
 type PaginationViewProps = {
@@ -171,6 +259,21 @@ const KeywordView = ({ onReady }: KeywordViewProps): React.ReactElement => {
     'div',
     { 'data-testid': 'keyword' },
     values.keyword ?? '',
+  );
+};
+
+type SearchViewProps = {
+  onReady?: (setValues: SetSearchValues<typeof searchSchema>) => void;
+};
+
+const SearchView = ({ onReady }: SearchViewProps): React.ReactElement => {
+  const [values, setValues] = useSearchValues(searchSchema);
+  onReady?.(setValues);
+
+  return createElement(
+    'div',
+    { 'data-testid': 'search' },
+    `${values.keyword ?? ''}/${values.page}/${values.pageSize}`,
   );
 };
 
