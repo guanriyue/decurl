@@ -1,0 +1,22 @@
+---
+description: React Router Data Table 示例，展示 filter、sort 和 pagination 与 URL search params 联动。
+pageType: doc-wide
+outline: false
+---
+
+# Data Table
+
+这个示例把表格常见状态放进 URL：关键词、状态筛选、排序字段、排序方向、分页位置和每页数量。它不依赖表格逻辑库，重点展示 URL search params 如何驱动一个组合型列表视图。
+
+示例数据基于 [Rick and Morty API](https://rickandmortyapi.com/documentation) 的 Character schema 准备为本地 mock，不会在运行时请求接口。
+
+```tsx file="./_demos/data-table.tsx" preview
+```
+
+## 相关 API
+
+- [useSearchValues](/zh/api/react-router.html#usesearchvalues)
+- [field](/zh/api/codec.html#field)
+- [defineFields](/zh/api/codec.html#definefields)
+- [elementOf](/zh/api/decode.html#elementof)
+- [mapItems](/zh/api/decode.html#mapitems)

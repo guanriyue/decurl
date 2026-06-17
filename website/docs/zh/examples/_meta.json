@@ -18,5 +18,10 @@
     "type": "file",
     "name": "pagination",
     "label": "Pagination"
+  },
+  {
+    "type": "file",
+    "name": "data-table",
+    "label": "Data Table"
   }
 ]
