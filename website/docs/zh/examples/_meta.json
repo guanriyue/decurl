@@ -6,6 +6,11 @@
   },
   {
     "type": "file",
+    "name": "batch-updates",
+    "label": "Batch Updates"
+  },
+  {
+    "type": "file",
     "name": "query-form",
     "label": "Query Form"
   },

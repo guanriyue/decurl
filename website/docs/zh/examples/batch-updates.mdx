@@ -1,0 +1,19 @@
+---
+description: React Router 连续更新示例，展示多次 setValues 调用如何合并 URL search params。
+pageType: doc-wide
+outline: false
+---
+
+# Batch Updates
+
+这个示例连续调用多次 `setValues`。每一次 patch 都会基于前一次更新后的中间 search params 继续应用，因此不会覆盖掉其他字段。
+
+```tsx file="./_demos/batch-updates.tsx" preview
+```
+
+## 相关 API
+
+- [useSearchValues](/zh/api/react-router.html#usesearchvalues)
+- [field](/zh/api/codec.html#field)
+- [defineFields](/zh/api/codec.html#definefields)
+- [mapItems](/zh/api/decode.html#mapitems)
