@@ -9,7 +9,11 @@
 - 实现时必须遵守哪些行为语义。
 - 哪些能力暂时不应该实现。
 
-使用者 API 文档暂未建立。当前阶段先沉淀实现目标，避免开发过程中偏离主线。
+当前阶段先沉淀实现目标和关键使用边界，避免开发过程中偏离主线。
+
+## Guide
+
+- [useSearchPagination Guide](guide/use-search-pagination.md)
 
 ## 架构
 
@@ -20,3 +24,4 @@
 - [React Bridge](architecture/react-bridge.md)
 - [Provider 边界](architecture/provider.md)
 - [配置化 Runtime 优化入口](architecture/configured-runtime.md)
+- [Pagination Overflow Coordination](architecture/pagination-overflow-coordination.md)

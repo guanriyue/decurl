@@ -48,6 +48,22 @@ const [value, setValue] = useSearchValue(namedFieldCodec)
 
 `setValue(null)` 和 `setValue(undefined)` 表示删除该 field 对应的 search 参数。
 
+P0 常用分页 hook 形态：
+
+```ts
+const pagination = useSearchPagination()
+```
+
+`useSearchPagination` 是基于 search params fields 的分页行为 hook。它面向 `page` 和 `pageSize` 两个语义字段，负责 URL 状态读取、组合更新和页码联动逻辑，并提供：
+
+- `setPage`
+- `resetPage`
+- `setPageSize`
+- `setPagination`
+- `preventOverflow(totalSource)`
+
+完整使用边界见 [useSearchPagination Guide](../guide/use-search-pagination.md)。
+
 ## Decoded Data First
 
 业务开发者优先面对 decoded data。

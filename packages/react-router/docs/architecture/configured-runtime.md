@@ -36,6 +36,27 @@ factory 会创建独立 store，并返回绑定该 store 的：
 
 绑定 hooks 不会自动调用 `useConfigureRuntime`。
 
+pagination 是建立在基础 search hooks 之上的领域模块，不由 configured factory 自动创建。需要绑定 pagination 时，通过 pagination 子路径显式组合：
+
+```ts
+import { createReactRouterSearch } from '@decurl/react-router/configured'
+import { createUseSearchPagination } from '@decurl/react-router/pagination'
+
+const search = createReactRouterSearch()
+const useSearchPagination = createUseSearchPagination({
+  useSearchValues: search.useSearchValues,
+})
+```
+
+绑定后的 pagination hook 与默认 `useSearchPagination` 具有相同能力，并携带相同语义的静态属性：
+
+```ts
+useSearchPagination.fields
+useSearchPagination.pageSizeOptions
+```
+
+调用 Hook 时可以通过 `UseSearchPaginationOptions` 配置 `pageSizeChangeStrategy`。调用 `setPage`、`setPageSize` 或 `setPagination` 时，可以单独传入 `SearchNavigateOptions`。完整使用边界见 [useSearchPagination Guide](../guide/use-search-pagination.md)。
+
 如果使用 `Provider`，Provider 会自动完成 runtime 接线。
 
 `RuntimeConfigurer` 只用于不使用 Provider、但仍希望显式完成接线的场景。

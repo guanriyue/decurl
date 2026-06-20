@@ -126,6 +126,8 @@ Hook 不判断 location change 来源。
 
 `useSearchValue(namedFieldCodec)` 返回单个 decoded field value。
 
+`useSearchPagination()` 是组合 hook，内部仍通过 `useSearchValues` 订阅和写入 search state。它不新增 Store 或 Runtime 语义。
+
 Hook 不应只依赖 `useMemo` 来保证 `values` 引用稳定。
 
 `values` 应通过 selector 从 store snapshot 取得。

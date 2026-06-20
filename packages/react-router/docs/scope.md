@@ -13,6 +13,7 @@
 - 支持连续 patch 合并。
 - 支持 optimistic state，使 `setValues` 后 React render 立即反映新状态。
 - 支持 pending flush，将 URL 同步延迟到一个短窗口后执行。
+- 提供常用分页 search state hook，复用同一套 optimistic URL state 语义。
 - 为后续 Provider、多 runtime 和高级能力保留内部边界。
 
 ## 依赖边界
@@ -35,6 +36,7 @@
 - 实现 route search memory。
 - 实现 `window.navigation` runtime。
 - 实现 Provider 高级配置。
+- 实现数据请求、表格状态、排序筛选联动等业务分页能力。
+- 接管分页请求的 loading、error、retry、竞态取消或生命周期管理。
 
 这些能力可以在后续阶段讨论，但不应进入 P0 实现。
-

@@ -32,12 +32,10 @@ RuntimeConfigurer 解决显式接线问题。
 
 后续 Provider 可以用于：
 
-- 创建独立 store。
-- 注入 runtime。
 - 注入默认 navigate options。
 - 注入默认 flush 配置。
 - 支持更多微前端或嵌套 router 场景。
 
 Provider store 与默认 singleton store 应互相隔离。
 
-如果业务同时存在多个 React Router context 或微前端容器，应优先使用未来 Provider 形态，而不是共享 singleton store。
+如果业务同时存在多个 React Router context 或微前端容器，应优先使用 configured Provider，而不是共享 singleton store。
