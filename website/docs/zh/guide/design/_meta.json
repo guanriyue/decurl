@@ -1,7 +1,12 @@
 [
   {
     "type": "file",
+    "name": "boundaries",
+    "label": "设计边界"
+  },
+  {
+    "type": "file",
     "name": "comparison",
-    "label": "边界与对比"
+    "label": "方案对比"
   }
 ]

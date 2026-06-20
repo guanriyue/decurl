@@ -34,5 +34,5 @@ features:
     link: /zh/guide/codec/search-fields
   - title: Agent-friendly APIs
     details: API 由小而明确的函数组成，适合人和代码 agent 逐步组合、检查和修改。
-    link: /zh/guide/design/comparison
+    link: /zh/guide/design/boundaries
 ---

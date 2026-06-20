@@ -1,30 +1,12 @@
 ---
-description: Decurl 专注 URLSearchParams 的解析与序列化规则，和 validation、URL search state 等方案关注的问题不同。
+description: Decurl 与 validation、JSON Schema、Standard Schema 和 URL search state 库关注不同的问题。
 ---
 
-# 边界与对比
+# 方案对比
 
-Decurl 不是通用 validation 库，也不是完整复刻某个 URL search state 库。
+Decurl 不是通用 validation 库，也不是完整复刻某个 URL search state 库。它专注于 `URLSearchParams` 的解析、序列化和字段映射。
 
-它的定位更窄：为 `URLSearchParams` 提供一套显式的解析与序列化规则，以及执行这些规则的工具。
-
-## 解析与序列化
-
-URL search params 本质上是一段字符串数据。我们对它做的一切，都是在做解析和序列化。
-
-类似的事情在很多场景都会发生：
-
-- TypeScript 源码本质是文本，会被 TypeScript Compiler 解析成 AST；AST 也可以再被打印成文本。
-- JavaScript value 可以序列化为 JSON 字符串，也可以从 JSON 字符串解析回 JavaScript value。
-- `YYYY-MM-DD` 字符串可以解析成 `Date` 对象，`Date` 对象也可以序列化成适合传输的字符串。
-- `location.search` 是 string，可以被解析成 `URLSearchParams` 实例；`URLSearchParams` 也可以重新序列化成 search string。
-
-Decurl 针对 URL search params 做的是同一类事情：
-
-- `decode`：把 `string`、`string[]` 或缺失值解析成业务值。
-- `encode`：把业务值序列化回 URLSearchParams。
-
-Search Fields 是这套规则的静态定义；URLSearchParams codec 是这套规则的执行器。
+这篇文档比较不同方案的职责范围。Decurl 自身的取舍与约束见 [设计边界](./boundaries)。
 
 ## 和 validation 库的边界
 
@@ -45,118 +27,74 @@ Decurl 关注的是另一层问题：
 
 你可以在 Decurl 的 decode step 中调用 validation 库，但 Decurl 本身不试图替代它们。
 
-## Decode 不应该默认抛异常
+## 和 JSON Schema 的边界
 
-URL search params 是用户可编辑、可分享、可遗留的字符串输入。Decode 遇到预期外字符串时，默认不应该把抛异常作为控制流，而应该返回 `null` 或 `undefined`，再交给 `defaultValue` 或页面 guard 处理。
+[JSON Schema](https://json-schema.org/) 是一种声明式、可被机器读取的数据描述。它不仅能表达类型和约束，也能携带 `enum`、`title`、`description`、`examples` 等上下文。例如，工具可以直接从下面的定义中读取允许使用的视图选项：
 
-分页参数是典型例子：
-
-```tsx
-const [pagination, setPagination] = useSearchValues(
-  pick(searchFields, ['page', 'pageSize']),
-);
+```json
+{
+  "type": "string",
+  "enum": ["list", "grid"]
+}
 ```
 
-如果 URL 中出现 `page=abc.123`，页面通常不应该进入 ErrorBoundary。分页参数大多只是辅助状态，decode 失败后回退到默认页码，会比抛异常更符合用户预期。
+这类静态定义很适合生成文档、配置界面和跨语言契约。消费者不需要执行 schema，就能检查其中公开的信息。
 
-核心参数则需要另一种处理方式：
+JSON Schema 描述的是一个已经形成的 JSON value 应满足什么约束，不负责定义原始字符串如何转换成这个 value。例如：
 
-```tsx
-const [id, setId] = useSearchValue(searchFields.id);
+```json
+{
+  "type": "integer",
+  "minimum": 1
+}
 ```
 
-如果 `id` 是页面展示的核心参数，而 URL 中出现 `id=abc.12343`，页面确实可能无法正常展示。但这也不一定要通过 decode 抛异常来交给 ErrorBoundary。
+这个 schema 可以约束数字 `2`，但没有定义 URL 中的字符串 `"2"` 应该如何解析成数字，也没有定义数字应如何序列化回 URL。类似地，JSON Schema 中的 `default` 是 annotation，不等同于 Decurl 会在 key 缺失或 decode 失败时实际应用的 `defaultValue`。
 
-更推荐在页面中显式 guard：
+JSON Schema 可以通过组合、引用和条件等能力描述复杂的数据结构。它真正不适合直接表达的是任意转换、业务算法和双向序列化。如果这些行为依赖自定义 keyword 或 vocabulary，使用方也必须理解相同的扩展语义；定义仍然可以工作，但可移植性会随之降低。
 
-```tsx
-const PageView = () => {
-  const [id] = useSearchValue(searchFields.id);
-
-  if (!id) {
-    return <ErrorPage description="缺少有效的资源 id" />;
-  }
-
-  return <Detail id={id} />;
-};
-```
-
-这种方式更容易为不同页面定制错误说明、返回按钮、刷新按钮或其他辅助操作。
-
-这也是 Decurl 和 validation 库在 URL search params 场景中的重要差异：validation 库很适合“校验失败 -> 结构化错误”的表单、API payload 或服务端契约；而 URL search params 更常见的是“无效值当作缺失值”、“缺失值走默认值”、“核心参数缺失由页面 guard 展示专门 UI”。
-
-当然，预期之外的异常仍然可能发生，例如开发者自己的 decode 函数有 bug，或调用了会 throw 的第三方 parser。Decurl 的理念不是“永远不可能 throw”，而是“URL 值不符合预期时，不应该默认用 throw 表达”。
-
-## Decode 保持同步
-
-Decurl 的 URLSearchParams codec 目前不支持异步 decode。这也是有意的边界。
-
-URL search params 中更适合存放核心基础参数，而不是异步派生结果。例如页面可能只把 `id` 放在 URL 中：
-
-```tsx
-const [id, setId] = useSearchValue(searchFields.id);
-```
-
-而真正的业务实体可能包含更多字段：
+FieldCodec 选择把执行行为放在函数上：
 
 ```ts
-type Instance = {
-  id: number;
-  startTime: number;
-  endTime: number;
-};
+const page = field({
+  decode: pipe(trim, shape.integer, toNumber, min(1)),
+  defaultValue: 1,
+});
 ```
 
-如果页面只需要实体中的时间范围，看起来可以把异步请求放进 decode pipeline：
+`decode` 和 `encode` 可以处理任何适合当前字段的同步转换，不受声明式关键词范围限制。`name`、`mode`、alias、`defaultValue` 和 `eq` 则只补充 URL 字段需要的语义。FieldCodec 因此也是一套特定协议，但它有意围绕 URL 字段的编解码保持较小的边界。
+
+函数中心设计的代价是缺少 introspection。例如 `elementOf(['list', 'grid'])` 会把选项保存在 decode 函数的闭包中，定义完成后不能再从 FieldCodec 读取这份列表。未来可以考虑让 FieldCodec 显式携带 metadata，为文档、表单或其他工具提供上下文；在此之前，Decurl 不把这些描述性字段加入核心协议。即使未来存在 metadata，`decode` 仍应是实际解析行为的事实来源。
+
+## 和 Standard Schema 的边界
+
+[Standard Schema](https://standardschema.dev/) 不是另一种声明式 schema 语言。它是一组面向 TypeScript 生态的接口，用于让工具以统一方式消费不同 validation 库，而不需要为每个库编写单独的 adapter。
+
+Standard Schema V1 的核心是 `~standard.validate`。它接收 unknown input，并返回成功结果或结构化 issues；验证既可以同步完成，也可以返回 Promise：
 
 ```ts
-const decode = pipe(
-  trim,
-  shape.integer,
-  toNumber,
-  async (id) => fetchTimeRange(id),
-);
+validate(value)
+  // -> { value }
+  //  | { issues }
+  //  | Promise<{ value } | { issues }>
 ```
 
-Decurl 不支持这种写法。异步解析通常会引入状态管理问题：loading 如何展示，error 如何处理，同一个 key 在页面多处使用时如何复用请求结果，以及它是否会和系统里已有的 swr、react-query 等数据请求模块重复。
+Input 和 output 可以是不同类型，因此具体 validation 库可以在验证过程中完成转换。但 Standard Schema 只统一调用和结果协议，不统一 schema 如何定义，也不保证可以读取 enum 等静态信息。它同样没有定义反向 encode、URL key、single/multi、alias 或默认值省略等行为。Standard Schema 项目提供了独立的 Standard JSON Schema 接口来约定 JSON Schema 转换能力，这并不是 Standard Schema validation 接口本身的 introspection 能力。
 
-更推荐把 URL 参数 decode 成基础值，再把异步数据交给专门的请求或缓存模块：
+Standard Schema 可以作为 FieldCodec decode 内部使用的 validation 能力，但两者的失败语义和执行边界不同：
 
-```tsx
-const PageView = () => {
-  const [id] = useSearchValue(searchFields.id);
+- Standard Schema 用 `issues` 表达失败，适合需要结构化错误的调用方。
+- FieldCodec 通常把无效 URL value 归一化为 `null` / `undefined`，再尝试 alias、`defaultValue` 或页面 guard。
+- Standard Schema 允许异步 validation；FieldCodec decode 有意保持同步。
+- Standard Schema 不提供反向序列化；FieldCodec 可以用 `encode` 描述写回 URL 的规则。
 
-  const {
-    data: instance,
-    isLoading: instanceLoading,
-    error: instanceError,
-    refetch: refetchInstance,
-  } = useQuery({
-    queryKey: ['instance', id],
-    queryFn: () => fetchInstance(id),
-    enabled: Boolean(id),
-  });
+三者关注的是不同层级：
 
-  if (instanceLoading) {
-    return <LoadingPage />;
-  }
-
-  if (instanceError) {
-    return (
-      <ErrorPage error={instanceError} refetch={refetchInstance} />
-    );
-  }
-
-  return (
-    <TimeRangeView
-      startTime={instance.startTime}
-      endTime={instance.endTime}
-    />
-  );
-};
-```
-
-字符串的解析和序列化天然是同步流程。把异步请求放进 decode 会让模块边界变得模糊，也会让 loading、error、缓存和重试等 UI 状态难以统一管理。异步状态更适合交给专门的模块处理。
+| 方案 | 核心形态 | 主要能力 | 不负责的部分 |
+| --- | --- | --- | --- |
+| JSON Schema | 声明式文档 | 静态约束、annotation、introspection | 任意转换和双向序列化 |
+| Standard Schema | validation 接口 | 类型推导、统一调用、value 或 issues | schema 定义、introspection 和 encode |
+| FieldCodec | 编解码函数协议 | URL 字段解析、序列化和字段语义 | 完整 validation DSL 和结构化错误树 |
 
 ## 和 URL search state 库的边界
 
@@ -171,40 +109,3 @@ Decurl 更强调 URL codec 与 router hook 的边界：
 - alias、default、patch encode 是 URLSearchParams 层的一等语义。
 
 Search Fields、decode pipeline 和 URLSearchParams codec 可以独立于 hooks 使用。Router 集成只是消费同一套规则的上层能力。
-
-## 为什么 decode first
-
-写入 URL 往往不难：
-
-```ts
-searchParams.set('page', String(page));
-```
-
-真正困难的是读取：
-
-```ts
-const page = Number(searchParams.get('page'));
-```
-
-这段代码没有说明：
-
-- 空字符串是否有效。
-- `1e3` 是否有效。
-- `0` 是否有效。
-- 参数缺失时默认值是什么。
-- 旧 key 是否还需要兼容。
-
-Decurl 把这些规则前置到 Search Fields 中，让 URL 进入业务层之前就被显式处理。
-
-## Decurl 不接管什么
-
-Decurl 不尝试接管所有数据规则。它不负责：
-
-- 完整 validation DSL。
-- 表单错误树和字段级错误展示。
-- 路由匹配和页面生命周期。
-- 把所有业务状态都放进 URL。
-- 把 URL 当成数据库或全局 store。
-- 鼓励把复杂对象都塞进 search params。
-
-如果状态不需要分享、刷新保留或浏览器历史记录，它未必适合进入 URL。Decurl 只希望让那些确实属于 URL search params 的状态，有明确、可推导、可复用的解析与序列化规则。
