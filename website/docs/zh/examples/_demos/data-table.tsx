@@ -4,18 +4,16 @@ import {
   elementOf,
   length,
   mapItems,
-  min,
   pipe,
-  shape,
-  toNumber,
-  trim,
   unique,
 } from '@decurl/react-router/decode';
+import { useSearchPagination } from '@decurl/react-router/pagination';
 import {
   ArrowDown,
   ArrowUp,
   ChevronsUpDown,
   Filter,
+  FlaskConical,
   LoaderCircle,
   RotateCcw,
   Search,
@@ -66,7 +64,6 @@ import {
 } from '@/data/rick-and-morty-characters';
 
 const statusOptions = ['Alive', 'Dead', 'unknown'] as const;
-const pageSizeOptions = [10, 20, 50];
 const skeletonRows = Array.from({ length: 10 }, (_, index) => index);
 
 const fields = defineFields({
@@ -88,16 +85,6 @@ const fields = defineFields({
     name: 'order',
     decode: elementOf(['asc', 'desc']),
     defaultValue: 'asc',
-  }),
-  page: field({
-    name: 'page',
-    decode: pipe(trim, shape.integer, toNumber, min(1)),
-    defaultValue: 1,
-  }),
-  pageSize: field({
-    name: 'pageSize',
-    decode: pipe(trim, shape.integer, toNumber, elementOf(pageSizeOptions)),
-    defaultValue: 10,
   }),
 });
 
@@ -144,25 +131,38 @@ const getVisiblePages = (page: number, pageCount: number): number[] => {
 const DataTable = () => {
   const location = useLocation();
   const [values, setValues] = useSearchValues(fields);
-  const { data: result, isLoading, isValidating } = useSWR(
+  const pagination = useSearchPagination();
+  const {
+    data: result,
+    isLoading,
+    isValidating,
+  } = useSWR(
     [
       'rick-and-morty-characters',
       values.keyword ?? '',
       values.statuses?.join('|') ?? '',
       values.sortBy,
       values.order,
-      values.page,
-      values.pageSize,
+      pagination.page,
+      pagination.pageSize,
     ],
-    () => fetchRickAndMortyCharacters(values),
+    () =>
+      fetchRickAndMortyCharacters({
+        ...values,
+        page: pagination.page,
+        pageSize: pagination.pageSize,
+      }),
     {
       keepPreviousData: true,
+      onSuccess: (nextResult) => {
+        pagination.preventOverflow(nextResult);
+      },
     },
   );
   const showSkeleton = isLoading && !result;
   const isUpdating = isValidating && !!result;
   const pageCount = result?.pageCount ?? 1;
-  const page = Math.max(values.page, 1);
+  const page = Math.min(Math.max(pagination.page, 1), pageCount);
   const visiblePages = getVisiblePages(page, pageCount);
 
   const updateSort = (column: CharacterSortKey) => {
@@ -170,14 +170,12 @@ const DataTable = () => {
       sortBy: column,
       order:
         values.sortBy === column && values.order === 'asc' ? 'desc' : 'asc',
-      page: 1,
     });
+    pagination.resetPage();
   };
 
   const updatePage = (nextPage: number) => {
-    setValues({
-      page: Math.min(Math.max(nextPage, 1), pageCount),
-    });
+    pagination.setPage(Math.min(Math.max(nextPage, 1), pageCount));
   };
 
   return (
@@ -194,8 +192,8 @@ const DataTable = () => {
 
               setValues({
                 keyword: keyword === '' ? undefined : keyword,
-                page: 1,
               });
+              pagination.resetPage();
             }}
           />
         </div>
@@ -234,8 +232,8 @@ const DataTable = () => {
                         status,
                         checked === true,
                       ),
-                      page: 1,
                     });
+                    pagination.resetPage();
                   }}
                 >
                   {status}
@@ -248,11 +246,24 @@ const DataTable = () => {
             type="button"
             variant="outline"
             onClick={() => {
+              pagination.setPage(999);
+            }}
+          >
+            <FlaskConical />
+            Page 999
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
               setValues({
                 keyword: undefined,
                 statuses: undefined,
                 sortBy: undefined,
                 order: undefined,
+              });
+              pagination.setPagination({
                 page: undefined,
                 pageSize: undefined,
               });
@@ -365,20 +376,23 @@ const DataTable = () => {
               </TableRow>
             ))}
 
-          {!showSkeleton && result?.rows.map((row) => (
-            <TableRow key={row.id}>
-              <TableCell className="w-16 font-mono text-xs">{row.id}</TableCell>
-              <TableCell className="w-56 truncate font-medium">
-                {row.name}
-              </TableCell>
-              <TableCell className="w-32">
-                <Badge variant="outline">{row.status}</Badge>
-              </TableCell>
-              <TableCell className="w-36 truncate">{row.species}</TableCell>
-              <TableCell className="w-32 truncate">{row.gender}</TableCell>
-              <TableCell className="w-64 truncate">{row.location}</TableCell>
-            </TableRow>
-          ))}
+          {!showSkeleton &&
+            result?.rows.map((row) => (
+              <TableRow key={row.id}>
+                <TableCell className="w-16 font-mono text-xs">
+                  {row.id}
+                </TableCell>
+                <TableCell className="w-56 truncate font-medium">
+                  {row.name}
+                </TableCell>
+                <TableCell className="w-32">
+                  <Badge variant="outline">{row.status}</Badge>
+                </TableCell>
+                <TableCell className="w-36 truncate">{row.species}</TableCell>
+                <TableCell className="w-32 truncate">{row.gender}</TableCell>
+                <TableCell className="w-64 truncate">{row.location}</TableCell>
+              </TableRow>
+            ))}
           {!showSkeleton && result?.rows.length === 0 && (
             <TableRow>
               <TableCell
@@ -406,25 +420,22 @@ const DataTable = () => {
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Rows per page</span>
             <Select
-              value={String(values.pageSize)}
+              value={String(pagination.pageSize)}
               onValueChange={(value) => {
                 const pageSize = Number(value);
 
-                if (!pageSizeOptions.includes(pageSize)) {
+                if (!useSearchPagination.pageSizeOptions.includes(pageSize)) {
                   return;
                 }
 
-                setValues({
-                  page: 1,
-                  pageSize,
-                });
+                pagination.setPageSize(pageSize);
               }}
             >
               <SelectTrigger size="sm" className="w-20">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {pageSizeOptions.map((pageSize) => (
+                {useSearchPagination.pageSizeOptions.map((pageSize) => (
                   <SelectItem key={pageSize} value={String(pageSize)}>
                     {pageSize}
                   </SelectItem>
@@ -544,8 +555,8 @@ const DataTable = () => {
           </Badge>
           <Badge variant="secondary">sortBy: {values.sortBy}</Badge>
           <Badge variant="secondary">order: {values.order}</Badge>
-          <Badge variant="secondary">page: {values.page}</Badge>
-          <Badge variant="secondary">pageSize: {values.pageSize}</Badge>
+          <Badge variant="secondary">page: {pagination.page}</Badge>
+          <Badge variant="secondary">pageSize: {pagination.pageSize}</Badge>
         </div>
       </div>
     </section>

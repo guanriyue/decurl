@@ -10,12 +10,19 @@ outline: false
 
 示例数据基于 [Rick and Morty API](https://rickandmortyapi.com/documentation) 的 Character schema 准备为本地 mock，不会在运行时请求接口。
 
+分页状态由内置的 `useSearchPagination()` 管理。SWR 返回与当前查询匹配的结果后，示例把其中的 `total` 交给 `preventOverflow`，修正超出最大页码的 `page`。
+
+点击 **Page 999**，或者手动把 URL 中的 `page` 改成一个很大的数字，可以观察请求完成后的页码修正。这个按钮只用于演示：真实应用的分页组件已知 `pageCount` 时，应在调用 `setPage` 前限制目标页码，不应主动写入一个已知越界的值。
+
+快速重复设置 `page=999` 时，SWR 可能对相同请求执行 dedupe，成功回调不会再次触发，因而这一次无法自动修正页码。这也说明 `preventOverflow` 是收到可信 `total` 后的一次恢复操作，不负责协调请求缓存；更多背景见[理解分页越界](/zh/guide/react-router/pagination/overflow)。
+
 ```tsx file="./_demos/data-table.tsx" preview
 ```
 
 ## 相关 API
 
 - [useSearchValues](/zh/api/react-router.html#usesearchvalues)
+- [useSearchPagination](/zh/api/pagination.html#usesearchpagination)
 - [field](/zh/api/codec.html#field)
 - [defineFields](/zh/api/codec.html#definefields)
 - [elementOf](/zh/api/decode.html#elementof)
