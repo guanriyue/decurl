@@ -17,7 +17,6 @@ export type DefineFieldsOptions = {
 
 export const defineFields = <TDefinition extends RecordCodec>(
   definition: TDefinition,
-  options: DefineFieldsOptions = {},
 ): DefinedFields<TDefinition> => {
   const entries = Object.entries(definition).map(([key, codec]) => {
     const names = normalizeFieldNames(codec.name, key);
@@ -32,10 +31,7 @@ export const defineFields = <TDefinition extends RecordCodec>(
   });
   const fields = Object.fromEntries(entries) as DefinedFields<TDefinition>;
 
-  if (
-    options.warnOnNameConflict !== false &&
-    process.env.NODE_ENV !== 'production'
-  ) {
+  if (process.env.NODE_ENV !== 'production') {
     checkFieldNameConflicts(fields);
   }
 
