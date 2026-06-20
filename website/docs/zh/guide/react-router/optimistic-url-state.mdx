@@ -68,6 +68,12 @@ Decurl 会把外部 location 视为新的事实来源，并丢弃不再适用的
 
 ## 默认 navigate 行为
 
-Search state 更新默认更适合 `replace`，因为输入和筛选器变化通常不应该制造大量 history entry。
+Search state 更新默认使用 `{ replace: true }`，因为输入和筛选器变化通常不应该制造大量 history entry。
 
-如果某次更新需要特殊导航选项，可以在 setter 里传入对应 options。具体 API 会在后续 reference 中细化。
+如果某次更新需要创建新的 history entry，可以在 setter 的第二个参数中覆盖默认值：
+
+```tsx
+setValues({ page: 2 }, { replace: false });
+```
+
+其他选项及默认值见 [Navigate options](/zh/api/react-router#navigate-options)。

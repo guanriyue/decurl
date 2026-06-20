@@ -6,6 +6,14 @@ description: 使用 @decurl/react-router 定义 Search Fields，并在 hooks 与
 
 Decurl 的核心使用方式是：先定义一组 Search Fields，再在 hooks 或 URLSearchParams codec 中复用同一份规则。
 
+## 安装
+
+```bash
+pnpm add @decurl/react-router
+```
+
+`@decurl/react-router` 支持 React 18 和 React 19，并要求使用 React Router 7。对于已有的 React Router 应用，只需要添加 Decurl 依赖。
+
 ## 定义字段
 
 ```ts

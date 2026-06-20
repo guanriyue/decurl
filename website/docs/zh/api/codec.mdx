@@ -14,7 +14,7 @@ import { createURLSearchParamsCodec, defineFields, field } from '@decurl/react-r
 
 ## field
 
-`field(definition)` 用于固化单个 FieldCodec 的类型。最简 codec 可以只是普通对象；但推荐使用 `field`，让 TypeScript 更稳定地保留 `defaultValue`、`multi`、`required` 等信息。
+`field(definition)` 用于固化单个 FieldCodec 的类型。最简 codec 可以只是普通对象；但推荐使用 `field`，让 TypeScript 更稳定地保留 `mode`、`defaultValue`、`decode` 和 `encode` 等信息。
 
 ```ts
 import { field } from '@decurl/react-router/codec';
@@ -31,13 +31,12 @@ const keyword = field({
 
 | 属性 | 必填 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `decode` | 是 | `(value) => TValue \| null \| undefined` | 从 URL 原始值解析业务值。 |
+| `decode` | 是 | `(value: string \| string[]) => TValue \| null \| undefined` | 从 URL 原始值解析业务值；实际输入由 `mode` 决定。 |
+| `mode` | 否 | `'single' \| 'multi'` | 默认是 `single`；`multi` 使用 `URLSearchParams.getAll(name)` 读取同名的多个值。 |
 | `name` | 否 | `string \| readonly string[]` | URL key。数组第一个值是 canonical key，后续值是 legacy alias。 |
-| `encode` | 否 | `(value: TValue) => string \| readonly string[] \| null \| undefined` | 自定义业务值如何写回 URL。 |
-| `defaultValue` | 否 | `TValue` | key 缺失、decode 失败、decode 返回空值时采用的默认值。 |
-| `multi` | 否 | `boolean` | 是否从 `URLSearchParams.getAll(name)` 读取多值。 |
-| `required` | 否 | `boolean` | 标记 field 是否必有业务值。通常由 `defaultValue` 推导。 |
-| `eq` | 否 | `(left: TValue, right: TValue) => boolean` | 判断前后值是否相等。 |
+| `encode` | 否 | `(value: NonNullable<TValue>) => string \| string[] \| null \| undefined` | 自定义业务值如何写回 URL；返回类型由 `mode` 决定。 |
+| `defaultValue` | 否 | `NonNullable<TValue>` | key 缺失、decode 失败、decode 返回空值时采用的默认值。 |
+| `eq` | 否 | `(left: NonNullable<TValue>, right: NonNullable<TValue>) => boolean` | 判断前后值是否相等。 |
 
 更多设计说明见 [FieldCodec 定义](/zh/guide/codec/field-codec)。
 
@@ -109,4 +108,3 @@ const nextSearch = codec.encode({ page: 3 }, { base: '?p=2&keyword=router' });
 | `RecordCodec` | Search Fields 的基础 record 类型。 |
 | `InferFieldValue<TCodec>` | 从单个 field codec 推导 value 类型。 |
 | `InferFieldValues<TFields>` | 从 Search Fields 推导 values object 类型。 |
-| `URLSearchParamsCodec<TFields>` | `createURLSearchParamsCodec` 的返回类型。 |

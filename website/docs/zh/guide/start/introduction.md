@@ -21,15 +21,17 @@ string | string[] | null -> typed value
 
 ## 包结构
 
-当前文档围绕两个包展开：
+当前文档围绕 `@decurl/react-router` 及其 conditional exports 展开：
 
 | 入口 | 职责 |
 | --- | --- |
-| `@decurl/react-router/configured` | 创建绑定 store 的 hooks、Provider 和 React Router runtime 接线 |
+| `@decurl/react-router` | 开箱即用的 React Router hooks |
 | `@decurl/react-router/codec` | FieldCodec、Search Fields、类型推导、URLSearchParams decode/encode |
 | `@decurl/react-router/decode` | decode pipeline 与基础解析工具 |
+| `@decurl/react-router/pagination` | page、pageSize 与分页联动行为 |
+| `@decurl/react-router/configured` | 创建绑定 store 的 hooks、Provider 和 React Router runtime 接线 |
 
-使用者只需要安装 `@decurl/react-router`。codec 和 decode 能力通过这个包的 conditional exports 暴露，和 React Router hooks 共享同一份 Search Fields。
+使用者只需要安装 `@decurl/react-router`。这些入口由同一个包提供，并共享同一套 Search Fields 规则。
 
 ## 设计取向
 
