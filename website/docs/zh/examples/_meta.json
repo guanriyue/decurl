@@ -15,9 +15,11 @@
     "label": "Query Form"
   },
   {
-    "type": "file",
+    "type": "dir",
     "name": "pagination",
-    "label": "Pagination"
+    "label": "Pagination",
+    "collapsible": true,
+    "collapsed": false
   },
   {
     "type": "file",

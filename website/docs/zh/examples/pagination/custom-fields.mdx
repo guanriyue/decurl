@@ -1,0 +1,19 @@
+---
+description: 使用 useSearchPagination 和自定义 SearchPaginationFields 管理分页状态。
+pageType: doc-wide
+outline: false
+---
+
+# Custom Fields
+
+这个示例向 `useSearchPagination(fields)` 传入自定义 Fields，使用 `p`、`size` 作为 URL key，并把 page size 限制为 `6`、`12`、`24`。
+
+自定义 Fields 场景应让 codec 和选择器消费同一份本地 `pageSizeOptions`。`useSearchPagination.pageSizeOptions` 只属于默认分页模型，不应在这里使用。
+
+```tsx file="./_demos/custom-fields.tsx" preview
+```
+
+## 相关文档
+
+- [分页状态：自定义 Fields](/zh/guide/react-router/pagination#自定义-fields)
+- [@decurl/react-router/pagination](/zh/api/pagination)

@@ -1,0 +1,17 @@
+[
+  {
+    "type": "file",
+    "name": "search-values",
+    "label": "Search Values"
+  },
+  {
+    "type": "file",
+    "name": "default-model",
+    "label": "Default Model"
+  },
+  {
+    "type": "file",
+    "name": "custom-fields",
+    "label": "Custom Fields"
+  }
+]
