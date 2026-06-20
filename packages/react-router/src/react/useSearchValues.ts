@@ -4,7 +4,8 @@ import type {
   RecordCodec,
 } from '@decurl/core/codec';
 import { decodeFields, encodeFields } from '@decurl/core/codec';
-import { useCallback, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
+import { useStableEvent } from '../_internal/useStableEvent';
 import type { SearchNavigateOptions } from '../runtime/types';
 import type { SearchStore } from '../store/types';
 import { useContextStore } from './SearchStateContext';
@@ -54,7 +55,7 @@ export const useSearchValuesStore = <TDefinition extends RecordCodec>(
     getValuesSnapshot,
     getValuesSnapshot,
   );
-  const setValues = useCallback<SetSearchValues<TDefinition>>(
+  const setValues = useStableEvent<SetSearchValues<TDefinition>>(
     (patch, options) => {
       store.addEntry({
         apply: (searchParams) => {
@@ -67,16 +68,13 @@ export const useSearchValuesStore = <TDefinition extends RecordCodec>(
           const previousValues = decodeFields(schema, searchParams);
           const nextPatch = patch(previousValues);
 
-          return encodeFields(
-            schema,
-            normalizeSearchPatch(schema, nextPatch),
-            { base: searchParams },
-          );
+          return encodeFields(schema, normalizeSearchPatch(schema, nextPatch), {
+            base: searchParams,
+          });
         },
         options,
       });
     },
-    [schema, store],
   );
 
   return [values, setValues];

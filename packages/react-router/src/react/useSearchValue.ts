@@ -8,13 +8,13 @@ import {
   encodeField,
   isFieldValueEqual,
 } from '@decurl/core/codec';
-import { useCallback, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
+import { useStableEvent } from '../_internal/useStableEvent';
 import type { SearchNavigateOptions } from '../runtime/types';
 import type { SearchStore } from '../store/types';
 import { useContextStore } from './SearchStateContext';
 import { useEqualityCheckedSelector } from './selector';
 import { useConfigureRuntime } from './useConfigureRuntime';
-
 
 export type SearchValuePatch<TCodec extends FieldCodec> =
   | InferFieldValue<TCodec>
@@ -66,27 +66,24 @@ export const useSearchValueStore = <TCodec extends NamedFieldCodec>(
     getValueSnapshot,
     getValueSnapshot,
   );
-  const setValue = useCallback<SetSearchValue<TCodec>>(
-    (patch, options) => {
-      store.addEntry({
-        apply: (searchParams) => {
-          if (typeof patch !== 'function') {
-            return encodeField(searchParams, codec, codec.name, patch);
-          }
+  const setValue = useStableEvent<SetSearchValue<TCodec>>((patch, options) => {
+    store.addEntry({
+      apply: (searchParams) => {
+        if (typeof patch !== 'function') {
+          return encodeField(searchParams, codec, codec.name, patch);
+        }
 
-          const previousValue = decodeField(searchParams, codec, codec.name);
-          const updater = patch as (
-            previousValue: InferFieldValue<TCodec>,
-          ) => InferFieldValue<TCodec> | null | undefined;
-          const nextValue = updater(previousValue);
+        const previousValue = decodeField(searchParams, codec, codec.name);
+        const updater = patch as (
+          previousValue: InferFieldValue<TCodec>,
+        ) => InferFieldValue<TCodec> | null | undefined;
+        const nextValue = updater(previousValue);
 
-          return encodeField(searchParams, codec, codec.name, nextValue);
-        },
-        options,
-      });
-    },
-    [codec, store],
-  );
+        return encodeField(searchParams, codec, codec.name, nextValue);
+      },
+      options,
+    });
+  });
 
   return [value, setValue];
 };
