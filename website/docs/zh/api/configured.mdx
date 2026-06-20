@@ -142,6 +142,23 @@ const PageButton = () => {
 
 setter 的 patch、`setValues(undefined)` 清除当前 Search Fields、`null` / `undefined` 删除字段、navigate options 等语义与 [@decurl/react-router](./react-router) 主入口一致。
 
+### 组合 Pagination
+
+Pagination 可以通过 `createUseSearchPagination` 绑定到当前 search store：
+
+```tsx
+import { createReactRouterSearch } from '@decurl/react-router/configured';
+import { createUseSearchPagination } from '@decurl/react-router/pagination';
+
+const search = createReactRouterSearch();
+
+const useSearchPagination = createUseSearchPagination({
+  useSearchValues: search.useSearchValues,
+});
+```
+
+`createReactRouterSearch` 的返回对象本身不包含 pagination hook。完整 API 见 [@decurl/react-router/pagination](./pagination#createusesearchpagination)。
+
 ## Options
 
 `createReactRouterSearch` 可接收 store options。
@@ -188,5 +205,6 @@ configured hooks 不直接依赖 React Router `useLocation`。在一些路由更
 ## Related
 
 - [@decurl/react-router](./react-router)
+- [@decurl/react-router/pagination](./pagination)
 - [@decurl/react-router/codec](./codec)
 - [绑定 Store](/zh/guide/react-router/configured-store)

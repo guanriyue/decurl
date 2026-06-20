@@ -1,0 +1,364 @@
+---
+description: '@decurl/react-router/pagination 的 API reference。'
+---
+
+# @decurl/react-router/pagination
+
+`@decurl/react-router/pagination` 提供基于 Search Fields 的分页状态 hook，用于读取和更新 `page`、`pageSize`，并处理分页场景中的常见联动行为。
+
+```tsx
+import { useSearchPagination } from '@decurl/react-router/pagination';
+```
+
+## useSearchPagination
+
+### 调用形式
+
+```ts
+useSearchPagination(): UseSearchPaginationResult
+useSearchPagination(options?): UseSearchPaginationResult
+useSearchPagination(fields, options?): UseSearchPaginationResult
+```
+
+| 调用 | 说明 |
+| --- | --- |
+| `useSearchPagination()` | 使用内置分页 Fields 和默认行为。 |
+| `useSearchPagination(options?)` | 使用内置分页 Fields，并配置分页行为。 |
+| `useSearchPagination(fields, options?)` | 使用自定义分页 Fields，可选配置分页行为。 |
+
+### 参数
+
+| 参数 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `fields` | `SearchPaginationFields` | 否 | 自定义 `page` 和 `pageSize` Fields。 |
+| `options` | `UseSearchPaginationOptions` | 否 | page size 变化时的分页行为。 |
+
+传入单个对象时，如果对象同时包含 `page` 和 `pageSize`，会被识别为 `SearchPaginationFields`；否则会被识别为 `UseSearchPaginationOptions`。
+
+### 默认模型
+
+不传入自定义 Fields 时，Hook 使用 `page` 和 `pageSize` 两个 URL search params：
+
+| Field | 默认值 | Decode 规则 |
+| --- | --- | --- |
+| `page` | `1` | trim 后必须是从 `1` 开始的十进制正安全整数。 |
+| `pageSize` | `10` | 必须满足相同的正整数规则，并包含在默认 page size options 中。 |
+
+`01`、`1.5`、`1e2`、负数和超过安全整数范围的值都会 decode 失败，并回退到对应的默认值。
+
+`useSearchPagination.fields` 暴露默认分页模型使用的 Fields：
+
+```ts
+useSearchPagination.fields
+// { page, pageSize }
+```
+
+当分页 Fields 还需要和筛选、排序等字段一起交给 `useSearchValues` 时，可以复用它们：
+
+```tsx
+const listFields = {
+  ...useSearchPagination.fields,
+  keyword: keywordField,
+  order: orderField,
+};
+```
+
+`useSearchPagination.pageSizeOptions` 是默认模型对应的每页条数选项：
+
+```ts
+useSearchPagination.pageSizeOptions
+// [10, 20, 50, 100]
+```
+
+它既参与默认 `pageSize` Field 的 decode，也可以用于渲染默认分页模型的 page size 选择器。
+
+### 自定义 Fields
+
+传入 `SearchPaginationFields` 可以自定义 URL key、默认值和 codec 规则：
+
+```tsx
+import { field } from '@decurl/react-router/codec';
+import {
+  elementOf,
+  min,
+  pipe,
+  shape,
+  toNumber,
+  trim,
+} from '@decurl/react-router/decode';
+import type { SearchPaginationFields } from '@decurl/react-router/pagination';
+import { useSearchPagination } from '@decurl/react-router/pagination';
+
+const pageSizeOptions = [25, 50, 100];
+
+const paginationFields = {
+  page: field({
+    name: 'p',
+    decode: pipe(trim, shape.integer, toNumber, min(1)),
+    defaultValue: 1,
+  }),
+  pageSize: field({
+    name: 'size',
+    decode: pipe(
+      trim,
+      shape.integer,
+      toNumber,
+      elementOf(pageSizeOptions),
+    ),
+    defaultValue: 25,
+  }),
+} satisfies SearchPaginationFields;
+
+const pagination = useSearchPagination(paginationFields);
+```
+
+自定义 Fields 每次 decode 后都必须满足 Pagination 的算法不变量：
+
+- `page` 是从 `1` 开始的正安全整数，默认值应为 `1`。
+- `pageSize` 是大于 `0` 的正安全整数，并提供确定的合法默认值。
+- 固定 page size 必须大于 `0`。
+- 不支持 0-based page。
+
+这些约束由 FieldCodec 保证。Pagination setter 不会建立独立于 codec 的输入校验规则。
+
+自定义 Fields 不会消费 `useSearchPagination.pageSizeOptions`，也不会从 codec 反推出 page size 选项。页面需要渲染选择器时，应使用与自定义 codec 对应的静态数据，例如上面的 `pageSizeOptions`。
+
+### Options
+
+`pageSizeChangeStrategy` 决定调用 `setPageSize` 时如何同步更新页码：
+
+| 值 | 默认值 | 说明 |
+| --- | --- | --- |
+| `'reset'` | 是 | 把 `page` 设置为 `1`。 |
+| `'preserve-offset'` | 否 | 尽量让原页第一条数据仍处于新的页码范围内。 |
+
+```tsx
+const pagination = useSearchPagination({
+  pageSizeChangeStrategy: 'preserve-offset',
+});
+```
+
+`preserve-offset` 使用下面的计算方式：
+
+```ts
+Math.floor(((page - 1) * pageSize) / nextPageSize) + 1
+```
+
+其中 `nextPageSize` 是传给 `setPageSize` 的原始值。计算完成后，`page` 和 `pageSize` patch 仍分别交给对应的 FieldCodec。
+
+### 返回值
+
+```ts
+type UseSearchPaginationResult = {
+  page: number
+  pageSize: number
+  setPage: (page: number, options?: SearchNavigateOptions) => void
+  resetPage: () => void
+  setPageSize: (
+    pageSize: number,
+    options?: SearchNavigateOptions,
+  ) => void
+  setPagination: (
+    patch: {
+      page?: number | null | undefined
+      pageSize?: number | null | undefined
+    },
+    options?: SearchNavigateOptions,
+  ) => void
+  preventOverflow: (
+    totalSource:
+      | number
+      | null
+      | undefined
+      | { total?: number | null | undefined },
+  ) => void
+}
+```
+
+#### 分页状态
+
+| 返回值 | 类型 | 说明 |
+| --- | --- | --- |
+| `page` | `number` | 当前 decode 后的页码。 |
+| `pageSize` | `number` | 当前 decode 后的每页条数。 |
+
+#### 状态更新
+
+| 方法 | 签名 | 说明 |
+| --- | --- | --- |
+| `setPage` | `(page, options?) => void` | 提交新的语义页码。 |
+| `resetPage` | `() => void` | 提交 `page: 1`。 |
+| `setPageSize` | `(pageSize, options?) => void` | 提交每页条数，并根据策略同步提交页码。 |
+| `setPagination` | `(patch, options?) => void` | 一次提交 `page` 和 / 或 `pageSize` patch。 |
+
+`setPage` 提交的值最终如何 encode、是否从 URL 中省略，以及重新 decode 后得到什么结果，均由 `page` FieldCodec 决定。
+
+`resetPage` 始终提交 `page: 1`，不接收 Navigate Options。最终 URL 表示仍由 `page` FieldCodec 决定。
+
+`setPageSize` 会按照 `pageSizeChangeStrategy` 同时计算 page patch。当传入值与当前 decode 后的 `pageSize` 相同时，不提交更新。
+
+`setPagination` 本质上是分页 Fields 对应的 `setSearchValues`，只是使用了更符合分页语义的名称。它保留相同的 patch 编码行为，但公开类型只接受直接 patch，不提供 updater：
+
+```tsx
+pagination.setPagination({
+  page: 3,
+  pageSize: 20,
+});
+```
+
+`setPagination` 不应用 `pageSizeChangeStrategy`。同时提供两个字段时，它们会按原值分别交给对应的 FieldCodec；如果需要 page size 联动，应使用 `setPageSize`。
+
+省略属性表示对应 Field 不参与本次 patch。显式传入 `null` 或 `undefined` 则会把这个值交给 FieldCodec，通常用于删除对应的 URL key：
+
+```tsx
+pagination.setPagination({});
+pagination.setPagination({ page: undefined });
+```
+
+`setPage`、`setPageSize` 和 `setPagination` 的 Navigate Options 与 `setSearchValues` 完全相同：
+
+#### 越界恢复
+
+`preventOverflow(totalSource)` 根据当前 decode 后的 `pageSize` 计算最大页码，并在当前 `page` 更大时提交最大页码：
+
+```ts
+const maxPage = Math.max(1, Math.ceil(total / pageSize));
+```
+
+可以传入数字，也可以直接传入包含 `total` 的接口结果：
+
+```tsx
+pagination.preventOverflow(result.total);
+pagination.preventOverflow(result);
+```
+
+合法的 `total` 必须是大于或等于 `0` 的安全整数。`null`、`undefined`、负数、小数、`NaN`、`Infinity` 及对象中的非法 `total` 都表示没有可用边界，不会提交修正。`total=0` 时最大页码仍为 `1`。
+
+`preventOverflow` 不判断数据来源是否可信。调用方应确认 `total` 属于当前查询条件，并且请求结果已经可以被当前页面接受后再调用。
+
+它是一次性的恢复操作，不是持续维护分页不变量的 guard。它不保证在请求库复用缓存或 dedupe 后再次执行，也不替代分页组件对上一页、下一页和页码输入的边界限制。
+
+请求缓存、旧数据与修正时机之间的取舍见 [理解分页越界](/zh/guide/react-router/pagination-overflow)。
+
+#### 引用稳定性
+
+`setPage`、`resetPage`、`setPageSize`、`setPagination` 和 `preventOverflow` 会在组件重新渲染后保持稳定引用。
+
+## createUseSearchPagination
+
+```ts
+createUseSearchPagination(options: {
+  useSearchValues: <TDefinition extends RecordCodec>(
+    fields: TDefinition,
+  ) => UseSearchValuesResult<TDefinition>
+}): UseSearchPagination
+```
+
+`createUseSearchPagination` 使用指定的 `useSearchValues` 创建分页 hook。
+
+它可以把 Pagination 与 configured search store 显式组合：
+
+```tsx
+import { createReactRouterSearch } from '@decurl/react-router/configured';
+import { createUseSearchPagination } from '@decurl/react-router/pagination';
+
+const search = createReactRouterSearch();
+
+const useSearchPagination = createUseSearchPagination({
+  useSearchValues: search.useSearchValues,
+});
+```
+
+返回值是 `UseSearchPagination`。它具有与默认 hook 相同的调用形式、返回值以及 `fields`、`pageSizeOptions` 静态属性。
+
+## Types
+
+### SearchPaginationFields
+
+```ts
+type SearchPaginationFields = {
+  page: SingleRequiredFieldCodec<number>
+  pageSize: SingleRequiredFieldCodec<number>
+}
+```
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `page` | `SingleRequiredFieldCodec<number>` | Decode 后提供确定的数字页码。Pagination 要求它是从 `1` 开始的正安全整数。 |
+| `pageSize` | `SingleRequiredFieldCodec<number>` | Decode 后提供确定的每页条数。Pagination 要求它是大于 `0` 的正安全整数。 |
+
+### SearchPaginationPageSizeChangeStrategy
+
+```ts
+type SearchPaginationPageSizeChangeStrategy =
+  | 'reset'
+  | 'preserve-offset'
+```
+
+| 值 | 说明 |
+| --- | --- |
+| `'reset'` | page size 变化时把页码重置为 `1`。 |
+| `'preserve-offset'` | 根据当前 page、pageSize 和新的 pageSize 重新计算页码。 |
+
+### UseSearchPaginationOptions
+
+```ts
+type UseSearchPaginationOptions = {
+  pageSizeChangeStrategy?: SearchPaginationPageSizeChangeStrategy
+}
+```
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+| --- | --- | --- | --- | --- |
+| `pageSizeChangeStrategy` | `SearchPaginationPageSizeChangeStrategy` | 否 | `'reset'` | `setPageSize` 如何同步更新页码。 |
+
+### UseSearchPaginationResult
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `page` | `number` | 当前 decode 后的页码。 |
+| `pageSize` | `number` | 当前 decode 后的每页条数。 |
+| `setPage` | `(page: number, options?: SearchNavigateOptions) => void` | 提交新的页码。 |
+| `resetPage` | `() => void` | 提交 `page: 1`。 |
+| `setPageSize` | `(pageSize: number, options?: SearchNavigateOptions) => void` | 提交 page size 并应用页码联动策略。 |
+| `setPagination` | `(patch, options?: SearchNavigateOptions) => void` | 提交直接分页 patch，不提供 updater。 |
+| `preventOverflow` | `(totalSource) => void` | 根据可信 total 执行一次越界恢复。 |
+
+其中 `setPagination` 的 patch 为：
+
+```ts
+{
+  page?: number | null | undefined
+  pageSize?: number | null | undefined
+}
+```
+
+`preventOverflow` 的 `totalSource` 为：
+
+```ts
+number
+  | null
+  | undefined
+  | { total?: number | null | undefined }
+```
+
+### UseSearchPagination
+
+```ts
+type UseSearchPagination = {
+  (): UseSearchPaginationResult
+  (options?: UseSearchPaginationOptions): UseSearchPaginationResult
+  (
+    fields: SearchPaginationFields,
+    options?: UseSearchPaginationOptions,
+  ): UseSearchPaginationResult
+  fields: SearchPaginationFields
+  pageSizeOptions: readonly number[]
+}
+```
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| 调用签名 | overload | 使用默认或自定义 Fields 创建分页状态。 |
+| `fields` | `SearchPaginationFields` | 默认分页模型使用的 Fields。 |
+| `pageSizeOptions` | `readonly number[]` | 默认分页模型使用的 page size 选项。 |

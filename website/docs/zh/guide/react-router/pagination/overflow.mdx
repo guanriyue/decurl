@@ -1,0 +1,164 @@
+---
+description: 分页越界恢复是一种用户体验优化；了解可信 total，以及请求缓存可能造成的漏修正和错误修正。
+---
+
+# 理解分页越界
+
+[返回分页状态](.) · [查看 Pagination API](/zh/api/pagination)
+
+:::info 职责边界
+分页越界恢复是一种可选的用户体验优化，用于避免用户停留在已经没有数据的页码。它不是 URL 状态正确性的必要条件。相关协调属于应用的数据请求与缓存层；Decurl 不管理请求生命周期、缓存新鲜度或结果可信性，`preventOverflow` 只负责在应用提供可信 `total` 后执行一次显式修正。
+:::
+
+## 什么是分页越界
+
+当当前页码大于最大页码时，页面处于越界状态：
+
+```ts
+const pageCount = Math.max(1, Math.ceil(total / pageSize));
+const isOverflow = page > pageCount;
+```
+
+分页请求通常在响应返回后才能获得 `total`，因此应用在请求前不一定知道当前 `page` 是否有效。越界状态常见于：
+
+- 用户手动修改 URL。
+- 浏览器历史记录或共享链接对应的数据已经变化。
+- 其他用户删除数据，导致总页数下降。
+- 不持有 `total` 的组件直接执行 `page + 1`。
+- 其他组件修改服务端数据，但当前组件的缓存尚未同步。
+
+## UI 限制与请求后恢复
+
+已知 `pageCount` 的 Pagination UI 应在派发状态变化前限制目标页码：
+
+```ts
+const nextPage = Math.min(Math.max(inputPage, 1), pageCount);
+
+pagination.setPage(nextPage);
+```
+
+UI 还应在第一页禁用 previous、在最后一页禁用 next，并限制页码输入范围。这些是普通交互的边界控制，不应交给 `preventOverflow` 延后处理。
+
+但是，UI 只能使用当前客户端已经知道的边界。当服务端数据或其他客户端发生变化时，原本合法的交互仍可能进入越界页。请求后的恢复用于处理这些无法提前确认的情况：
+
+```tsx
+pagination.preventOverflow(result.total);
+```
+
+## 两种失败方向
+
+应用决定何时使用 `total` 修正 URL 时，需要避免两种错误：
+
+- **漏修正（false negative）**：可信 `total` 已经存在，但修正逻辑没有执行，页面暂时停留在越界页。
+- **错误修正（false positive）**：不可信 `total` 被用于修正，应用把原本合法的页码改小。
+
+错误修正会主动改变 URL，并可能触发新的请求。即使稍后收到新数据，也无法自动撤销已经发生的导航副作用。因此，默认应优先避免错误修正。
+
+## 场景总览
+
+| 场景 | 当前边界是否可信 | 推荐处理 |
+| --- | --- | --- |
+| 用户通过正常 Pagination UI 翻页 | 是 | UI 在调用 `setPage` 前 clamp。 |
+| 用户手动输入很大的 page | 请求前未知 | 请求成功后使用当前结果恢复。 |
+| 历史链接对应的数据已被删除 | 请求前未知 | 请求成功后使用新的 `total` 恢复。 |
+| 其他用户删除数据 | 旧边界已经失效 | 重新请求后使用新的 `total` 恢复。 |
+| 无 `total` 的组件执行 `page + 1` | 未知 | 优先让组件获得边界；请求后恢复作为补充。 |
+| SWR dedupe 复用相同请求 | 结果可能可信，但回调未执行 | 接受可能漏修正，或由应用主动重新验证。 |
+| `keepPreviousData` 或 placeholder data | 通常属于上一个查询 | 可以用于渲染，不应默认触发 URL 修正。 |
+| stale cache 中的 `total` 偏小 | 已经过期 | 直接修正可能错误缩小合法页码。 |
+| fresh cache 没有重新请求 | 是否可信取决于应用策略 | 由应用决定是否信任缓存。 |
+| 服务端变化但客户端没有请求 | 没有新边界 | 任何客户端修正逻辑都无法发现变化。 |
+
+## 有效恢复：多人删除
+
+多人操作说明了为什么严格的 UI clamp 仍不能覆盖所有越界状态：
+
+```text
+pageSize=10，total=101，pageCount=11
+→ A 用户位于第 10 页
+→ B 用户删除 1 条数据，服务端 total 变为 100
+→ A 仍根据旧 pageCount 点击 next，进入第 11 页
+→ 第 11 页请求返回 rows=[]、total=100
+→ preventOverflow(100)
+→ page 修正为 10
+```
+
+A 的 Pagination UI 没有违反边界规则，只是它持有的 `pageCount` 已经过期。新的请求结果提供了当前边界，此时调用 `preventOverflow` 是明确且可预测的恢复操作。
+
+如果客户端没有重新请求，就不会获得新的 `total`。窗口重新聚焦、轮询、mutation 后重新验证或业务事件刷新，仍然是发现外部变化的前提。
+
+## 漏修正：SWR Dedupe
+
+一次成功回调不能保证同一个分页状态以后每次都得到修正：
+
+```text
+page=999
+→ 请求成功并修正到最大页码
+→ 短时间内再次设置 page=999
+→ SWR dedupe 复用已有请求结果
+→ onSuccess 没有再次触发
+→ 无效页码没有得到修正
+```
+
+这里的数据结果可能仍然可用，但应用放置 `preventOverflow` 的成功回调没有再次执行。这是一次漏修正，不代表 `preventOverflow` 计算错误；它说明显式调用只能完成当次恢复，无法持续维护分页不变量。
+
+应用可以根据业务需要主动重新验证数据，但 Decurl 不替请求库决定何时绕过 dedupe、重新请求或信任缓存。
+
+## 错误修正：Stale Cache
+
+简单监听任何可用 `data` 并自动修正，也可能产生方向相反的问题：
+
+```text
+缓存保存 page=20 对应的 total=100
+→ 之后服务端新增数据，total 变为 200
+→ page=20 现在已经合法
+→ 用户再次进入 page=20
+→ 请求库先返回缓存中的 total=100
+→ 应用根据旧 total 计算 pageCount=10
+→ page 被错误地从 20 修正为 10
+```
+
+这里的 cache key 即使与 `page=20` 匹配，也只能证明这份数据曾属于该查询，不能证明它仍然符合服务端现状。
+
+旧 `total` 偏大时，应用可能漏掉本应发生的修正；旧 `total` 偏小时，应用可能把合法页码错误地改小。后者会立即改变 URL 和后续请求，因此风险更高。
+
+## 数据可以渲染，不代表可以导航
+
+请求库经常为了减少界面闪烁而提供旧数据或预置数据。它们可以改善渲染体验，但不一定适合触发修改 URL 的副作用。
+
+| 数据来源 | 是否可以渲染 | 是否默认用于修正 URL |
+| --- | --- | --- |
+| 当前请求刚成功返回的结果 | 是 | 是，调用方仍应确认 query 条件匹配。 |
+| SWR `keepPreviousData` | 是 | 否，它可能属于上一个 key。 |
+| fallback / fallbackData | 是 | 否，除非应用明确保证它的来源和新鲜度。 |
+| React Query placeholder data | 是 | 否。 |
+| SSR hydration / initial data | 是 | 由应用的数据策略决定。 |
+| fresh cache | 是 | 由应用的数据策略决定。 |
+| 已知 stale 的 cache | 可以暂时渲染 | 不应直接用于修正。 |
+
+SWR 的 `data`、`error`、`isLoading` 和 `isValidating` 无法完整描述数据来源。React Query 提供 `isFetchedAfterMount`、`isPlaceholderData` 等更细状态，但 `staleTime`、`refetchOnMount`、`enabled`、hydration 和 initial data 仍会影响它们的语义。
+
+不存在对所有缓存策略都正确的通用判断。应用需要根据自己的请求配置决定：哪些结果只用于渲染，哪些结果足以触发 URL 修正。
+
+## 应用层的职责
+
+应用应负责：
+
+- 让 Pagination UI 限制普通用户交互产生的目标页码。
+- 确保 query key 包含会影响数据和 `total` 的筛选、排序及分页条件。
+- 判断响应、缓存或预置数据是否属于当前查询并且足够可信。
+- 决定重新验证、轮询、聚焦刷新和 mutation 后刷新的策略。
+- 只在获得可信 `total` 后调用 `preventOverflow`。
+
+Decurl 负责：
+
+- 根据当前 `pageSize` 和合法 `total` 计算最大页码。
+- 仅在当前 `page` 超过最大页时提交修正。
+- 对缺失或非法 `total` 不执行任何修正。
+
+`preventOverflow` 不提供通用的缓存新鲜度判断，不保证 dedupe 场景一定执行，也不替代应用的数据请求与 Pagination UI。
+
+## 相关文档
+
+- [分页状态](.)
+- [@decurl/react-router/pagination](/zh/api/pagination)

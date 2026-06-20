@@ -1,0 +1,386 @@
+---
+description: 使用 useSearchPagination 管理 URL 中的 page、pageSize 和越界恢复。
+---
+
+# 分页状态
+
+分页通常由 `page` 和 `pageSize` 两个 search params 共同描述。`useSearchPagination` 在 Search Fields 之上提供这组状态及其联动行为：
+
+```tsx
+import { useSearchPagination } from '@decurl/react-router/pagination';
+
+const PaginationBar = () => {
+  const pagination = useSearchPagination();
+
+  return null;
+};
+```
+
+## 职责范围
+
+`useSearchPagination` 负责：
+
+- 从 URL search params 读取 `page` 和 `pageSize`。
+- 更新、重置或同时提交分页状态。
+- 在 page size 变化时重置页码或保持当前 item offset。
+- 在获得可信 `total` 后执行一次越界页恢复。
+
+数据请求、缓存、Pagination UI、筛选与排序仍然属于对应的业务模块。Hook 也不会替页面判断一个请求结果是否足够可信，可以用于修改 URL。
+
+## 默认模型
+
+不传入参数时，Hook 使用默认分页模型：
+
+```tsx
+const PaginationBar = () => {
+  const {
+    page,
+    pageSize,
+    setPage,
+    resetPage,
+    setPageSize,
+    setPagination,
+    preventOverflow,
+  } = useSearchPagination();
+
+  return null;
+};
+```
+
+默认 `page` 为 `1`，默认 `pageSize` 为 `10`。可用的 page size 选项是：
+
+```ts
+useSearchPagination.pageSizeOptions
+// [10, 20, 50, 100]
+```
+
+默认 codec 只接受严格的十进制正整数，并要求 `pageSize` 属于这些选项。URL 中的 `page=01`、`page=1.5` 或 `pageSize=30` 都会 decode 失败并回退到默认值。
+
+页面可以直接使用静态选项渲染选择器：
+
+```tsx
+<PageSizeSelect
+  value={pageSize}
+  options={useSearchPagination.pageSizeOptions}
+  onChange={setPageSize}
+/>
+```
+
+## 更新分页状态
+
+### 页码
+
+分页组件应根据当前已知的 `pageCount` 限制交互范围，再把合法页码交给 `setPage`：
+
+```tsx
+const updatePage = (nextPage: number) => {
+  const page = Math.min(Math.max(nextPage, 1), pageCount);
+  pagination.setPage(page);
+};
+```
+
+第一页应禁用 previous，最后一页应禁用 next。正常 UI 交互的边界控制不需要等到请求完成后再处理。
+
+### 筛选条件变化
+
+筛选、搜索或排序发生变化后，通常需要回到第一页：
+
+```tsx
+const updateKeyword = (keyword: string) => {
+  setFilters({ keyword });
+  pagination.resetPage();
+};
+```
+
+`resetPage()` 提交语义值 `1`。默认 codec 会省略等于默认值的 URL key，因此最终 URL 中不一定保留 `page=1`。
+
+### Page Size
+
+`setPageSize` 默认同时把页码重置为 `1`：
+
+```tsx
+pagination.setPageSize(20);
+```
+
+如果产品希望尽量保持当前数据位置，可以使用 `preserve-offset`：
+
+```tsx
+const PaginationBar = () => {
+  const pagination = useSearchPagination({
+    pageSizeChangeStrategy: 'preserve-offset',
+  });
+
+  return null;
+};
+```
+
+例如当前为 `page=3&pageSize=10`，第三页第一条数据的 offset 为 `20`。切换到 `pageSize=20` 后，新的页码为 `2`。
+
+### 同时更新
+
+需要恢复一组分页状态时，可以直接提交 patch：
+
+```tsx
+pagination.setPagination({
+  page: 3,
+  pageSize: 20,
+});
+```
+
+`setPagination` 是分页 Fields 对应的 `setSearchValues`，只是使用了分页语义名称。它不会应用 `pageSizeChangeStrategy`，也不提供 updater；两个值会分别交给对应的 FieldCodec。
+
+## 自定义 Fields
+
+如果页面需要不同的 URL key、默认 page size 或 page size 选项，应显式定义自己的 Fields：
+
+```tsx
+import { field } from '@decurl/react-router/codec';
+import {
+  elementOf,
+  min,
+  pipe,
+  shape,
+  toNumber,
+  trim,
+} from '@decurl/react-router/decode';
+import type { SearchPaginationFields } from '@decurl/react-router/pagination';
+import { useSearchPagination } from '@decurl/react-router/pagination';
+
+const pageSizeOptions = [25, 50, 100];
+
+const tablePaginationFields = {
+  page: field({
+    name: 'p',
+    decode: pipe(trim, shape.integer, toNumber, min(1)),
+    defaultValue: 1,
+  }),
+  pageSize: field({
+    name: 'size',
+    decode: pipe(
+      trim,
+      shape.integer,
+      toNumber,
+      elementOf(pageSizeOptions),
+    ),
+    defaultValue: 25,
+  }),
+} satisfies SearchPaginationFields;
+
+const PaginationBar = () => {
+  const pagination = useSearchPagination(tablePaginationFields);
+
+  return null;
+};
+```
+
+此时 page size 选择器必须使用页面自己的 `pageSizeOptions`。`useSearchPagination.pageSizeOptions` 只描述默认模型，不参与自定义 `pageSize` Field 的 decode。
+
+### 为什么 Pagination 可以复用 Fields
+
+Search Fields 通常应该针对具体页面静态定义，避免为了复用 codec 而隐藏 URL 参数规则。Pagination 是一个相对特殊的领域：大多数分页页面都使用相同的 `page`、`pageSize` 结构，页码从 `1` 开始，相关数学规则也相对稳定，因此默认 Fields 具有明确的复用前提。
+
+如果某个页面的默认 page、默认 page size、可选 page size、URL key 或 decode 规则不同，就不再满足这个前提。此时应定义并传入页面自己的 Fields，而不是继续复用默认模型。
+
+## 越界页恢复
+
+### 请求后的数据流
+
+同步 decode 可以判断 `page` 是否为合法正整数，却无法知道它是否超过最大页。最大页依赖 `total`，而 `total` 通常来自异步请求。
+
+理想状态下，可以先请求 total，修正页码后再请求当前页数据：
+
+```txt
+decode page -> request total -> validate and fix page -> request data
+```
+
+这种流程可以避免请求一个已经越界的页码，但需要为了页码校验单独请求一次 total。
+
+真实接口通常同时返回当前页数据和总数，因此常见数据流是：
+
+```txt
+decode page -> request data + total -> validate page -> maybe fix -> maybe request again
+```
+
+页码溢出不是正常分页控件频繁产生的状态，更多来自手动修改 URL、历史链接、共享链接中的数据已经变化，或者其他用户删除了数据。通常没有必要为了预先校验页码单独请求一次 total。
+
+### UI 限制与恢复措施
+
+已知 `pageCount` 的分页组件应该先限制普通交互。`preventOverflow` 处理的是请求前无法完整确认的剩余情况：
+
+```tsx
+pagination.preventOverflow(result.total);
+```
+
+它根据当前 `pageSize` 计算最大页，并只在当前页码更大时修正 URL。修正后的分页状态可能触发下一次数据请求。
+
+`preventOverflow` 是一次性的恢复操作，不是持续维护分页不变量的 guard。它不会自行判断数据是否来自当前查询，也不能保证请求库复用缓存时再次执行。
+
+这些限制来自应用的数据请求与缓存协调，而不是 URL 状态本身。完整案例见 [理解分页越界](./overflow)。
+
+### 为什么只接收 Total
+
+`preventOverflow(total)` 不要求再次传入 `page` 和 `pageSize`，因为它们已经由当前 pagination hook 持有。重复传入会形成两份分页状态；异步响应返回时，如果参数和当前 URL 已经不同，就很难判断应该修正请求发起时的页码，还是当前页码。
+
+`page` 和 `pageSize` 是前端可以控制的输入。正整数、page size 选项等自身合法性应由 FieldCodec 保证；已知 `pageCount` 时，Pagination UI 也应该在调用 setter 前限制目标页码，而不是依赖 effect 事后修正。
+
+`total` 则通常来自异步请求，是 pagination hook 缺少的外部边界。只有 `page > Math.ceil(total / pageSize)` 这种关系合法性无法在请求前完整判断，因此 `preventOverflow` 只接收可信 `total`，并把请求后的恢复限制在这一件事上。
+
+### 可信的 Total
+
+只有确认结果属于当前筛选条件和分页请求后，才应调用 `preventOverflow`。使用不匹配的 previous data 或过期缓存修正 URL，可能把原本合法的页码错误地改小。
+
+这里需要在两种风险之间取舍：
+
+- 没有使用已经可信的 total，可能暂时漏掉一次修正。
+- 使用不可信的 total，会主动修改 URL 并触发后续请求。
+
+后者更难恢复，所以默认应优先避免错误修正。
+
+### SWR
+
+SWR 可以在实际请求成功后执行恢复：
+
+下面的 `<Table />` 代表项目已有的受控表格组件。它负责消费请求状态和数据，并把分页交互交还给 pagination hook。
+
+```tsx
+import useSWR from 'swr';
+import { useSearchPagination } from '@decurl/react-router/pagination';
+
+const UserTable = () => {
+  const pagination = useSearchPagination();
+
+  const {
+    data: result,
+    error,
+    isLoading,
+    isValidating,
+    mutate,
+  } = useSWR(
+    ['users', pagination.page, pagination.pageSize],
+    () => {
+      return fetchUsers({
+        page: pagination.page,
+        pageSize: pagination.pageSize,
+      });
+    },
+    {
+      onSuccess: (result) => {
+        pagination.preventOverflow(result.total);
+      },
+    },
+  );
+
+  return (
+    <Table
+      columns={columns}
+      data={result?.rows ?? []}
+      loading={isLoading || isValidating}
+      error={error}
+      refetch={mutate}
+      pagination={{
+        page: pagination.page,
+        pageSize: pagination.pageSize,
+        total: result?.total,
+        onPageChange: pagination.setPage,
+        onPageSizeChange: pagination.setPageSize,
+      }}
+    />
+  );
+};
+```
+
+这个方案只处理实际触发的成功回调。短时间内再次进入相同分页 key 时，SWR dedupe 可能复用已有结果而不再次触发 `onSuccess`，因此可能漏掉一次修正。
+
+直接监听 `data` 也不必然更安全。`keepPreviousData`、fallback 或旧 cache 可能让 `data` 暂时不属于当前查询；如果立即使用其中的 total，反而可能错误修改 URL。
+
+SWR dedupe 和 stale cache 可能分别造成漏修正与错误修正，见 [理解分页越界](./overflow)。
+
+### React Query
+
+React Query 可以结合 observer 状态，保守地选择调用时机：
+
+```tsx
+import { useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useSearchPagination } from '@decurl/react-router/pagination';
+
+const UserTable = () => {
+  const pagination = useSearchPagination();
+
+  const query = useQuery({
+    queryKey: ['users', pagination.page, pagination.pageSize],
+    queryFn: () => {
+      return fetchUsers({
+        page: pagination.page,
+        pageSize: pagination.pageSize,
+      });
+    },
+  });
+
+  const total = query.data?.total;
+  const canCorrectPage =
+    query.isSuccess &&
+    query.isFetchedAfterMount &&
+    !query.isFetching &&
+    !query.isPlaceholderData &&
+    total !== undefined;
+
+  useEffect(() => {
+    if (!canCorrectPage || total === undefined) {
+      return;
+    }
+
+    pagination.preventOverflow(total);
+  }, [canCorrectPage, total, pagination.preventOverflow]);
+
+  return (
+    <Table
+      columns={columns}
+      data={query.data?.rows ?? []}
+      loading={query.isPending || query.isFetching}
+      error={query.error}
+      refetch={query.refetch}
+      pagination={{
+        page: pagination.page,
+        pageSize: pagination.pageSize,
+        total: query.data?.total,
+        onPageChange: pagination.setPage,
+        onPageSizeChange: pagination.setPageSize,
+      }}
+    />
+  );
+};
+```
+
+这些条件拒绝 placeholder data 和挂载前缓存，但也意味着 fresh cache 没有在挂载后重新请求时不会参与修正。是否信任预加载、SSR hydration、`initialData` 或 fresh cache，仍应由应用根据自己的数据策略决定。
+
+不同缓存来源如何影响 URL 修正，见 [理解分页越界](./overflow)。
+
+## 绑定 Store
+
+使用 configured search store 时，可以显式创建绑定的 pagination hook：
+
+```tsx
+import { createReactRouterSearch } from '@decurl/react-router/configured';
+import { createUseSearchPagination } from '@decurl/react-router/pagination';
+
+const search = createReactRouterSearch();
+
+const useSearchPagination = createUseSearchPagination({
+  useSearchValues: search.useSearchValues,
+});
+
+const PaginationBar = () => {
+  const pagination = useSearchPagination();
+
+  return null;
+};
+```
+
+这让 pagination hook 和 `search.useSearchValue`、`search.useSearchValues` 消费同一份 store。完整接线方式见 [绑定 Store](../configured-store)。
+
+## 相关 API
+
+- [@decurl/react-router/pagination](/zh/api/pagination)
+- [@decurl/react-router](/zh/api/react-router)
+- [@decurl/react-router/configured](/zh/api/configured)

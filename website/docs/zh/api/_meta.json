@@ -21,6 +21,11 @@
   },
   {
     "type": "file",
+    "name": "pagination",
+    "label": "@decurl/react-router/pagination"
+  },
+  {
+    "type": "file",
     "name": "configured",
     "label": "@decurl/react-router/configured"
   }

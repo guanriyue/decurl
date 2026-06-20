@@ -1,6 +1,6 @@
 ---
 title: API 概览
-description: Decurl API 以 @decurl/react-router 为主入口，并通过 conditional exports 暴露 codec、decode 和 configured hooks。
+description: Decurl API 以 @decurl/react-router 为主入口，并通过 conditional exports 暴露 codec、decode、pagination 和 configured API。
 overview: true
 ---
 
@@ -8,7 +8,7 @@ overview: true
 
 Decurl 面向应用开发者的 API 以 `@decurl/react-router` 为主入口。
 
-除了默认入口，`@decurl/react-router` 还通过 conditional exports 暴露 `configured`、`codec` 和 `decode` 子入口。
+除了默认入口，`@decurl/react-router` 还通过 conditional exports 暴露 `configured`、`codec`、`decode` 和 `pagination` 子入口。
 
 ## 入口
 
@@ -18,6 +18,7 @@ Decurl 面向应用开发者的 API 以 `@decurl/react-router` 为主入口。
 | `@decurl/react-router` | `@decurl/react-router/configured` | 创建绑定 store 的 hooks 与 Provider |
 | `@decurl/react-router` | `@decurl/react-router/codec` | FieldCodec、Search Fields、URLSearchParams codec |
 | `@decurl/react-router` | `@decurl/react-router/decode` | decode primitive 与组合工具 |
+| `@decurl/react-router` | `@decurl/react-router/pagination` | page、pageSize 与分页联动行为 |
 
 ## 推荐阅读顺序
 
@@ -32,4 +33,5 @@ Decurl 面向应用开发者的 API 以 `@decurl/react-router` 为主入口。
 - [@decurl/react-router/codec](./codec)
 - [@decurl/react-router/decode](./decode)
 - [@decurl/react-router](./react-router)
+- [@decurl/react-router/pagination](./pagination)
 - [@decurl/react-router/configured](./configured)

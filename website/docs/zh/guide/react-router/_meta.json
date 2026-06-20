@@ -10,6 +10,21 @@
     "label": "绑定 Store"
   },
   {
+    "type": "custom-link",
+    "label": "分页状态",
+    "link": "/guide/react-router/pagination",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "理解分页越界",
+        "link": "/guide/react-router/pagination/overflow",
+        "tag": "用户体验"
+      }
+    ]
+  },
+  {
     "type": "file",
     "name": "optimistic-url-state",
     "label": "乐观 URL 状态"
