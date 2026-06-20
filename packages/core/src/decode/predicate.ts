@@ -8,13 +8,17 @@ type EnumDefinition = Record<string, string | number>;
 
 type EnumValue<TDefinition extends EnumDefinition> = TDefinition[keyof TDefinition];
 
+type WhereDecode<TValue> = <TInput extends TValue>(
+  input: TInput,
+) => TInput | undefined;
+
 export function where<TValue, TOutput extends TValue>(
   predicate: (value: TValue) => value is TOutput,
 ): Decode<TValue, TOutput>;
 
 export function where<TValue>(
   predicate: (value: TValue) => boolean,
-): Decode<TValue, TValue>;
+): WhereDecode<TValue>;
 
 export function where<TValue>(
   predicate: (value: TValue) => boolean,
