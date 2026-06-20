@@ -1,5 +1,5 @@
 ---
-description: Decurl 围绕 URLSearchParams 的解析与序列化，明确 decode 失败、同步执行和职责范围。
+description: Decurl 围绕 URLSearchParams 的解析与序列化，明确字段、decode 失败、同步执行和职责范围。
 ---
 
 # 设计边界
@@ -23,6 +23,49 @@ Decurl 针对 URL search params 做的是同一类事情：
 - `encode`：把业务值序列化回 URLSearchParams。
 
 Search Fields 是这套规则的静态定义；URLSearchParams codec 是这套规则的执行器。
+
+## 跨字段不变式
+
+FieldCodec 围绕一个逻辑字段设计。Search Fields 可以组合多个 FieldCodec，但每个字段仍然只根据自己的 raw input 完成 decode。
+
+一个逻辑字段不一定只有一个 raw value。例如：
+
+```txt
+?time=start&time=end
+```
+
+这里的两个值属于同一个 URL key。`multi` FieldCodec 会一次得到完整的 `string[]`，因此可以在自己的 decode 中排序、过滤，或者检查两个值能否组成有效范围。legacy alias 也是同一个逻辑字段的候选 key，不属于跨字段关系。
+
+下面的形式则不同：
+
+```txt
+?startTime=...&endTime=...
+```
+
+`startTime` 和 `endTime` 是两个独立字段。它们都可以单独完成字符串解析，但“startTime 必须小于 endTime”只有在两个字段组合后才成立。这类规则属于跨字段不变式，FieldCodec 无法也不应该单独处理。
+
+如果允许一个 FieldCodec 在 decode 时读取其他字段，会让字段行为依赖解析顺序和外部上下文，也会让字段复用、局部 patch 和类型推导变得不再明确。因此 Decurl 只保证字段级解析，不提供 schema 级的跨字段 validation 或自动修正。
+
+推荐在 Search Fields decode 完成后，由业务代码处理组合语义：
+
+```tsx
+const TimeRangeView = () => {
+  const [values] = useSearchValues(searchFields);
+
+  if (values.startTime >= values.endTime) {
+    return <InvalidTimeRange />;
+  }
+
+  return (
+    <Timeline
+      startTime={values.startTime}
+      endTime={values.endTime}
+    />
+  );
+};
+```
+
+具体策略由页面决定：它可以展示错误、阻止请求、清除某个字段，或者修正成新的范围。正常交互也应该在写入前控制值的合法性；如果两个字段需要一起变化，可以通过一次 `setValues({ startTime, endTime })` 提交，但外部 URL 仍然需要业务层检查。
 
 ## Decode 不应该默认抛异常
 
