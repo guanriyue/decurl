@@ -23,6 +23,7 @@ export default defineConfig({
         configured: resolve(root, 'src/configured.tsx'),
         codec: resolve(root, 'src/codec.ts'),
         decode: resolve(root, 'src/decode.ts'),
+        pagination: resolve(root, 'src/pagination/index.ts'),
       },
       formats: ['es'],
       fileName: (_, entryName) => `${entryName}.js`,

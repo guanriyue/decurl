@@ -22,6 +22,10 @@
     "./decode": {
       "types": "./src/decode.ts",
       "default": "./src/decode.ts"
+    },
+    "./pagination": {
+      "types": "./src/pagination/index.ts",
+      "default": "./src/pagination/index.ts"
     }
   },
   "scripts": {
@@ -50,6 +54,10 @@
       "./decode": {
         "types": "./dist/decode.d.ts",
         "default": "./dist/decode.js"
+      },
+      "./pagination": {
+        "types": "./dist/pagination/index.d.ts",
+        "default": "./dist/pagination.js"
       }
     }
   },
