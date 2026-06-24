@@ -2,7 +2,7 @@
 
 `@decurl/react-router` 负责将 `@decurl/core` 的 URLSearchParams codec 能力接入 React 和 React Router。
 
-这个包的核心目标是提供一个 schema-first 的 search params state hook。业务开发者优先面对 decoded data，而不是 `URLSearchParams` 实例。
+这个包的核心目标是提供 schema-first 的 search params state，以及基于 React Router path pattern 的类型安全 URL contract。业务开发者优先面对 decoded data 和业务值，而不是手写 `URLSearchParams` 或 URL 字符串。
 
 ## 职责
 
@@ -14,6 +14,8 @@
 - 支持 optimistic state，使 `setValues` 后 React render 立即反映新状态。
 - 支持 pending flush，将 URL 同步延迟到一个短窗口后执行。
 - 提供常用分页 search state hook，复用同一套 optimistic URL state 语义。
+- 定义 path pattern、path params 和 search definition 组成的 route spec。
+- 使用 React Router `generatePath` 和 core codec 生成类型安全 href。
 - 为后续 Provider、多 runtime 和高级能力保留内部边界。
 
 ## 依赖边界

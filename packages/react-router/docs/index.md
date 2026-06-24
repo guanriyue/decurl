@@ -25,3 +25,4 @@
 - [Provider 边界](architecture/provider.md)
 - [配置化 Runtime 优化入口](architecture/configured-runtime.md)
 - [Pagination Overflow Coordination](architecture/pagination-overflow-coordination.md)
+- [RouteSpec URL Contract](architecture/route-spec.md)
