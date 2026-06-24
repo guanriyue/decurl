@@ -28,6 +28,7 @@ string | string[] | null -> typed value
 | `@decurl/react-router` | 开箱即用的 React Router hooks |
 | `@decurl/react-router/codec` | FieldCodec、Search Fields、类型推导、URLSearchParams decode/encode |
 | `@decurl/react-router/decode` | decode pipeline 与基础解析工具 |
+| `@decurl/react-router/routeSpec` | 定义 path 与 search contract，并生成类型安全的 href |
 | `@decurl/react-router/pagination` | page、pageSize 与分页联动行为 |
 | `@decurl/react-router/configured` | 创建绑定 store 的 hooks、Provider 和 React Router runtime 接线 |
 

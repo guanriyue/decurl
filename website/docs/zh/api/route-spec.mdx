@@ -1,0 +1,316 @@
+---
+description: '@decurl/react-router/routeSpec 集中定义 path 与 Search Fields，并生成类型安全的应用内 href。'
+---
+
+# @decurl/react-router/routeSpec
+
+`@decurl/react-router/routeSpec` 用于集中定义 React Router path 与 Search Fields，并从业务值生成类型安全的应用内 href。
+
+```ts
+import { routeSpec } from '@decurl/react-router/routeSpec';
+```
+
+RouteSpec 是 URL contract 和 href builder，不定义 component、loader、action 或路由层级。
+
+## routeSpec
+
+### 调用形式
+
+```ts
+routeSpec({
+  path,
+  search?,
+})
+```
+
+下面的定义会保留 path pattern 和 Search Fields 的具体类型：
+
+```ts
+import { defineFields, field } from '@decurl/react-router/codec';
+import { routeSpec } from '@decurl/react-router/routeSpec';
+
+const usersSearch = defineFields({
+  keyword: field({
+    decode: (input) => input || undefined,
+  }),
+  page: field({
+    decode: (input) => {
+      const value = Number(input);
+
+      return Number.isSafeInteger(value) && value >= 1
+        ? value
+        : undefined;
+    },
+    defaultValue: 1,
+  }),
+});
+
+const to = {
+  users: routeSpec({
+    path: '/users',
+    search: usersSearch,
+  }),
+  userDetail: routeSpec({
+    path: '/users/:id',
+  }),
+};
+```
+
+### Options
+
+| 参数 | 类型 | 必填 | 默认值 | 说明 |
+| --- | --- | --- | --- | --- |
+| `path` | `` `/${string}` `` | 是 | - | React Router path pattern。 |
+| `search` | `RecordCodec` | 否 | `undefined` | 用于生成 search params 的 Search Fields。 |
+
+`path` 在语义上只包含 pathname pattern，不应包含 search 或 hash。
+
+### 返回值
+
+`routeSpec` 返回一个可调用对象：
+
+| 成员 | 说明 |
+| --- | --- |
+| `spec(input?)` | 使用扁平输入生成 href。 |
+| `spec.path` | 原始 React Router path pattern，保留字面量类型。 |
+| `spec.search` | 原始 Search Fields；未定义时为 `undefined`。 |
+| `spec.hrefByParts(input)` | 分别传入 path params 与 search input，并生成 href。 |
+
+生成结果是应用内部 href string：
+
+```ts
+to.userDetail({ id: 42 });
+// /users/42
+
+to.users({ keyword: 'type safe', page: 2 });
+// /users?keyword=type+safe&page=2
+```
+
+如果最终没有生成 search params，返回值不会追加 `?`。
+
+### 输入是否必填
+
+RouteSpec 会根据 path params 和 search input 决定 callable input 是否必填：
+
+```ts
+const home = routeSpec({ path: '/' });
+const categories = routeSpec({ path: '/:lang?/categories' });
+
+home();
+categories();
+categories({ lang: 'zh' });
+to.users();
+to.userDetail({ id: 42 });
+```
+
+- 没有 path params 和 search 时，不接收 input。
+- 只有可选 path params 或 search 时，input 可以省略。
+- 存在必需 path param 时，input 必填。
+
+### Path params
+
+Path params 的推导和 pathname 生成遵循 React Router path pattern：
+
+| 形式 | 示例 | 输入 |
+| --- | --- | --- |
+| 必需参数 | `/users/:id` | `id: string \| number \| boolean` |
+| 可选参数 | `/:lang?/categories` | `lang?: string \| number \| boolean \| null \| undefined` |
+| Splat | `/files/*` | `'*': string \| number \| boolean` |
+
+非 nullish path param 会先通过 `String(value)` 转换，再交给 React Router `generatePath`：
+
+```ts
+const files = routeSpec({ path: '/files/*' });
+
+files({ '*': 'docs/getting-started.md' });
+// /files/docs/getting-started.md
+```
+
+### Search
+
+`search` 直接复用 Search Fields。生成 href 时，RouteSpec 把 search input 交给相同的 codec encode 能力，不重新定义 search 编码规则。
+
+```ts
+to.users({ keyword: 'decurl', page: 2 });
+```
+
+Search input 是 partial object；具体字段接受什么业务值，以及如何写入 URL，由对应 FieldCodec 决定。
+
+RouteSpec 不负责 search decode。页面可以直接复用它保存的 Search Fields：
+
+```tsx
+const UsersPage = () => {
+  const [search] = useSearchValues(to.users.search);
+
+  return <UsersTable search={search} />;
+};
+```
+
+### Flat input
+
+直接调用 RouteSpec 时，path params 和 search properties 合并为一个扁平对象：
+
+```ts
+const userDetail = routeSpec({
+  path: '/users/:id',
+  search: defineFields({
+    tab: field({
+      decode: (input) => input || undefined,
+    }),
+  }),
+});
+
+userDetail({
+  id: 42,
+  tab: 'profile',
+});
+```
+
+冲突判断基于 path param 与 Search Fields 的 property key。如果两部分存在同名 property，flat input 会在类型层被禁用，此时必须使用 `hrefByParts`。
+
+### hrefByParts
+
+`hrefByParts` 分别接收 path params 和 search input，是无歧义的分组生成 API：
+
+```ts
+const detail = routeSpec({
+  path: '/users/:id',
+  search: defineFields({
+    id: field({
+      decode: (input) => input || undefined,
+    }),
+  }),
+});
+
+detail.hrefByParts({
+  params: { id: 42 },
+  search: { id: 'filter-id' },
+});
+// /users/42?id=filter-id
+```
+
+| 部分 | 必填规则 | 说明 |
+| --- | --- | --- |
+| `params` | 存在必需 path param 时必填 | 只用于生成 pathname。 |
+| `search` | 否 | 只用于生成 search params。 |
+
+省略可选部分时，运行时按空对象处理。`hrefByParts` 的 input 对象本身始终需要传入。
+
+## 配合 React Router
+
+### Link 与 navigate
+
+RouteSpec 返回 string，可以直接交给 React Router：
+
+```tsx
+<Link to={to.userDetail({ id: userId })}>
+  Detail
+</Link>
+```
+
+```tsx
+const navigate = useNavigate();
+
+navigate(to.users({ keyword: 'decurl' }));
+```
+
+### Router config
+
+Router config 可以复用 RouteSpec 保存的 path pattern：
+
+```tsx
+const routes = [
+  {
+    path: to.users.path,
+    element: <UsersPage />,
+  },
+  {
+    path: to.userDetail.path,
+    element: <UserDetailPage />,
+  },
+];
+```
+
+RouteSpec 不保存 parent/child 关系；对象或目录层级也不会产生额外路由语义。
+
+## Types
+
+公开类型提取器分别对应 path params、search encode input 和 search decode values：
+
+```ts twoslash
+import { defineFields, field } from '@decurl/react-router/codec';
+import {
+  type InferRouteSpecParams,
+  type InferRouteSpecSearchInput,
+  type InferRouteSpecSearchValues,
+  routeSpec,
+} from '@decurl/react-router/routeSpec';
+
+const searchFields = defineFields({
+  keyword: field({
+    decode: (input) => input || undefined,
+  }),
+  page: field({
+    decode: (input) => {
+      const value = Number(input);
+
+      return Number.isSafeInteger(value) && value >= 1
+        ? value
+        : undefined;
+    },
+    defaultValue: 1,
+  }),
+});
+
+const users = routeSpec({
+  path: '/users/:groupId',
+  search: searchFields,
+});
+
+type UsersParams = InferRouteSpecParams<typeof users>;
+type UsersSearchInput = InferRouteSpecSearchInput<typeof users>;
+type UsersSearchValues = InferRouteSpecSearchValues<typeof users>;
+```
+
+### InferRouteSpecParams
+
+提取生成 pathname 所需的 path params：
+
+```ts
+type UsersParams = {
+  groupId: string | number | boolean
+}
+```
+
+### InferRouteSpecSearchInput
+
+提取生成 href 时接受的 partial search input：
+
+```ts
+type UsersSearchInput = {
+  keyword?: string | null | undefined
+  page?: number | null | undefined
+}
+```
+
+它描述写入方向，因此所有字段可选，并保留 nullish 输入语义。
+
+### InferRouteSpecSearchValues
+
+提取 URL decode 后的完整业务值：
+
+```ts
+type UsersSearchValues = {
+  keyword: string | undefined
+  page: number
+}
+```
+
+它描述读取方向，会反映 optional Field 与 `defaultValue` 的类型差异。
+
+## 能力边界
+
+- RouteSpec 只生成应用内部 href string，不补充 React Router basename。
+- RouteSpec 不匹配 pathname，也不解析 path params；页面继续使用 React Router `useParams`。
+- RouteSpec 不定义 parent/child route composition，也不替代 router config。
+- RouteSpec 不生成包含 origin 的完整 URL。

@@ -21,6 +21,11 @@
   },
   {
     "type": "file",
+    "name": "route-spec",
+    "label": "@decurl/react-router/routeSpec"
+  },
+  {
+    "type": "file",
     "name": "pagination",
     "label": "@decurl/react-router/pagination"
   },
