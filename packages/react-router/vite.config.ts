@@ -24,6 +24,7 @@ export default defineConfig({
         codec: resolve(root, 'src/codec.ts'),
         decode: resolve(root, 'src/decode.ts'),
         pagination: resolve(root, 'src/pagination/index.ts'),
+        routeSpec: resolve(root, 'src/routeSpec/index.ts'),
       },
       formats: ['es'],
       fileName: (_, entryName) => `${entryName}.js`,

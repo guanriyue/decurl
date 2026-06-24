@@ -26,6 +26,10 @@
     "./pagination": {
       "types": "./src/pagination/index.ts",
       "default": "./src/pagination/index.ts"
+    },
+    "./routeSpec": {
+      "types": "./src/routeSpec/index.ts",
+      "default": "./src/routeSpec/index.ts"
     }
   },
   "scripts": {
@@ -58,6 +62,10 @@
       "./pagination": {
         "types": "./dist/pagination/index.d.ts",
         "default": "./dist/pagination.js"
+      },
+      "./routeSpec": {
+        "types": "./dist/routeSpec/index.d.ts",
+        "default": "./dist/routeSpec.js"
       }
     }
   },
