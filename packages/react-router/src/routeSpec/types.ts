@@ -87,10 +87,15 @@ export type RouteSpecPath = `/${string}`;
  */
 export type RouteSpecPathParams<TPath extends RouteSpecPath> = Simplify<
   {
-    [TName in RequiredRouteSpecPathParamNames<TPath>]: string | number | boolean;
+    [TName in RequiredRouteSpecPathParamNames<TPath>]:
+      | string
+      | number
+      | boolean;
   } & {
     [TName in OptionalRouteSpecPathParamNames<TPath>]?:
-      | string | number | boolean
+      | string
+      | number
+      | boolean
       | null
       | undefined;
   }
@@ -222,9 +227,6 @@ export interface RouteSpec<
 
   /** 分别传入 path params 和 search params，并生成 href。 */
   hrefByParts(input: RouteSpecPartsInput<TParams, TSearch>): string;
-
-  /** 对 navigation state 进行类型约束，并原样返回传入值。 */
-  state(state: TState): TState;
 
   readonly [routeSpecTypes]?: RouteSpecAssociatedTypes<
     TPath,

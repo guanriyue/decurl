@@ -67,7 +67,6 @@ export const routeSpec = ((
     path: options.path,
     search: options.search,
     hrefByParts,
-    state: <TState>(state: TState): TState => state,
   });
 }) as unknown as <
   const TPath extends RouteSpecPath,

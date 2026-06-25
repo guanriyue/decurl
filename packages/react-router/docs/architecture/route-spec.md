@@ -234,7 +234,7 @@ routeSpec({
 
 ### State Contract
 
-确定 navigation state 的定义和提取方式，使 `state()` 不再只是未绑定类型的内部形态。state 不属于 URL，刷新和直接访问时不可依赖，因此需要保持为独立 contract。
+state contract 是待实现能力，当前不在 routeSpec 对外接口中暴露。
 
 ### Hash Contract
 
