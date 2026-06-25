@@ -117,7 +117,7 @@ Path params 的推导和 pathname 生成遵循 React Router path pattern：
 | 可选参数 | `/:lang?/categories` | `lang?: string \| number \| boolean \| null \| undefined` |
 | Splat | `/files/*` | `'*': string \| number \| boolean` |
 
-非 nullish path param 会先通过 `String(value)` 转换，再交给 React Router `generatePath`：
+非 nullish path param 会先通过 `String(value)` 转换，再交给 React Router `generatePath`。pathname params 的编码行为遵循 React Router，RouteSpec 不重新实现 path encode：
 
 ```ts
 const files = routeSpec({ path: '/files/*' });
@@ -128,7 +128,7 @@ files({ '*': 'docs/getting-started.md' });
 
 ### Search
 
-`search` 直接复用 Search Fields。生成 href 时，RouteSpec 把 search input 交给相同的 codec encode 能力，不重新定义 search 编码规则。
+`search` 直接复用 Search Fields。生成 href 时，RouteSpec 只负责把 search input 交给相同的 codec encode 能力，不重新定义 search 编码规则。
 
 ```ts
 to.users({ keyword: 'decurl', page: 2 });
@@ -136,7 +136,7 @@ to.users({ keyword: 'decurl', page: 2 });
 
 Search input 是 partial object；具体字段接受什么业务值，以及如何写入 URL，由对应 FieldCodec 决定。
 
-RouteSpec 不负责 search decode。页面可以直接复用它保存的 Search Fields：
+RouteSpec 不负责 search decode。读取 URL 时，页面可以直接复用它保存的 Search Fields：
 
 ```tsx
 const UsersPage = () => {
@@ -167,6 +167,23 @@ userDetail({
 ```
 
 冲突判断基于 path param 与 Search Fields 的 property key。如果两部分存在同名 property，flat input 会在类型层被禁用，此时必须使用 `hrefByParts`。
+
+```ts twoslash
+// @errors: 2345
+import { defineFields, field } from '@decurl/react-router/codec';
+import { routeSpec } from '@decurl/react-router/routeSpec';
+
+const detail = routeSpec({
+  path: '/users/:id',
+  search: defineFields({
+    id: field({
+      decode: (input) => input || undefined,
+    }),
+  }),
+});
+
+detail({ id: 42 });
+```
 
 ### hrefByParts
 
@@ -314,3 +331,5 @@ type UsersSearchValues = {
 - RouteSpec 不匹配 pathname，也不解析 path params；页面继续使用 React Router `useParams`。
 - RouteSpec 不定义 parent/child route composition，也不替代 router config。
 - RouteSpec 不生成包含 origin 的完整 URL。
+- Hash contract 属于 TODO，当前不作为 RouteSpec API 描述。
+- Navigation state contract 属于 TODO，当前不作为 RouteSpec API 描述。

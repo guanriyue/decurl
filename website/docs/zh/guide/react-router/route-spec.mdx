@@ -1,0 +1,301 @@
+---
+description: "RouteSpec 是一种可选的 URL contract 管理方式，用于集中定义 path 与 Search Fields，并生成类型安全的 href。"
+---
+
+# RouteSpec
+
+`routeSpec` 是一种可选的 URL contract 管理方式。它适合在项目中集中描述某个页面的 pathname pattern 和 Search Fields，并从业务值生成类型安全的 href。
+
+它不替代 React Router config，也不要求你必须改变已有的路由组织方式。如果你的项目已经有清晰的 URL 管理方案，可以继续使用自己的方案。`routeSpec` 关注的是另一种取舍：把 URL 规则集中在静态定义中，让页面、导航和路由装配之间保持更清楚的单向依赖。
+
+## 为什么需要 RouteSpec
+
+在应用中，导航逻辑经常会直接拼接 URL：
+
+```tsx
+navigate(`/users/${userId}?keyword=${keyword}&page=${page}`);
+```
+
+即使把 pathname 和 search 的拼接拆成工具函数，调用处仍然需要自己组合这些规则：
+
+```tsx
+navigate(`${generatePath(path, params)}?${buildSearch(search)}`);
+```
+
+这种写法简单直接，但 URL 规则会散落在多个调用处，并逐渐变成难以管理的魔法字符串：
+
+- pathname 中有哪些 params。
+- search params 的 key 是什么。
+- search value 应该如何 encode。
+- 默认值或空值是否应该写入 URL。
+
+当页面较少时，这些问题并不明显。随着列表页、详情页、筛选条件和跳转入口变多，URL 规则分散会让维护成本上升。尤其在路由发生变化时，散落的字符串很容易遗漏。例如 `/users/:id` 调整为 `/members/:id` 后，集中定义只需要修改对应 route spec；如果跳转入口各自手写字符串，就需要额外搜索和确认每个调用点。遗漏的位置通常不会在定义路由时暴露，直到用户点击某个入口后才发现无法跳转。
+
+`routeSpec` 提供的是一种集中管理方式：把 path 和 search contract 放在同一个定义里，调用处只传业务值。
+
+```tsx
+navigate(to.users({ keyword, page }));
+```
+
+集中定义也让系统内有哪些可跳转页面更容易被查阅。Router config 可以告诉你有哪些页面会被装配，但它通常偏 UI 层：需要关联 component、loader、layout 等内容。RouteSpec 更偏数据层，它直接展示一个页面的 URL 形状：pathname 是什么、path params 有哪些、search params 又遵循什么规则。
+
+这对外部系统生成跳转链接也有帮助。例如后台菜单需要配置一个“用户详情”入口，通知中心需要把一条消息链接到指定用户，跨模块入口需要跳到带筛选条件的列表页。此时调用方更关心的是 `to.userDetail` 需要哪些 path params，或 `to.users` 支持哪些 search values。查阅 route spec 通常比进入完整 router config 再追踪页面实现更直接。
+
+RouteSpec 和 router config 不定义在一起是刻意为之。RouteSpec 位于更靠前的数据层，page component 可以消费它，router config 也可以消费它；router config 则通常是系统装配的最后一层，更偏 UI 层。这样的拆分可以减少 page 与 router 文件之间的反向引用。
+
+## 定义页面的 URL Contract
+
+可以先为页面定义 Search Fields，再把它和 React Router path pattern 组合成 route spec：
+
+```ts
+import { defineFields, field } from '@decurl/react-router/codec';
+import { pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+import { routeSpec } from '@decurl/react-router/routeSpec';
+
+const usersSearch = defineFields({
+  keyword: field({
+    name: 'q',
+    decode: pipe(trim, shape(/.+/)),
+  }),
+  page: field({
+    decode: pipe(trim, shape.integer, toNumber),
+    defaultValue: 1,
+  }),
+});
+
+export const to = {
+  users: routeSpec({
+    path: '/users',
+    search: usersSearch,
+  }),
+
+  userDetail: routeSpec({
+    path: '/users/:id',
+  }),
+};
+```
+
+这里的定义只描述 URL 本身：
+
+- `path` 描述 pathname pattern。
+- `search` 描述 search params 的 decode 与 encode 规则。
+- route spec 本身不定义 component、loader、action 或 layout。
+
+也就是说，它是一份 URL contract，不是 router config。
+
+## 生成类型安全的 href
+
+RouteSpec 是一个可调用对象。调用时传入业务值，返回可以交给 React Router 的 href string：
+
+```tsx
+import { Link, useNavigate } from 'react-router';
+import { to } from './routes';
+
+const UsersActions = ({ userId }: { userId: number }) => {
+  const navigate = useNavigate();
+
+  return (
+    <>
+      <Link to={to.userDetail({ id: userId })}>
+        Detail
+      </Link>
+
+      <button
+        type="button"
+        onClick={() => {
+          navigate(to.users({ keyword: 'decurl', page: 2 }));
+        }}
+      >
+        Search
+      </button>
+    </>
+  );
+};
+```
+
+调用处不需要手写 query string，也不需要关心 search params 如何序列化。`to.users` 会复用 `usersSearch` 中 FieldCodec 的 encode 能力。
+
+如果传入了错误的字段名或缺少必需 path param，TypeScript 会在调用处提示。
+
+## 复用 path 到 Router Config
+
+Router config 可以复用 route spec 保存的 path pattern：
+
+```tsx
+import { createBrowserRouter } from 'react-router';
+import { to } from './routes';
+import { UserDetailPage } from './UserDetailPage';
+import { UsersPage } from './UsersPage';
+
+export const router = createBrowserRouter([
+  {
+    path: to.users.path,
+    element: <UsersPage />,
+  },
+  {
+    path: to.userDetail.path,
+    element: <UserDetailPage />,
+  },
+]);
+```
+
+这样 router config 和页面导航使用同一份 path 字面量，同时依赖方向也更清楚：
+
+```txt
+route spec
+├── page component: to.xxx(), to.xxx.search
+└── router config: to.xxx.path
+```
+
+在这个结构里，page component 可以使用 route spec 生成 `Link`、调用 `navigate`，也可以复用 `routeSpec.search` 读取 URL search state。router config 负责装配 page component，并复用 `routeSpec.path`。它们共同依赖 route spec，但不需要彼此依赖。
+
+重要的是，这条链路里不需要 page component 反向引用 router config。直接把 href helper 定义在 router 文件里也可以运行，但 router 装配需要 page component，page component 内部跳转时又引用 router helper，容易形成循环引用。RouteSpec 把 URL contract 放在更靠前的位置，可以让 page 和 router config 都依赖它，而不是彼此依赖。
+
+RouteSpec 不保存 parent/child 关系，也不会根据对象层级推导路由结构。你仍然可以按照项目习惯组织 React Router 的路由配置。
+
+## 在页面中复用 Search Fields
+
+带有 `search` 的 route spec 会保留原始 Search Fields。页面读取 URL search state 时，可以复用同一份定义：
+
+```tsx
+import { useSearchValues } from '@decurl/react-router';
+import { to } from './routes';
+
+const UsersPage = () => {
+  const [search, setSearch] = useSearchValues(to.users.search);
+
+  return (
+    <UsersTable
+      keyword={search.keyword}
+      page={search.page}
+      onKeywordChange={(keyword) => {
+        setSearch({ keyword, page: 1 });
+      }}
+    />
+  );
+};
+```
+
+同一份 Search Fields 会同时服务两个方向：
+
+- 生成 href 时，把业务值 encode 到 URL。
+- 页面读取时，把 URLSearchParams decode 成业务值。
+
+这让导航入口和页面消费之间不需要重复定义 search params 规则。
+
+## 推荐的组织形式
+
+RouteSpec 可以按项目规模选择不同的组织方式。这里的建议只是一种参考，核心目标是让 URL contract 位于更靠前的位置，让 page 和 router config 都可以依赖它。
+
+小型项目可以把 route specs 集中放在一个文件中：
+
+```txt
+src/
+├── routes.ts
+├── router.tsx
+└── pages/
+    ├── UsersPage.tsx
+    └── UserDetailPage.tsx
+```
+
+```ts
+// routes.ts
+export const to = {
+  users: routeSpec({
+    path: '/users',
+    search: usersSearch,
+  }),
+  userDetail: routeSpec({
+    path: '/users/:id',
+  }),
+};
+```
+
+这种方式查找成本低，适合页面数量不多、URL 规则也比较集中的应用。
+
+当业务模块变多时，可以把 Search Fields 和 route spec 放到对应模块附近，再由一个入口文件汇总：
+
+```txt
+src/
+├── routes/
+│   ├── index.ts
+│   ├── users.ts
+│   └── projects.ts
+├── router.tsx
+└── pages/
+    ├── users/
+    │   ├── UsersPage.tsx
+    │   └── UserDetailPage.tsx
+    └── projects/
+        └── ProjectsPage.tsx
+```
+
+```ts
+// routes/users.ts
+export const users = {
+  list: routeSpec({
+    path: '/users',
+    search: usersSearch,
+  }),
+  detail: routeSpec({
+    path: '/users/:id',
+  }),
+};
+```
+
+```ts
+// routes/index.ts
+import { projects } from './projects';
+import { users } from './users';
+
+export const to = {
+  users,
+  projects,
+};
+```
+
+页面组件从 `to` 读取 href builder，router config 从同一份定义读取 `path`。Search Fields 如果只服务某个页面，可以和对应 route spec 放在一起。
+
+复用 Field 或 Search Fields 时需要更谨慎。除非两个字段的业务语义完全相同，例如它们确实表示同一种筛选条件、使用同一套默认值和 encode/decode 规则，否则更安全的做法是分别定义。需要复用时，可以优先复用 decode primitive、自定义 decode 函数或其他更小的工具函数，而不是为了减少代码量而复用完整 Field。
+
+不太建议把 route spec 定义在 router config 文件内部。router config 通常需要导入 page component，而 page component 又可能需要 route spec 生成跳转链接。把 route spec 放在独立文件或业务模块入口里，可以减少这种双向引用的机会。
+
+## 使用 hrefByParts
+
+直接调用 route spec 时，path params 和 search input 会合并成一个扁平对象：
+
+```ts
+to.userDetail({ id: 42 });
+```
+
+如果 path params 和 Search Fields 使用了相同的 property key，扁平对象会产生歧义。这时应该使用 `hrefByParts`，分别传入 pathname params 和 search values：
+
+```ts
+const detail = routeSpec({
+  path: '/users/:id',
+  search: defineFields({
+    id: field({
+      name: 'filter_id',
+      decode: pipe(trim, shape(/.+/)),
+    }),
+  }),
+});
+
+detail.hrefByParts({
+  params: { id: 42 },
+  search: { id: 'active-user' },
+});
+```
+
+`hrefByParts` 更啰嗦，但它明确区分了 URL 的两个部分。当页面确实存在同名字段时，这种写法比依赖约定更容易维护。
+
+## 能力边界
+
+这篇文档描述的是一种组织 URL contract 的方式，不是一套必须采用的路由架构。它的边界主要体现在依赖关系上：
+
+- RouteSpec 可以位于 page 和 router config 之前，作为两者共同依赖的 URL contract。
+- Router config 仍由 React Router 负责，RouteSpec 不要求你改变已有的路由装配方式。
+- Search Fields 仍应按页面和业务语义定义，RouteSpec 只是把它和 path 放在同一个 contract 中。
+- 如果你的项目已经有清晰的 href 管理、路由装配和 Search Fields 组织方式，可以继续使用自己的方案。
+
+具体的 API 能力边界可以阅读 [@decurl/react-router/routeSpec](/zh/api/route-spec)。

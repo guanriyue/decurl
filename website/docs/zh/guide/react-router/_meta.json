@@ -28,5 +28,10 @@
     "type": "file",
     "name": "optimistic-url-state",
     "label": "乐观 URL 状态"
+  },
+  {
+    "type": "file",
+    "name": "route-spec",
+    "label": "RouteSpec"
   }
 ]
