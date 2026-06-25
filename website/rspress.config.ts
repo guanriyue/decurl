@@ -3,13 +3,25 @@ import { defineConfig } from '@rspress/core';
 import { pluginPreview } from '@rspress/plugin-preview';
 import { pluginTwoslash } from '@rspress/plugin-twoslash';
 
+const base = normalizeBase(process.env.RSPRESS_BASE);
+
+function normalizeBase(value = '/') {
+  if (value === '/') {
+    return '/';
+  }
+
+  return `/${value.replace(/^\/|\/$/g, '')}/`;
+}
+
 export default defineConfig({
   root: path.join(__dirname, 'docs'),
+  base,
   title: 'Decurl',
   description: 'Type-safe URL Search Params for decode-first applications.',
   lang: 'en',
-  icon: '/rspress-icon.png',
-  logo: '/rspress-icon.png',
+  icon: '/decurl_logo_64.svg',
+  logo: '/decurl_logo_64.svg',
+  logoText: 'Decurl',
   plugins: [pluginTwoslash(), pluginPreview()],
   locales: [
     {
