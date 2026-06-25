@@ -6,6 +6,11 @@
   },
   {
     "type": "file",
+    "name": "optimistic-url-state",
+    "label": "乐观 URL 状态"
+  },
+  {
+    "type": "file",
     "name": "configured-store",
     "label": "绑定 Store"
   },
@@ -23,11 +28,6 @@
         "tag": "用户体验"
       }
     ]
-  },
-  {
-    "type": "file",
-    "name": "optimistic-url-state",
-    "label": "乐观 URL 状态"
   },
   {
     "type": "file",
