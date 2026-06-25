@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Decurl logo</title>
+  <desc>64 by 64 SVG logo for Decurl. A blue abstract letter D with two query-parameter nodes.</desc>
+  <!-- Outer D shape -->
+  <path d="M18 10H31C43.15 10 52 18.4 52 32C52 45.6 43.15 54 31 54H18V40" stroke="#1F6FEB" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M18 24V10" stroke="#1F6FEB" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Query parameter lines -->
+  <path d="M22 25H31" stroke="#22C7E8" stroke-width="4" stroke-linecap="round"/>
+  <path d="M22 39H29" stroke="#1FD79B" stroke-width="4" stroke-linecap="round"/>
+  <!-- Nodes -->
+  <circle cx="33" cy="25" r="4" fill="#22C7E8"/>
+  <circle cx="31" cy="39" r="4" fill="#1FD79B"/>
+</svg>
