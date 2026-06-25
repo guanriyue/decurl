@@ -4,7 +4,11 @@ description: 使用 useSearchPagination 管理 URL 中的 page、pageSize 和越
 
 # 分页状态
 
-分页通常由 `page` 和 `pageSize` 两个 search params 共同描述。`useSearchPagination` 在 Search Fields 之上提供这组状态及其联动行为：
+`useSearchPagination` 是 `@decurl/react-router` 提供的可选能力。你可以直接使用 `useSearchValues` 自己管理 `page` 和 `pageSize`，也可以在分页场景中使用这个 hook，把常见的分页状态和联动行为集中起来。
+
+分页状态被单独放进 Guide，是因为它是 URL search params 中非常典型的一类状态：通常由 `page` 和 `pageSize` 共同描述，同时又会受到异步数据返回的 `total` 影响。`page` 和 `pageSize` 可以同步 decode，但“当前页是否超过最大页”只能在拿到可信 `total` 后进行后置校验。
+
+`useSearchPagination` 在 Search Fields 之上提供这组状态及其联动行为：
 
 ```tsx
 import { useSearchPagination } from '@decurl/react-router/pagination';
