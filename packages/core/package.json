@@ -3,6 +3,10 @@
   "version": "0.0.0",
   "type": "module",
   "sideEffects": false,
+  "files": [
+    "dist",
+    "src"
+  ],
   "exports": {
     "./decode": {
       "types": "./src/decode/index.ts",
@@ -20,6 +24,7 @@
     "lint": "biome check ."
   },
   "publishConfig": {
+    "access": "public",
     "exports": {
       "./decode": {
         "types": "./dist/decode/index.d.ts",
@@ -29,7 +34,6 @@
         "types": "./dist/codec/index.d.ts",
         "import": "./dist/codec/index.js"
       }
-    },
-    "files": ["dist", "src"]
+    }
   }
 }

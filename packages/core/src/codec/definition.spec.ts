@@ -70,26 +70,4 @@ describe('defineFields', () => {
 
     warn.mockRestore();
   });
-
-  it('can disable duplicate name warnings', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-
-    defineFields(
-      {
-        page: {
-          name: ['page_num', 'p'],
-          decode: (input) => Number(input),
-        },
-        currentPage: {
-          name: 'p',
-          decode: (input) => Number(input),
-        },
-      } satisfies Record<string, FieldCodec>,
-      { warnOnNameConflict: false },
-    );
-
-    expect(warn).not.toHaveBeenCalled();
-
-    warn.mockRestore();
-  });
 });

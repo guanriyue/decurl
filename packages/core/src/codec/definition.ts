@@ -11,10 +11,6 @@ export type DefinedFields<TDefinition extends RecordCodec> = Prettier<{
   [key in keyof TDefinition]: WithDefinedFieldName<TDefinition[key]>;
 }>;
 
-export type DefineFieldsOptions = {
-  warnOnNameConflict?: boolean;
-};
-
 export const defineFields = <TDefinition extends RecordCodec>(
   definition: TDefinition,
 ): DefinedFields<TDefinition> => {
