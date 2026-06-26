@@ -1,8 +1,8 @@
-import { useRef } from 'react';
-import { useLocation } from 'react-router';
 import { useSearchValue, useSearchValues } from '@decurl/react-router';
 import { defineFields, field } from '@decurl/react-router/codec';
 import { trim } from '@decurl/react-router/decode';
+import { useRef } from 'react';
+import { useLocation } from 'react-router';
 
 const watchedFields = defineFields({
   keyword: field({

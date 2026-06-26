@@ -12,7 +12,12 @@ export type RickAndMortyCharacter = {
   episodeCount: number;
 };
 
-export type CharacterSortKey = 'id' | 'name' | 'status' | 'species' | 'location';
+export type CharacterSortKey =
+  | 'id'
+  | 'name'
+  | 'status'
+  | 'species'
+  | 'location';
 
 export type CharacterSortOrder = 'asc' | 'desc';
 
@@ -50,7 +55,14 @@ const characterSeeds: CharacterSeed[] = [
   ['Beth Smith', 'Alive', 'Human', 'Female', 'Earth', 42],
   ['Jerry Smith', 'Alive', 'Human', 'Male', 'Earth', 39],
   ['Abadango Cluster Princess', 'Alive', 'Alien', 'Female', 'Abadango', 1],
-  ['Abradolf Lincler', 'unknown', 'Human', 'Male', 'Testicle Monster Dimension', 2],
+  [
+    'Abradolf Lincler',
+    'unknown',
+    'Human',
+    'Male',
+    'Testicle Monster Dimension',
+    2,
+  ],
   ['Adjudicator Rick', 'Dead', 'Human', 'Male', 'Citadel of Ricks', 1],
   ['Agency Director', 'Dead', 'Human', 'Male', 'Earth', 1],
   ['Alan Rails', 'Dead', 'Human', 'Male', 'Worldender’s lair', 1],
@@ -63,7 +75,14 @@ const characterSeeds: CharacterSeed[] = [
   ['Annie', 'Alive', 'Human', 'Female', 'Anatomy Park', 1],
   ['Antenna Morty', 'Alive', 'Human', 'Male', 'Citadel of Ricks', 2],
   ['Antenna Rick', 'unknown', 'Human', 'Male', 'Citadel of Ricks', 1],
-  ['Ants in my Eyes Johnson', 'unknown', 'Human', 'Male', 'Interdimensional Cable', 1],
+  [
+    'Ants in my Eyes Johnson',
+    'unknown',
+    'Human',
+    'Male',
+    'Interdimensional Cable',
+    1,
+  ],
   ['Aqua Morty', 'unknown', 'Humanoid', 'Male', 'Citadel of Ricks', 1],
   ['Aqua Rick', 'unknown', 'Humanoid', 'Male', 'Citadel of Ricks', 1],
   ['Arcade Alien', 'unknown', 'Alien', 'Male', 'Immortality Field Resort', 1],
@@ -84,7 +103,14 @@ const characterSeeds: CharacterSeed[] = [
   ['Beth Smith', 'Alive', 'Human', 'Female', 'Earth', 8],
   ['Beth Smith', 'Alive', 'Human', 'Female', 'Earth', 8],
   ["Beth's Mytholog", 'Dead', 'Mythological Creature', 'Female', 'Nuptia 4', 1],
-  ['Big Boobed Waitress', 'Alive', 'Mythological Creature', 'Female', 'Fantasy World', 1],
+  [
+    'Big Boobed Waitress',
+    'Alive',
+    'Mythological Creature',
+    'Female',
+    'Fantasy World',
+    1,
+  ],
   ['Big Head Morty', 'unknown', 'Human', 'Male', 'Citadel of Ricks', 1],
   ['Big Morty', 'Dead', 'Human', 'Male', 'Citadel of Ricks', 1],
   ['Body Guard Morty', 'Dead', 'Human', 'Male', 'Citadel of Ricks', 1],
@@ -99,7 +125,14 @@ const characterSeeds: CharacterSeed[] = [
   ['Blue Shirt Morty', 'unknown', 'Human', 'Male', 'Citadel of Ricks', 1],
   ['Bobby Moynihan', 'Alive', 'Human', 'Male', 'Earth', 1],
   ['Boobloosian', 'Dead', 'Alien', 'unknown', 'unknown', 1],
-  ['Bootleg Portal Chemist Rick', 'Dead', 'Human', 'Male', 'Citadel of Ricks', 1],
+  [
+    'Bootleg Portal Chemist Rick',
+    'Dead',
+    'Human',
+    'Male',
+    'Citadel of Ricks',
+    1,
+  ],
   ['Borbocian', 'Alive', 'Alien', 'unknown', 'Borbos', 1],
   ['Brad', 'Alive', 'Human', 'Male', 'Earth', 1],
   ['Brad Anderson', 'Alive', 'Human', 'Male', 'Earth', 1],
@@ -138,7 +171,14 @@ const characterSeeds: CharacterSeed[] = [
   ['Davin', 'Dead', 'Human', 'Male', 'Earth', 1],
   ['Diablo Verde', 'Dead', 'Alien', 'Male', 'Worldender’s lair', 1],
   ['Diane Sanchez', 'Dead', 'Human', 'Female', 'Earth', 1],
-  ['Dipper and Mabel Mortys', 'unknown', 'Human', 'unknown', 'Citadel of Ricks', 1],
+  [
+    'Dipper and Mabel Mortys',
+    'unknown',
+    'Human',
+    'unknown',
+    'Citadel of Ricks',
+    1,
+  ],
   ['Tuberculosis', 'Dead', 'Disease', 'unknown', 'Anatomy Park', 1],
   ['Gonorrhea', 'Dead', 'Disease', 'unknown', 'Anatomy Park', 1],
   ['Hepatitis A', 'Dead', 'Disease', 'unknown', 'Anatomy Park', 1],

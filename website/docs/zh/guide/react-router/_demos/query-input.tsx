@@ -1,13 +1,13 @@
 import { useSearchValue } from '@decurl/react-router';
-import { defineFields, field } from '@decurl/react-router/codec';
+import { defineFields } from '@decurl/react-router/codec';
 import { trim } from '@decurl/react-router/decode';
 import { useLocation } from 'react-router';
 
 const fields = defineFields({
   keyword: {
     name: 'demo_q',
-    decode: trim
-  }
+    decode: trim,
+  },
 });
 
 const toSearchText = (search: string): string => {

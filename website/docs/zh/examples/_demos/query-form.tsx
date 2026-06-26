@@ -160,7 +160,10 @@ const QueryForm = () => {
         const keyword = getTextValue(formData.get('keyword') ?? undefined);
         const scope = getScopeValue(formData.get('scope') ?? undefined);
         const tags = getStringList(formData.getAll('tags'), tagValues) as never;
-        const topics = getStringList(formData.getAll('topics'), topicValues) as never;
+        const topics = getStringList(
+          formData.getAll('topics'),
+          topicValues,
+        ) as never;
 
         setValues({
           keyword: keyword === '' ? undefined : keyword,
@@ -295,7 +298,9 @@ const QueryForm = () => {
           <div className="space-y-2">
             <span className="font-medium">Decoded values</span>
             <div className="flex flex-wrap gap-2">
-              <Badge variant="secondary">keyword: {values.keyword ?? '-'}</Badge>
+              <Badge variant="secondary">
+                keyword: {values.keyword ?? '-'}
+              </Badge>
               <Badge variant="secondary">scope: {values.scope}</Badge>
               <Badge variant="secondary">
                 tags: {values.tags?.join(', ') || '-'}

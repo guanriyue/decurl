@@ -51,12 +51,28 @@ const DemoShell = () => {
         <code>observation flushDelay: {observationDelay}ms</code>
       </div>
       <div className="decurl-demo__grid">
-        <CountPanel fieldKey="countA" title="plain countA" buttonText="更新 A" />
-        <CountPanel fieldKey="countB" title="plain countB" buttonText="更新 B" />
+        <CountPanel
+          fieldKey="countA"
+          title="plain countA"
+          buttonText="更新 A"
+        />
+        <CountPanel
+          fieldKey="countB"
+          title="plain countB"
+          buttonText="更新 B"
+        />
       </div>
       <div className="decurl-demo__grid">
-        <MemoCountPanel fieldKey="countA" title="memo countA" buttonText="更新 A" />
-        <MemoCountPanel fieldKey="countB" title="memo countB" buttonText="更新 B" />
+        <MemoCountPanel
+          fieldKey="countA"
+          title="memo countA"
+          buttonText="更新 A"
+        />
+        <MemoCountPanel
+          fieldKey="countB"
+          title="memo countB"
+          buttonText="更新 B"
+        />
       </div>
     </div>
   );

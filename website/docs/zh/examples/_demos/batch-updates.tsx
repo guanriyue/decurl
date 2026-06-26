@@ -95,7 +95,9 @@ setValues({ tags: ['react', 'docs'] });`}</code>
           <div className="space-y-2">
             <span className="font-medium">Decoded values</span>
             <div className="flex flex-wrap gap-2">
-              <Badge variant="secondary">keyword: {values.keyword ?? '-'}</Badge>
+              <Badge variant="secondary">
+                keyword: {values.keyword ?? '-'}
+              </Badge>
               <Badge variant="secondary">scope: {values.scope}</Badge>
               <Badge variant="secondary">
                 tags: {values.tags?.join(', ') || '-'}

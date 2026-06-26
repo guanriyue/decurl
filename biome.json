@@ -38,5 +38,14 @@
       "quoteStyle": "single",
       "semicolons": "always"
     }
-  }
+  },
+
+  "overrides": [
+    {
+      "includes": ["website/**"],
+      "formatter": {
+        "lineWidth": 80
+      }
+    }
+  ]
 }

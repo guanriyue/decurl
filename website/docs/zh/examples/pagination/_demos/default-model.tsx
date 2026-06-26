@@ -48,7 +48,7 @@ const UseSearchPaginationDemo = () => {
   const currentHref = `${location.pathname}${location.search}`;
 
   useEffect(() => {
-    pagination.preventOverflow(items.length)
+    pagination.preventOverflow(items.length);
   }, [pagination.preventOverflow]);
 
   const updatePage = (nextPage: number) => {
