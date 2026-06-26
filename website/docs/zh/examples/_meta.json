@@ -2,28 +2,28 @@
   {
     "type": "file",
     "name": "search-box",
-    "label": "Search Box"
+    "label": "搜索框"
   },
   {
     "type": "file",
     "name": "batch-updates",
-    "label": "Batch Updates"
+    "label": "批量更新"
   },
   {
     "type": "file",
     "name": "query-form",
-    "label": "Query Form"
+    "label": "查询表单"
   },
   {
     "type": "dir",
     "name": "pagination",
-    "label": "Pagination",
+    "label": "分页",
     "collapsible": true,
     "collapsed": false
   },
   {
     "type": "file",
     "name": "data-table",
-    "label": "Data Table"
+    "label": "数据表格"
   }
 ]

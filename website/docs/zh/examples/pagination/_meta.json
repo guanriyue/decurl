@@ -2,16 +2,16 @@
   {
     "type": "file",
     "name": "search-values",
-    "label": "Search Values"
+    "label": "Search Values 模式"
   },
   {
     "type": "file",
     "name": "default-model",
-    "label": "Default Model"
+    "label": "内置默认模型"
   },
   {
     "type": "file",
     "name": "custom-fields",
-    "label": "Custom Fields"
+    "label": "自定义字段"
   }
 ]
