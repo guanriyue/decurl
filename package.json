@@ -1,20 +1,35 @@
 {
   "name": "decurl",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "",
-  "main": "index.js",
+  "private": true,
   "scripts": {
-    "test": "vitest",
+    "build": "pnpm -r --filter \"./packages/*\" build",
+    "typecheck": "pnpm -r --filter \"./packages/*\" typecheck",
+    "test": "pnpm -r --filter \"./packages/*\" test",
+    "lint": "pnpm -r --filter \"./packages/*\" lint",
+    "precheck": "pnpm build && pnpm typecheck && pnpm test",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "pnpm -r build && changeset publish"
+    "release": "pnpm precheck && changeset publish"
   },
   "keywords": [],
-  "author": "wangyuze0319@outlook.com",
+  "author": {
+    "name": "guanriyue",
+    "url": "https://github.com/guanriyue"
+  },
+  "homepage": "https://guanriyue.github.io/decurl/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guanriyue/decurl.git"
+  },
+  "bugs": {
+    "url": "https://github.com/guanriyue/decurl/issues"
+  },
   "engines": {
     "node": ">=22.11.0"
   },
-  "license": "ISC",
+  "license": "MIT",
   "packageManager": "pnpm@9.7.1",
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",
