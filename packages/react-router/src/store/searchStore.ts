@@ -1,16 +1,8 @@
 import { toSearchLocation } from '../runtime/search';
 import type { SearchLocation, SearchRuntime } from '../runtime/types';
-import {
-  createFlushScheduler,
-  type FlushSchedulerMode,
-} from './flushScheduler';
+import { createFlushScheduler, type FlushSchedulerMode } from './flushScheduler';
 import { resolveNavigateOptions } from './navigateOptions';
-import type {
-  PendingEntry,
-  SearchStore,
-  SearchStoreSnapshot,
-  SearchStoreState,
-} from './types';
+import type { PendingEntry, SearchStore, SearchStoreSnapshot, SearchStoreState } from './types';
 
 const initialLocation: SearchLocation = {
   pathname: '/',
@@ -33,9 +25,7 @@ export type CreateSearchStoreOptions = {
   flushMode?: FlushSchedulerMode;
 };
 
-export const createSearchStore = (
-  options: CreateSearchStoreOptions = {},
-): SearchStore => {
+export const createSearchStore = (options: CreateSearchStoreOptions = {}): SearchStore => {
   const confirmedLocation = options.initialLocation ?? initialLocation;
   let isLocationInitialized = typeof options.initialLocation !== 'undefined';
   let runtime: SearchRuntime | undefined;
@@ -80,10 +70,7 @@ export const createSearchStore = (
     notify();
   };
 
-  const applyEntryToLocation = (
-    location: SearchLocation,
-    entry: PendingEntry,
-  ): SearchLocation => {
+  const applyEntryToLocation = (location: SearchLocation, entry: PendingEntry): SearchLocation => {
     const searchParams = entry.apply(new URLSearchParams(location.search));
 
     return {
@@ -207,8 +194,7 @@ export const createSearchStore = (
       reset();
     },
     addEntry: (entryOptions) => {
-      const baseLocation =
-        getLatestInflightFlushLocation() ?? state.confirmedLocation;
+      const baseLocation = getLatestInflightFlushLocation() ?? state.confirmedLocation;
       const entry: PendingEntry = {
         id: ++nextEntryId,
         baseLocation,
@@ -220,9 +206,7 @@ export const createSearchStore = (
         ...state,
         pendingEntries: [...state.pendingEntries, entry],
       };
-      setOptimisticLocation(
-        applyEntryToLocation(state.optimisticLocation, entry),
-      );
+      setOptimisticLocation(applyEntryToLocation(state.optimisticLocation, entry));
       flushScheduler.schedule();
     },
     flush,
@@ -244,9 +228,6 @@ export const createSearchStore = (
   return store;
 };
 
-const isSameLocation = (
-  left: SearchLocation,
-  right: SearchLocation,
-): boolean => {
+const isSameLocation = (left: SearchLocation, right: SearchLocation): boolean => {
   return left.pathname === right.pathname && left.search === right.search;
 };

@@ -39,9 +39,7 @@ type RuntimeParts = {
  * userDetail.path
  * ```
  */
-export const routeSpec = ((
-  options: RouteSpecOptions<RouteSpecPath, RecordCodec | undefined>,
-) => {
+export const routeSpec = ((options: RouteSpecOptions<RouteSpecPath, RecordCodec | undefined>) => {
   const createHref = (params: RuntimeValues, searchValues: RuntimeValues) => {
     const pathname = generatePath(options.path, stringifyPathParams(params));
 
@@ -75,13 +73,8 @@ export const routeSpec = ((
   options: RouteSpecOptions<TPath, TSearch>,
 ) => RouteSpec<TPath, RouteSpecPathParams<TPath>, TSearch>;
 
-const stringifyPathParams = (
-  params: RuntimeValues,
-): Record<string, string | null | undefined> => {
+const stringifyPathParams = (params: RuntimeValues): Record<string, string | null | undefined> => {
   return Object.fromEntries(
-    Object.entries(params).map(([name, value]) => [
-      name,
-      isNil(value) ? value : String(value),
-    ]),
+    Object.entries(params).map(([name, value]) => [name, isNil(value) ? value : String(value)]),
   );
 };

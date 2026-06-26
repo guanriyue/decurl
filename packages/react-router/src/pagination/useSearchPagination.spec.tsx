@@ -98,9 +98,7 @@ describe('useSearchPagination', () => {
       vi.advanceTimersByTime(100);
     });
 
-    expect(screen.getByTestId('location').textContent).toBe(
-      '/users?page=3&pageSize=20',
-    );
+    expect(screen.getByTestId('location').textContent).toBe('/users?page=3&pageSize=20');
   });
 
   it('resetPage 会把页码重置为 1', () => {
@@ -131,9 +129,7 @@ describe('useSearchPagination', () => {
       vi.advanceTimersByTime(100);
     });
 
-    expect(screen.getByTestId('location').textContent).toBe(
-      '/users?pageSize=20',
-    );
+    expect(screen.getByTestId('location').textContent).toBe('/users?pageSize=20');
   });
 
   it('setPageSize 默认把页码重置为 1', () => {
@@ -164,9 +160,7 @@ describe('useSearchPagination', () => {
       vi.advanceTimersByTime(100);
     });
 
-    expect(screen.getByTestId('location').textContent).toBe(
-      '/users?pageSize=50',
-    );
+    expect(screen.getByTestId('location').textContent).toBe('/users?pageSize=50');
   });
 
   it('可以通过 options 在 pageSize 变化时保留 item offset', () => {
@@ -198,9 +192,7 @@ describe('useSearchPagination', () => {
       vi.advanceTimersByTime(100);
     });
 
-    expect(screen.getByTestId('location').textContent).toBe(
-      '/users?page=2&pageSize=20',
-    );
+    expect(screen.getByTestId('location').textContent).toBe('/users?page=2&pageSize=20');
   });
 
   it('setPagination 修改 pageSize 时不应用联动策略', () => {
@@ -285,9 +277,7 @@ describe('useSearchPagination', () => {
       vi.advanceTimersByTime(100);
     });
 
-    expect(screen.getByTestId('location').textContent).toBe(
-      '/users?p=3&size=50',
-    );
+    expect(screen.getByTestId('location').textContent).toBe('/users?p=3&size=50');
   });
 
   it('自定义 fields 场景不会使用默认 pageSizeOptions 校验 pageSize', () => {
@@ -357,9 +347,7 @@ describe('useSearchPagination', () => {
       vi.advanceTimersByTime(100);
     });
 
-    expect(screen.getByTestId('location').textContent).toBe(
-      '/users?page=3&pageSize=20',
-    );
+    expect(screen.getByTestId('location').textContent).toBe('/users?page=3&pageSize=20');
   });
 
   it('preventOverflow 支持包含 total 的对象', () => {
@@ -522,11 +510,7 @@ type PaginationViewProps = {
   onReady?: (pagination: UseSearchPaginationResult) => void;
 };
 
-const PaginationView = ({
-  fields,
-  options,
-  onReady,
-}: PaginationViewProps): React.ReactElement => {
+const PaginationView = ({ fields, options, onReady }: PaginationViewProps): React.ReactElement => {
   const pagination =
     typeof fields === 'undefined'
       ? // biome-ignore lint/correctness/useHookAtTopLevel: 方便测试
@@ -572,16 +556,12 @@ const renderWithRouter = (
 ) => {
   return render(
     <MemoryRouter initialEntries={[initialEntry]}>
-      <SearchStateContext.Provider value={{ store }}>
-        {children}
-      </SearchStateContext.Provider>
+      <SearchStateContext.Provider value={{ store }}>{children}</SearchStateContext.Provider>
     </MemoryRouter>,
   );
 };
 
-const decodePositiveInteger: SingleRequiredFieldCodec<number>['decode'] = (
-  input,
-) => {
+const decodePositiveInteger: SingleRequiredFieldCodec<number>['decode'] = (input) => {
   const value = input.trim();
 
   if (!/^[1-9][0-9]*$/.test(value)) {

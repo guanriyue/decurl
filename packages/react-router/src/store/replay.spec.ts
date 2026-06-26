@@ -108,8 +108,7 @@ const createEntry = <TDefinition extends Record<string, FieldCodec>>(
     },
     apply: (searchParams) => {
       const previousValues = decodeFields(schema, searchParams);
-      const nextPatch =
-        typeof patch === 'function' ? patch(previousValues) : patch;
+      const nextPatch = typeof patch === 'function' ? patch(previousValues) : patch;
 
       return encodeFields(schema, nextPatch, { base: searchParams });
     },

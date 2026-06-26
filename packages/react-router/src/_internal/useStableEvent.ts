@@ -5,9 +5,7 @@ type AnyFunction = (...args: any[]) => any;
 
 const useCommitEffect = React.useInsertionEffect || React.useLayoutEffect;
 
-export const useStableEvent = <TFunction extends AnyFunction>(
-  callback: TFunction,
-): TFunction => {
+export const useStableEvent = <TFunction extends AnyFunction>(callback: TFunction): TFunction => {
   const callbackRef = React.useRef<TFunction>((() => {
     throw new Error('Cannot call an event handler while rendering.');
   }) as never);

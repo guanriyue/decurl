@@ -104,17 +104,13 @@ describe('useSearchValues', () => {
       setPagination?.({ page: 2 });
     });
 
-    expect(screen.getByTestId('location').textContent).toBe(
-      '/users?page=1&pageSize=20',
-    );
+    expect(screen.getByTestId('location').textContent).toBe('/users?page=1&pageSize=20');
 
     act(() => {
       vi.advanceTimersByTime(100);
     });
 
-    expect(screen.getByTestId('location').textContent).toBe(
-      '/users?page=2&pageSize=20',
-    );
+    expect(screen.getByTestId('location').textContent).toBe('/users?page=2&pageSize=20');
   });
 
   it('does not rerender a hook when unrelated selected values are unchanged', () => {
@@ -179,9 +175,7 @@ describe('useSearchValues', () => {
       vi.advanceTimersByTime(100);
     });
 
-    expect(screen.getByTestId('location').textContent).toBe(
-      '/users?sort=desc',
-    );
+    expect(screen.getByTestId('location').textContent).toBe('/users?sort=desc');
   });
 
   it('clears all schema fields when updater returns undefined', () => {
@@ -212,9 +206,7 @@ describe('useSearchValues', () => {
       vi.advanceTimersByTime(100);
     });
 
-    expect(screen.getByTestId('location').textContent).toBe(
-      '/users?sort=desc',
-    );
+    expect(screen.getByTestId('location').textContent).toBe('/users?sort=desc');
   });
 });
 
@@ -223,10 +215,7 @@ type PaginationViewProps = {
   onRender?: () => void;
 };
 
-const PaginationView = ({
-  onReady,
-  onRender,
-}: PaginationViewProps): React.ReactElement => {
+const PaginationView = ({ onReady, onRender }: PaginationViewProps): React.ReactElement => {
   const [values, setValues] = useSearchValues(paginationSchema);
   onReady?.(setValues);
   onRender?.();
@@ -275,9 +264,7 @@ const LocationView = (): React.ReactElement => {
   );
 };
 
-const App = ({
-  children,
-}: React.PropsWithChildren): React.ReactElement => {
+const App = ({ children }: React.PropsWithChildren): React.ReactElement => {
   return <div>{children}</div>;
 };
 
@@ -292,9 +279,7 @@ const renderWithRouter = (
 ) => {
   return render(
     <MemoryRouter initialEntries={[initialEntry]}>
-      <SearchStateContext.Provider value={{ store }}>
-        {children}
-      </SearchStateContext.Provider>
+      <SearchStateContext.Provider value={{ store }}>{children}</SearchStateContext.Provider>
     </MemoryRouter>,
   );
 };

@@ -15,9 +15,7 @@ describe('routeSpec', () => {
   it('generates and encodes path params through React Router', () => {
     const userDetail = routeSpec({ path: '/users/:id/active/:active' });
 
-    expect(userDetail({ id: 'u/1', active: true })).toBe(
-      '/users/u%2F1/active/true',
-    );
+    expect(userDetail({ id: 'u/1', active: true })).toBe('/users/u%2F1/active/true');
   });
 
   it('supports optional path params and splats', () => {
@@ -26,9 +24,7 @@ describe('routeSpec', () => {
 
     expect(categories()).toBe('/categories');
     expect(categories({ lang: 'zh' })).toBe('/zh/categories');
-    expect(files({ '*': 'docs/getting-started.md' })).toBe(
-      '/files/docs/getting-started.md',
-    );
+    expect(files({ '*': 'docs/getting-started.md' })).toBe('/files/docs/getting-started.md');
   });
 
   it('encodes search values through the record codec', () => {
@@ -45,9 +41,7 @@ describe('routeSpec', () => {
     } satisfies Record<string, FieldCodec>;
     const users = routeSpec({ path: '/users', search });
 
-    expect(users({ keyword: 'type safe', page: 2 })).toBe(
-      '/users?q=type+safe&page=2',
-    );
+    expect(users({ keyword: 'type safe', page: 2 })).toBe('/users?q=type+safe&page=2');
     expect(users({ page: 1 })).toBe('/users');
     expect(users()).toBe('/users');
   });

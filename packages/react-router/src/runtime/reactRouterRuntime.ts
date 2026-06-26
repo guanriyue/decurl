@@ -17,10 +17,7 @@ export type ReactRouterRuntimeInput = {
   navigate: ReactRouterNavigate;
 };
 
-export type ReactRouterInstance = Pick<
-  DataRouter,
-  'navigate' | 'state' | 'subscribe'
->;
+export type ReactRouterInstance = Pick<DataRouter, 'navigate' | 'state' | 'subscribe'>;
 
 export const createReactRouterRuntime = ({
   location,
@@ -34,9 +31,7 @@ export const createReactRouterRuntime = ({
   };
 };
 
-export const createReactRouterInstanceRuntime = (
-  router: ReactRouterInstance,
-): SearchRuntime => {
+export const createReactRouterInstanceRuntime = (router: ReactRouterInstance): SearchRuntime => {
   return {
     getLocation: () => toSearchLocation(router.state.location),
     navigate: (nextLocation, options) => {

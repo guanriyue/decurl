@@ -1,8 +1,4 @@
-import type {
-  EncodeFieldsValues,
-  InferFieldValues,
-  RecordCodec,
-} from '@decurl/core/codec';
+import type { EncodeFieldsValues, InferFieldValues, RecordCodec } from '@decurl/core/codec';
 import { decodeFields, encodeFields } from '@decurl/core/codec';
 import { useSyncExternalStore } from 'react';
 import { useStableEvent } from '../_internal/useStableEvent';
@@ -44,38 +40,29 @@ export const useSearchValuesStore = <TDefinition extends RecordCodec>(
   schema: TDefinition,
 ): UseSearchValuesResult<TDefinition> => {
   const selectValues = useSearchStateSelector(schema, (nextSnapshot) => {
-    return decodeFields(
-      schema,
-      new URLSearchParams(nextSnapshot.location.search),
-    );
+    return decodeFields(schema, new URLSearchParams(nextSnapshot.location.search));
   });
   const getValuesSnapshot = () => selectValues(store.getSnapshot());
-  const values = useSyncExternalStore(
-    store.subscribe,
-    getValuesSnapshot,
-    getValuesSnapshot,
-  );
-  const setValues = useStableEvent<SetSearchValues<TDefinition>>(
-    (patch, options) => {
-      store.addEntry({
-        apply: (searchParams) => {
-          if (typeof patch !== 'function') {
-            return encodeFields(schema, normalizeSearchPatch(schema, patch), {
-              base: searchParams,
-            });
-          }
-
-          const previousValues = decodeFields(schema, searchParams);
-          const nextPatch = patch(previousValues);
-
-          return encodeFields(schema, normalizeSearchPatch(schema, nextPatch), {
+  const values = useSyncExternalStore(store.subscribe, getValuesSnapshot, getValuesSnapshot);
+  const setValues = useStableEvent<SetSearchValues<TDefinition>>((patch, options) => {
+    store.addEntry({
+      apply: (searchParams) => {
+        if (typeof patch !== 'function') {
+          return encodeFields(schema, normalizeSearchPatch(schema, patch), {
             base: searchParams,
           });
-        },
-        options,
-      });
-    },
-  );
+        }
+
+        const previousValues = decodeFields(schema, searchParams);
+        const nextPatch = patch(previousValues);
+
+        return encodeFields(schema, normalizeSearchPatch(schema, nextPatch), {
+          base: searchParams,
+        });
+      },
+      options,
+    });
+  });
 
   return [values, setValues];
 };

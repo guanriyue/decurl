@@ -1,8 +1,4 @@
-import type {
-  EncodeFieldsValues,
-  InferFieldValues,
-  RecordCodec,
-} from '@decurl/core/codec';
+import type { EncodeFieldsValues, InferFieldValues, RecordCodec } from '@decurl/core/codec';
 import type {
   SearchLocation,
   SearchLocationLike,
@@ -18,9 +14,7 @@ import type {
  */
 export type SearchPatch<TDefinition extends RecordCodec> =
   | EncodeFieldsValues<TDefinition>
-  | ((
-      previousValues: InferFieldValues<TDefinition>,
-    ) => EncodeFieldsValues<TDefinition>);
+  | ((previousValues: InferFieldValues<TDefinition>) => EncodeFieldsValues<TDefinition>);
 
 /**
  * Pending entry 在 replay 阶段执行的 search 转换函数。
@@ -28,9 +22,7 @@ export type SearchPatch<TDefinition extends RecordCodec> =
  * apply 必须被视为纯函数：相同的输入 search params 应得到相同的输出。
  * Store 不关心 apply 内部使用 schema、field codec，还是其他写入策略。
  */
-export type SearchEntryApply = (
-  searchParams: URLSearchParams,
-) => URLSearchParams;
+export type SearchEntryApply = (searchParams: URLSearchParams) => URLSearchParams;
 
 /**
  * 添加 pending entry 时需要提供的行为描述。
@@ -87,7 +79,6 @@ export type SearchStoreState = {
 
   /** 应用在当前 visible base 上的 pending entries。 */
   pendingEntries: PendingEntry[];
-
 };
 
 /**

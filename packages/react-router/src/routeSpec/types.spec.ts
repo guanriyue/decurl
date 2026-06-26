@@ -1,7 +1,4 @@
-import type {
-  SingleOptionalFieldCodec,
-  SingleRequiredFieldCodec,
-} from '@decurl/core/codec';
+import type { SingleOptionalFieldCodec, SingleRequiredFieldCodec } from '@decurl/core/codec';
 import { describe, expectTypeOf, it } from 'vitest';
 import type {
   InferRouteSpecParams,
@@ -20,18 +17,11 @@ type Search = {
   query: SingleOptionalFieldCodec<string>;
 };
 
-type UserDetailSpec = RouteSpec<
-  '/users/:id',
-  { id: string },
-  Search,
-  { from: string }
->;
+type UserDetailSpec = RouteSpec<'/users/:id', { id: string }, Search, { from: string }>;
 
 describe('RouteSpec types', () => {
   it('infers path params and callable arguments', () => {
-    expectTypeOf<
-      RouteSpecPathParams<'/orgs/:orgId/users/:userId'>
-    >().toEqualTypeOf<{
+    expectTypeOf<RouteSpecPathParams<'/orgs/:orgId/users/:userId'>>().toEqualTypeOf<{
       orgId: string | number | boolean;
       userId: string | number | boolean;
     }>();
@@ -55,9 +45,7 @@ describe('RouteSpec types', () => {
   });
 
   it('allows an omitted input when only search values are present', () => {
-    expectTypeOf<
-      Parameters<RouteSpec<'/users', Record<never, never>, Search>>
-    >().toEqualTypeOf<
+    expectTypeOf<Parameters<RouteSpec<'/users', Record<never, never>, Search>>>().toEqualTypeOf<
       [
         input?: {
           page?: number | null | undefined;
@@ -72,9 +60,7 @@ describe('RouteSpec types', () => {
       id: SingleOptionalFieldCodec<string>;
     };
 
-    expectTypeOf<
-      RouteSpecFlatInput<{ id: string }, ConflictingSearch>
-    >().toEqualTypeOf<never>();
+    expectTypeOf<RouteSpecFlatInput<{ id: string }, ConflictingSearch>>().toEqualTypeOf<never>();
     expectTypeOf<
       Parameters<RouteSpec<'/users/:id', { id: string }, ConflictingSearch>>
     >().toEqualTypeOf<[input: never]>();
@@ -91,9 +77,7 @@ describe('RouteSpec types', () => {
   });
 
   it('exposes associated type helpers', () => {
-    expectTypeOf<
-      InferRouteSpecPath<UserDetailSpec>
-    >().toEqualTypeOf<'/users/:id'>();
+    expectTypeOf<InferRouteSpecPath<UserDetailSpec>>().toEqualTypeOf<'/users/:id'>();
     expectTypeOf<InferRouteSpecParams<UserDetailSpec>>().toEqualTypeOf<{
       id: string;
     }>();

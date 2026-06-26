@@ -17,9 +17,7 @@ type SearchPaginationPageSizeChangeContext = {
   nextPageSize: number;
 };
 
-export type SearchPaginationPageSizeChangeStrategy =
-  | 'reset'
-  | 'preserve-offset';
+export type SearchPaginationPageSizeChangeStrategy = 'reset' | 'preserve-offset';
 
 export type UseSearchPaginationOptions = {
   pageSizeChangeStrategy?: SearchPaginationPageSizeChangeStrategy;
@@ -42,9 +40,7 @@ export type SearchPaginationTotalSource =
   | undefined
   | { total?: number | null | undefined };
 
-type SearchPaginationPreventOverflow = (
-  totalSource: SearchPaginationTotalSource,
-) => void;
+type SearchPaginationPreventOverflow = (totalSource: SearchPaginationTotalSource) => void;
 
 export type UseSearchPaginationResult = {
   page: number;
@@ -52,20 +48,14 @@ export type UseSearchPaginationResult = {
   setPage: (page: number, options?: SearchNavigateOptions) => void;
   resetPage: () => void;
   setPageSize: (pageSize: number, options?: SearchNavigateOptions) => void;
-  setPagination: (
-    patch: SearchPaginationPatch,
-    options?: SearchNavigateOptions,
-  ) => void;
+  setPagination: (patch: SearchPaginationPatch, options?: SearchNavigateOptions) => void;
   preventOverflow: SearchPaginationPreventOverflow;
 };
 
 export type UseSearchPagination = {
   (): UseSearchPaginationResult;
   (options?: UseSearchPaginationOptions): UseSearchPaginationResult;
-  (
-    fields: SearchPaginationFields,
-    options?: UseSearchPaginationOptions,
-  ): UseSearchPaginationResult;
+  (fields: SearchPaginationFields, options?: UseSearchPaginationOptions): UseSearchPaginationResult;
   fields: SearchPaginationFields;
   pageSizeOptions: readonly number[];
 };
@@ -79,12 +69,8 @@ export const createUseSearchPagination = ({
     fieldsOrOptions?: SearchPaginationFields | UseSearchPaginationOptions,
     maybeOptions?: UseSearchPaginationOptions,
   ): UseSearchPaginationResult => {
-    const fields = isSearchPaginationFields(fieldsOrOptions)
-      ? fieldsOrOptions
-      : defaultFields;
-    const options = isSearchPaginationFields(fieldsOrOptions)
-      ? maybeOptions
-      : fieldsOrOptions;
+    const fields = isSearchPaginationFields(fieldsOrOptions) ? fieldsOrOptions : defaultFields;
+    const options = isSearchPaginationFields(fieldsOrOptions) ? maybeOptions : fieldsOrOptions;
     const schema = {
       page: fields.page,
       pageSize: fields.pageSize,
@@ -125,8 +111,7 @@ export const createUseSearchPagination = ({
               page: previousPage,
               pageSize: previousPageSize,
               nextPageSize,
-              pageSizeChangeStrategy:
-                options?.pageSizeChangeStrategy ?? 'reset',
+              pageSizeChangeStrategy: options?.pageSizeChangeStrategy ?? 'reset',
             }),
             pageSize: nextPageSize,
           },
@@ -135,23 +120,21 @@ export const createUseSearchPagination = ({
       },
     );
 
-    const preventOverflow = useStableEvent(
-      (totalSource: SearchPaginationTotalSource): void => {
-        const total = resolveTotal(totalSource);
+    const preventOverflow = useStableEvent((totalSource: SearchPaginationTotalSource): void => {
+      const total = resolveTotal(totalSource);
 
-        if (typeof total === 'undefined') {
-          return;
-        }
+      if (typeof total === 'undefined') {
+        return;
+      }
 
-        const maxPage = getMaxPage(total, pageSize);
+      const maxPage = getMaxPage(total, pageSize);
 
-        if (page <= maxPage) {
-          return;
-        }
+      if (page <= maxPage) {
+        return;
+      }
 
-        setPagination({ page: maxPage });
-      },
-    );
+      setPagination({ page: maxPage });
+    });
 
     return {
       page,
@@ -184,9 +167,7 @@ const createDefaultPaginationFields = (): SearchPaginationFields => {
           return undefined;
         }
 
-        return (defaultPageSizeOptions as readonly number[]).includes(value)
-          ? value
-          : undefined;
+        return (defaultPageSizeOptions as readonly number[]).includes(value) ? value : undefined;
       },
       defaultValue: defaultPageSizeOptions[0],
     },
@@ -196,12 +177,7 @@ const createDefaultPaginationFields = (): SearchPaginationFields => {
 const isSearchPaginationFields = (
   value: SearchPaginationFields | UseSearchPaginationOptions | undefined,
 ): value is SearchPaginationFields => {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'page' in value &&
-    'pageSize' in value
-  );
+  return typeof value === 'object' && value !== null && 'page' in value && 'pageSize' in value;
 };
 
 const decodeStrictPositiveInteger = (input: string): number | undefined => {
@@ -235,17 +211,10 @@ const getMaxPage = (total: number, pageSize: number): number => {
   return Math.max(1, Math.ceil(total / pageSize));
 };
 
-const resolveTotal = (
-  totalSource: SearchPaginationTotalSource,
-): number | undefined => {
-  const total =
-    typeof totalSource === 'number' ? totalSource : totalSource?.total;
+const resolveTotal = (totalSource: SearchPaginationTotalSource): number | undefined => {
+  const total = typeof totalSource === 'number' ? totalSource : totalSource?.total;
 
-  if (
-    typeof total !== 'number' ||
-    !Number.isSafeInteger(total) ||
-    total < 0
-  ) {
+  if (typeof total !== 'number' || !Number.isSafeInteger(total) || total < 0) {
     return undefined;
   }
 

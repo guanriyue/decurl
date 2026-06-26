@@ -1,28 +1,16 @@
 import type { NamedFieldCodec, RecordCodec } from '@decurl/core/codec';
 import { useLayoutEffect, useMemo } from 'react';
-import {
-  SearchStateContext,
-  type SearchStateContextValue,
-} from './react/SearchStateContext';
+import { SearchStateContext, type SearchStateContextValue } from './react/SearchStateContext';
 import { useConfigureRuntimeStore } from './react/useConfigureRuntime';
-import type {
-  SetSearchValue,
-  UseSearchValueResult,
-} from './react/useSearchValue';
+import type { SetSearchValue, UseSearchValueResult } from './react/useSearchValue';
 import { useSearchValueStore } from './react/useSearchValue';
-import type {
-  SetSearchValues,
-  UseSearchValuesResult,
-} from './react/useSearchValues';
+import type { SetSearchValues, UseSearchValuesResult } from './react/useSearchValues';
 import { useSearchValuesStore } from './react/useSearchValues';
 import {
   createReactRouterInstanceRuntime,
   type ReactRouterInstance,
 } from './runtime/reactRouterRuntime';
-import {
-  type CreateSearchStoreOptions,
-  createSearchStore,
-} from './store/searchStore';
+import { type CreateSearchStoreOptions, createSearchStore } from './store/searchStore';
 import type { SearchStore } from './store/types';
 
 export type ReactRouterSearchProviderProps = React.PropsWithChildren<{
@@ -48,9 +36,7 @@ export type ReactRouterSearch = {
   /**
    * 使用传入的 router instance 将绑定 store 与 React Router runtime 接线。
    */
-  RouterRuntimeConfigurer: (
-    props: ReactRouterSearchRuntimeConfigurerProps,
-  ) => null;
+  RouterRuntimeConfigurer: (props: ReactRouterSearchRuntimeConfigurerProps) => null;
 
   /**
    * 提供绑定 store 的 provider，并自动完成 React Router runtime 接线。
@@ -71,19 +57,12 @@ export type ReactRouterSearch = {
   ) => UseSearchValuesResult<TDefinition>;
 
   /** 使用绑定 store 的单字段 search value hook，不会自动配置 runtime。 */
-  useSearchValue: <TCodec extends NamedFieldCodec>(
-    codec: TCodec,
-  ) => UseSearchValueResult<TCodec>;
+  useSearchValue: <TCodec extends NamedFieldCodec>(codec: TCodec) => UseSearchValueResult<TCodec>;
 };
 
 export type CreateReactRouterSearchOptions = CreateSearchStoreOptions;
 
-export type {
-  SetSearchValue,
-  SetSearchValues,
-  UseSearchValueResult,
-  UseSearchValuesResult,
-};
+export type { SetSearchValue, SetSearchValues, UseSearchValueResult, UseSearchValuesResult };
 
 export const createReactRouterSearch = (
   options: CreateReactRouterSearchOptions = {},
@@ -97,9 +76,7 @@ export const createReactRouterSearch = (
     return null;
   };
 
-  const RouterRuntimeConfigurer = ({
-    router,
-  }: ReactRouterSearchRuntimeConfigurerProps): null => {
+  const RouterRuntimeConfigurer = ({ router }: ReactRouterSearchRuntimeConfigurerProps): null => {
     const runtime = useMemo(() => {
       return createReactRouterInstanceRuntime(router);
     }, [router]);
@@ -115,10 +92,7 @@ export const createReactRouterSearch = (
     return null;
   };
 
-  const Provider = ({
-    children,
-    router,
-  }: ReactRouterSearchProviderProps): React.ReactElement => {
+  const Provider = ({ children, router }: ReactRouterSearchProviderProps): React.ReactElement => {
     return (
       <SearchStateContext.Provider value={contextValue}>
         {typeof router === 'undefined' ? (

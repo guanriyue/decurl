@@ -1,11 +1,7 @@
 import type { FieldCodec } from '@decurl/core/codec';
 import { decodeFields, encodeFields } from '@decurl/core/codec';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type {
-  SearchLocation,
-  SearchNavigateOptions,
-  SearchRuntime,
-} from '../runtime/types';
+import type { SearchLocation, SearchNavigateOptions, SearchRuntime } from '../runtime/types';
 import { createSearchStore } from './searchStore';
 import type { SearchPatch, SearchStore, SearchStoreState } from './types';
 
@@ -104,9 +100,7 @@ describe('createSearchStore', () => {
 
     addValues(store, schema, { keyword: 'decurl' });
 
-    expect(store.getSnapshot().location).toEqual(
-      location('/users', 'page=1&pageSize=20&q=decurl'),
-    );
+    expect(store.getSnapshot().location).toEqual(location('/users', 'page=1&pageSize=20&q=decurl'));
     expect(listener).toHaveBeenCalledTimes(1);
   });
 
@@ -136,13 +130,10 @@ describe('createSearchStore', () => {
     addValues(store, schema, { keyword: 'decurl' }, { preventScrollReset: true });
     store.flush();
 
-    expect(navigate).toHaveBeenCalledWith(
-      location('/users', 'page=2&q=decurl'),
-      {
-        replace: true,
-        preventScrollReset: true,
-      },
-    );
+    expect(navigate).toHaveBeenCalledWith(location('/users', 'page=2&q=decurl'), {
+      replace: true,
+      preventScrollReset: true,
+    });
   });
 
   it('flushes pending entries after the default delay', () => {
@@ -182,12 +173,9 @@ describe('createSearchStore', () => {
     expect(navigate).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(1);
-    expect(navigate).toHaveBeenCalledWith(
-      location('/users', 'page=2&q=decurl'),
-      {
-        replace: true,
-      },
-    );
+    expect(navigate).toHaveBeenCalledWith(location('/users', 'page=2&q=decurl'), {
+      replace: true,
+    });
   });
 
   it('can use debounce flush when configured', () => {
@@ -207,12 +195,9 @@ describe('createSearchStore', () => {
     expect(navigate).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(1);
-    expect(navigate).toHaveBeenCalledWith(
-      location('/users', 'page=2&q=decurl'),
-      {
-        replace: true,
-      },
-    );
+    expect(navigate).toHaveBeenCalledWith(location('/users', 'page=2&q=decurl'), {
+      replace: true,
+    });
   });
 
   it('uses a zero timeout when flushDelay is zero', () => {
@@ -232,12 +217,9 @@ describe('createSearchStore', () => {
     vi.advanceTimersByTime(0);
 
     expect(navigate).toHaveBeenCalledTimes(1);
-    expect(navigate).toHaveBeenCalledWith(
-      location('/users', 'page=2&q=decurl'),
-      {
-        replace: true,
-      },
-    );
+    expect(navigate).toHaveBeenCalledWith(location('/users', 'page=2&q=decurl'), {
+      replace: true,
+    });
   });
 
   it('drops delayed flush when an external location change arrives', () => {
@@ -253,9 +235,7 @@ describe('createSearchStore', () => {
     vi.advanceTimersByTime(100);
 
     expect(navigate).not.toHaveBeenCalled();
-    expect(store.getSnapshot().location).toEqual(
-      location('/users/1', 'tab=profile'),
-    );
+    expect(store.getSnapshot().location).toEqual(location('/users/1', 'tab=profile'));
   });
 
   it('does not navigate when flush entries are empty', () => {
@@ -315,12 +295,9 @@ describe('createSearchStore', () => {
     addValues(store, schema, { keyword: 'decurl' });
     store.flush();
 
-    expect(navigate).toHaveBeenCalledWith(
-      location('/users', 'page=2&q=decurl'),
-      {
-        replace: true,
-      },
-    );
+    expect(navigate).toHaveBeenCalledWith(location('/users', 'page=2&q=decurl'), {
+      replace: true,
+    });
   });
 
   it('keeps new pending entries when a previous flush is confirmed', () => {
@@ -351,9 +328,7 @@ describe('createSearchStore', () => {
     store.flush();
 
     expect(debugState(store).inflightFlushes).toEqual(['page=2', 'page=3']);
-    expect(debugState(store).latestInflightFlushLocation).toEqual(
-      location('/users', 'page=3'),
-    );
+    expect(debugState(store).latestInflightFlushLocation).toEqual(location('/users', 'page=3'));
   });
 
   it('keeps the latest inflight location after consuming an older inflight search', () => {
@@ -370,9 +345,7 @@ describe('createSearchStore', () => {
     store.locationChanged(location('/users', 'page=2'));
 
     expect(debugState(store).inflightFlushes).toEqual(['page=3']);
-    expect(debugState(store).latestInflightFlushLocation).toEqual(
-      location('/users', 'page=3'),
-    );
+    expect(debugState(store).latestInflightFlushLocation).toEqual(location('/users', 'page=3'));
   });
 
   it('keeps optimistic location when an older inflight flush is confirmed', () => {
@@ -410,9 +383,7 @@ describe('createSearchStore', () => {
     addValues(store, schema, { keyword: 'decurl' });
     store.locationChanged(location('/users', 'page=2'));
 
-    expect(store.getSnapshot().location).toEqual(
-      location('/users', 'page=3&q=decurl'),
-    );
+    expect(store.getSnapshot().location).toEqual(location('/users', 'page=3&q=decurl'));
   });
 
   it('drops inflight flushes and pending entries when an external location change arrives', () => {
@@ -429,9 +400,7 @@ describe('createSearchStore', () => {
     store.locationChanged(location('/orders', 'tab=active'));
     vi.advanceTimersByTime(100);
 
-    expect(store.getSnapshot().location).toEqual(
-      location('/orders', 'tab=active'),
-    );
+    expect(store.getSnapshot().location).toEqual(location('/orders', 'tab=active'));
     expect(navigate).toHaveBeenCalledTimes(1);
   });
 
@@ -443,9 +412,7 @@ describe('createSearchStore', () => {
     addValues(store, schema, { page: 2 });
     store.locationChanged(location('/users/1', 'tab=profile'));
 
-    expect(store.getSnapshot().location).toEqual(
-      location('/users/1', 'tab=profile'),
-    );
+    expect(store.getSnapshot().location).toEqual(location('/users/1', 'tab=profile'));
   });
 
   it('does not navigate when the optimistic location equals the confirmed location', () => {
@@ -488,8 +455,7 @@ const addValues = <TDefinition extends Record<string, FieldCodec>>(
   store.addEntry({
     apply: (searchParams) => {
       const previousValues = decodeFields(schema, searchParams);
-      const nextPatch =
-        typeof patch === 'function' ? patch(previousValues) : patch;
+      const nextPatch = typeof patch === 'function' ? patch(previousValues) : patch;
 
       return encodeFields(schema, nextPatch, { base: searchParams });
     },
@@ -498,10 +464,7 @@ const addValues = <TDefinition extends Record<string, FieldCodec>>(
 };
 
 const runtime = (
-  navigate: (
-    location: SearchLocation,
-    options: SearchNavigateOptions,
-  ) => void,
+  navigate: (location: SearchLocation, options: SearchNavigateOptions) => void,
 ): SearchRuntime => {
   return {
     getLocation: () => location('/users', 'page=1'),

@@ -1,8 +1,4 @@
-import type {
-  EncodeFieldsValues,
-  InferFieldValues,
-  RecordCodec,
-} from '@decurl/core/codec';
+import type { EncodeFieldsValues, InferFieldValues, RecordCodec } from '@decurl/core/codec';
 import type { generatePath, PathParam } from 'react-router';
 
 declare const routeSpecTypes: unique symbol;
@@ -10,9 +6,7 @@ declare const routeSpecTypes: unique symbol;
 type Simplify<T> = { [TKey in keyof T]: T[TKey] } & {};
 
 type RequiredKeys<T> = {
-  [TKey in keyof T]-?: Record<never, never> extends Pick<T, TKey>
-    ? never
-    : TKey;
+  [TKey in keyof T]-?: Record<never, never> extends Pick<T, TKey> ? never : TKey;
 }[keyof T];
 
 type RouteSpecSearch = RecordCodec | undefined;
@@ -87,10 +81,7 @@ export type RouteSpecPath = `/${string}`;
  */
 export type RouteSpecPathParams<TPath extends RouteSpecPath> = Simplify<
   {
-    [TName in RequiredRouteSpecPathParamNames<TPath>]:
-      | string
-      | number
-      | boolean;
+    [TName in RequiredRouteSpecPathParamNames<TPath>]: string | number | boolean;
   } & {
     [TName in OptionalRouteSpecPathParamNames<TPath>]?:
       | string
@@ -113,10 +104,9 @@ export type RouteSpecPathParams<TPath extends RouteSpecPath> = Simplify<
  * }
  * ```
  */
-export type RouteSpecSearchInput<TSearch extends RouteSpecSearch> =
-  TSearch extends RecordCodec
-    ? EncodeFieldsValues<TSearch>
-    : Record<never, never>;
+export type RouteSpecSearchInput<TSearch extends RouteSpecSearch> = TSearch extends RecordCodec
+  ? EncodeFieldsValues<TSearch>
+  : Record<never, never>;
 
 /**
  * search definition 解码后得到的业务值。
@@ -131,10 +121,9 @@ export type RouteSpecSearchInput<TSearch extends RouteSpecSearch> =
  * }
  * ```
  */
-export type RouteSpecSearchValues<TSearch extends RouteSpecSearch> =
-  TSearch extends RecordCodec
-    ? InferFieldValues<TSearch>
-    : Record<never, never>;
+export type RouteSpecSearchValues<TSearch extends RouteSpecSearch> = TSearch extends RecordCodec
+  ? InferFieldValues<TSearch>
+  : Record<never, never>;
 
 /**
  * routeSpec 可调用函数接受的扁平输入。
@@ -158,9 +147,7 @@ export type RouteSpecSearchValues<TSearch extends RouteSpecSearch> =
 export type RouteSpecFlatInput<
   TParams extends Record<string, unknown>,
   TSearch extends RouteSpecSearch,
-> = [Extract<keyof TParams, keyof RouteSpecSearchInput<TSearch>>] extends [
-  never,
-]
+> = [Extract<keyof TParams, keyof RouteSpecSearchInput<TSearch>>] extends [never]
   ? Simplify<TParams & RouteSpecSearchInput<TSearch>>
   : never;
 
@@ -215,9 +202,7 @@ export interface RouteSpec<
   TSearch extends RouteSpecSearch = undefined,
   TState = never,
 > {
-  (
-    ...args: RouteSpecCallArguments<RouteSpecFlatInput<TParams, TSearch>>
-  ): string;
+  (...args: RouteSpecCallArguments<RouteSpecFlatInput<TParams, TSearch>>): string;
 
   /** React Router path pattern。 */
   readonly path: TPath;
@@ -228,12 +213,7 @@ export interface RouteSpec<
   /** 分别传入 path params 和 search params，并生成 href。 */
   hrefByParts(input: RouteSpecPartsInput<TParams, TSearch>): string;
 
-  readonly [routeSpecTypes]?: RouteSpecAssociatedTypes<
-    TPath,
-    TParams,
-    TSearch,
-    TState
-  >;
+  readonly [routeSpecTypes]?: RouteSpecAssociatedTypes<TPath, TParams, TSearch, TState>;
 }
 
 /**
@@ -278,9 +258,7 @@ export type InferRouteSpecPath<TSpec> =
  * ```
  */
 export type InferRouteSpecParams<TSpec> =
-  RouteSpecAssociatedTypesOf<TSpec> extends { params: infer TParams }
-    ? TParams
-    : never;
+  RouteSpecAssociatedTypesOf<TSpec> extends { params: infer TParams } ? TParams : never;
 
 /**
  * 提取 RouteSpec 持有的 search definition 类型。
@@ -299,9 +277,7 @@ export type InferRouteSpecParams<TSpec> =
  * ```
  */
 export type InferRouteSpecSearch<TSpec> =
-  RouteSpecAssociatedTypesOf<TSpec> extends { search: infer TSearch }
-    ? TSearch
-    : never;
+  RouteSpecAssociatedTypesOf<TSpec> extends { search: infer TSearch } ? TSearch : never;
 
 /**
  * 提取 RouteSpec 生成 href 时接受的 search 输入类型。
@@ -333,9 +309,7 @@ export type InferRouteSpecSearch<TSpec> =
  * ```
  */
 export type InferRouteSpecSearchInput<TSpec> =
-  RouteSpecAssociatedTypesOf<TSpec> extends { searchInput: infer TInput }
-    ? TInput
-    : never;
+  RouteSpecAssociatedTypesOf<TSpec> extends { searchInput: infer TInput } ? TInput : never;
 
 /**
  * 提取 RouteSpec 从 URL 解码 search params 后得到的业务值类型。
@@ -368,9 +342,7 @@ export type InferRouteSpecSearchInput<TSpec> =
  * ```
  */
 export type InferRouteSpecSearchValues<TSpec> =
-  RouteSpecAssociatedTypesOf<TSpec> extends { searchValues: infer TValues }
-    ? TValues
-    : never;
+  RouteSpecAssociatedTypesOf<TSpec> extends { searchValues: infer TValues } ? TValues : never;
 
 /**
  * 提取 RouteSpec 的 navigation state 类型。
@@ -389,6 +361,4 @@ export type InferRouteSpecSearchValues<TSpec> =
  * ```
  */
 export type InferRouteSpecState<TSpec> =
-  RouteSpecAssociatedTypesOf<TSpec> extends { state: infer TState }
-    ? TState
-    : never;
+  RouteSpecAssociatedTypesOf<TSpec> extends { state: infer TState } ? TState : never;

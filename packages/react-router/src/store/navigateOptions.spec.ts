@@ -39,9 +39,7 @@ const baseLocation: SearchLocation = {
   search: 'page=1',
 };
 
-const createEntry = (
-  options?: PendingEntry['options'],
-): PendingEntry => {
+const createEntry = (options?: PendingEntry['options']): PendingEntry => {
   return {
     id: 1,
     baseLocation,

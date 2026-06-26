@@ -2,10 +2,7 @@
  * @vitest-environment jsdom
  */
 
-import type {
-  SingleRequiredFieldCodec,
-  WithDefinedFieldName,
-} from '@decurl/core/codec';
+import type { SingleRequiredFieldCodec, WithDefinedFieldName } from '@decurl/core/codec';
 import { act, cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -71,17 +68,13 @@ describe('useSearchValue', () => {
     });
 
     expect(screen.getByTestId('page').textContent).toBe('3');
-    expect(screen.getByTestId('location').textContent).toBe(
-      '/users?tab=profile&p=2',
-    );
+    expect(screen.getByTestId('location').textContent).toBe('/users?tab=profile&p=2');
 
     act(() => {
       vi.advanceTimersByTime(100);
     });
 
-    expect(screen.getByTestId('location').textContent).toBe(
-      '/users?tab=profile&page_num=3',
-    );
+    expect(screen.getByTestId('location').textContent).toBe('/users?tab=profile&page_num=3');
   });
 
   it('removes all field aliases when value is null or undefined', () => {
@@ -112,9 +105,7 @@ describe('useSearchValue', () => {
       vi.advanceTimersByTime(100);
     });
 
-    expect(screen.getByTestId('location').textContent).toBe(
-      '/users?tab=profile',
-    );
+    expect(screen.getByTestId('location').textContent).toBe('/users?tab=profile');
   });
 });
 
@@ -155,9 +146,7 @@ const renderWithRouter = (
 ) => {
   return render(
     <MemoryRouter initialEntries={[initialEntry]}>
-      <SearchStateContext.Provider value={{ store }}>
-        {children}
-      </SearchStateContext.Provider>
+      <SearchStateContext.Provider value={{ store }}>{children}</SearchStateContext.Provider>
     </MemoryRouter>,
   );
 };

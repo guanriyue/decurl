@@ -19,9 +19,6 @@ type Dispose = () => void;
 
 export type SearchRuntime = {
   getLocation: () => SearchLocationLike;
-  navigate: (
-    location: SearchLocation,
-    options: SearchNavigateOptions,
-  ) => void | Promise<void>;
+  navigate: (location: SearchLocation, options: SearchNavigateOptions) => void | Promise<void>;
   subscribe?: (listener: (location: SearchLocationLike) => void) => Dispose;
 };

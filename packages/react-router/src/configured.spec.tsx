@@ -2,17 +2,9 @@
  * @vitest-environment jsdom
  */
 
-import type {
-  SingleRequiredFieldCodec,
-  WithDefinedFieldName,
-} from '@decurl/core/codec';
+import type { SingleRequiredFieldCodec, WithDefinedFieldName } from '@decurl/core/codec';
 import { act, cleanup, render, screen } from '@testing-library/react';
-import {
-  createMemoryRouter,
-  MemoryRouter,
-  RouterProvider,
-  useLocation,
-} from 'react-router';
+import { createMemoryRouter, MemoryRouter, RouterProvider, useLocation } from 'react-router';
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import type { ReactRouterSearch } from './configured';
 import { createReactRouterSearch } from './configured';
@@ -136,11 +128,7 @@ type PageViewProps = {
   onRender?: () => void;
 };
 
-const PageView = ({
-  search,
-  onReady,
-  onRender,
-}: PageViewProps): React.ReactElement => {
+const PageView = ({ search, onReady, onRender }: PageViewProps): React.ReactElement => {
   const [page, setPage] = search.useSearchValue(pageCodec);
   expectTypeOf(page).toEqualTypeOf<number>();
   onReady?.(setPage);

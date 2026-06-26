@@ -3,14 +3,9 @@ import { isFieldValuesEqual } from '@decurl/core/codec';
 import { useRef } from 'react';
 import type { SearchStoreSnapshot } from '../store/types';
 
-export type SearchStateSelector<TValue> = (
-  snapshot: SearchStoreSnapshot,
-) => TValue;
+export type SearchStateSelector<TValue> = (snapshot: SearchStoreSnapshot) => TValue;
 
-export type SearchStateEquality<TValue> = (
-  value: TValue,
-  previousValue: TValue,
-) => boolean;
+export type SearchStateEquality<TValue> = (value: TValue, previousValue: TValue) => boolean;
 
 export const useEqualityCheckedSelector = <TValue>(
   selector: SearchStateSelector<TValue>,
@@ -22,10 +17,7 @@ export const useEqualityCheckedSelector = <TValue>(
     const nextValue = selector(snapshot);
     const previousValue = previousValueRef.current;
 
-    if (
-      typeof previousValue !== 'undefined' &&
-      equality(nextValue, previousValue)
-    ) {
+    if (typeof previousValue !== 'undefined' && equality(nextValue, previousValue)) {
       return previousValue;
     }
 
@@ -38,10 +30,7 @@ export const useSearchStateSelector = <TDefinition extends RecordCodec>(
   schema: TDefinition,
   selector: SearchStateSelector<InferFieldValues<TDefinition>>,
 ): SearchStateSelector<InferFieldValues<TDefinition>> => {
-  return useEqualityCheckedSelector(
-    selector,
-    (nextValues, previousValues) => {
-      return isFieldValuesEqual(schema, nextValues, previousValues);
-    },
-  );
+  return useEqualityCheckedSelector(selector, (nextValues, previousValues) => {
+    return isFieldValuesEqual(schema, nextValues, previousValues);
+  });
 };
