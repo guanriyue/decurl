@@ -13,6 +13,10 @@ const external = [
   ...Object.keys(pkg.peerDependencies ?? {}),
 ];
 
+const isExternal = (id: string): boolean => {
+  return external.some((packageName) => id === packageName || id.startsWith(`${packageName}/`));
+};
+
 export default defineConfig({
   plugins: [react()],
   build: {
@@ -35,7 +39,7 @@ export default defineConfig({
     sourcemap: true,
 
     rolldownOptions: {
-      external,
+      external: isExternal,
       output: {
         chunkFileNames: '_chunks/[name]-[hash].js',
       },

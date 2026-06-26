@@ -1,7 +1,6 @@
 export type {
   DefinedFieldName,
   DefinedFields,
-  DefineFieldsOptions,
   FieldCodec,
   FieldCodecOf,
   FieldMode,
