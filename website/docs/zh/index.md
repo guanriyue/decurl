@@ -32,7 +32,4 @@ features:
   - title: Alias migration
     details: 读取旧链接中的 legacy key，写回时统一使用 canonical key，帮助 URL 字段平滑演进。
     link: /zh/guide/codec/search-fields
-  - title: Agent-friendly APIs
-    details: API 由小而明确的函数组成，适合人和代码 agent 逐步组合、检查和修改。
-    link: /zh/guide/design/boundaries
 ---
