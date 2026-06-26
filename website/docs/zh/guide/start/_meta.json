@@ -6,6 +6,11 @@
   },
   {
     "type": "file",
+    "name": "installation",
+    "label": "安装使用"
+  },
+  {
+    "type": "file",
     "name": "getting-started",
     "label": "快速开始"
   }
