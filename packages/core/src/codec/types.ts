@@ -49,16 +49,14 @@ export type RequiredFieldCodec<TValue> =
   | MultiRequiredFieldCodec<TValue>;
 
 // biome-ignore lint/suspicious/noExplicitAny: 用于表达任意 FieldCodec
-export type FieldCodec<TValue = any> =
-  | OptionalFieldCodec<TValue>
-  | RequiredFieldCodec<TValue>;
+export type FieldCodec<TValue = any> = OptionalFieldCodec<TValue> | RequiredFieldCodec<TValue>;
 
 export type WithDefinedFieldName<TCodec extends FieldCodec> = {
   name: DefinedFieldName;
 } & Omit<TCodec, 'name'>;
 
 // biome-ignore lint/suspicious/noExplicitAny: 用于表达任意具名 FieldCodec 分支
-export type NamedFieldCodec<T = any> = 
+export type NamedFieldCodec<T = any> =
   | WithDefinedFieldName<SingleOptionalFieldCodec<T>>
   | WithDefinedFieldName<SingleRequiredFieldCodec<T>>
   | WithDefinedFieldName<MultiOptionalFieldCodec<T>>
@@ -126,8 +124,6 @@ export function field<TValue>(
   definition: MultiRequiredFieldCodec<TValue>,
 ): MultiRequiredFieldCodec<TValue>;
 
-export function field<TValue>(
-  definition: FieldCodec<TValue>,
-): FieldCodec<TValue> {
+export function field<TValue>(definition: FieldCodec<TValue>): FieldCodec<TValue> {
   return definition;
 }

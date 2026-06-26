@@ -70,9 +70,7 @@ describe('decodeFields', () => {
       },
     } satisfies Record<string, FieldCodec>;
 
-    expect(
-      decodeFields(definition, new URLSearchParams('page_num=2&p=1')),
-    ).toEqual({
+    expect(decodeFields(definition, new URLSearchParams('page_num=2&p=1'))).toEqual({
       page: 2,
     });
   });
@@ -98,9 +96,7 @@ describe('decodeFields', () => {
       },
     } satisfies Record<string, FieldCodec>;
 
-    expect(
-      decodeFields(definition, new URLSearchParams('page_num=bad&p=2')),
-    ).toEqual({
+    expect(decodeFields(definition, new URLSearchParams('page_num=bad&p=2'))).toEqual({
       page: 2,
     });
   });
@@ -113,9 +109,7 @@ describe('decodeFields', () => {
       },
     } satisfies Record<string, FieldCodec>;
 
-    expect(
-      decodeFields(definition, new URLSearchParams('keyword=decurl')),
-    ).toEqual({
+    expect(decodeFields(definition, new URLSearchParams('keyword=decurl'))).toEqual({
       keyword: 'decurl',
     });
   });
@@ -168,11 +162,7 @@ describe('encodeFields', () => {
       },
     } satisfies Record<string, FieldCodec>;
 
-    const searchParams = encodeFields(
-      definition,
-      { page: 2 },
-      { base: 'page=1&pageSize=10' },
-    );
+    const searchParams = encodeFields(definition, { page: 2 }, { base: 'page=1&pageSize=10' });
 
     expect(searchParams.toString()).toBe('page=2&pageSize=10');
   });
@@ -219,11 +209,7 @@ describe('encodeFields', () => {
       },
     } satisfies Record<string, FieldCodec>;
 
-    const searchParams = encodeFields(
-      definition,
-      { page: 2 },
-      { base: 'page=1&keyword=decurl' },
-    );
+    const searchParams = encodeFields(definition, { page: 2 }, { base: 'page=1&keyword=decurl' });
 
     expect(searchParams.toString()).toBe('keyword=decurl');
   });
@@ -287,11 +273,7 @@ describe('encodeFields', () => {
       },
     } satisfies Record<string, FieldCodec>;
 
-    const searchParams = encodeFields(
-      definition,
-      {},
-      { base: 'page_num=1&p=2&sort=desc' },
-    );
+    const searchParams = encodeFields(definition, {}, { base: 'page_num=1&p=2&sort=desc' });
 
     expect(searchParams.toString()).toBe('page_num=1&p=2&sort=desc');
   });
@@ -372,9 +354,7 @@ describe('encodeFields', () => {
       },
     } satisfies Record<string, FieldCodec>;
 
-    expect(
-      encodeFields(definition, { page: 1 }, { base: 'page=2' }).toString(),
-    ).toBe('');
+    expect(encodeFields(definition, { page: 1 }, { base: 'page=2' }).toString()).toBe('');
 
     expect(
       encodeFields(
@@ -447,11 +427,7 @@ describe('isFieldValuesEqual', () => {
     } satisfies Record<string, FieldCodec>;
 
     expect(
-      isFieldValuesEqual(
-        definition,
-        { page: 1, tags: ['a', 'b'] },
-        { page: 1, tags: ['a', 'b'] },
-      ),
+      isFieldValuesEqual(definition, { page: 1, tags: ['a', 'b'] }, { page: 1, tags: ['a', 'b'] }),
     ).toBe(true);
   });
 
@@ -468,11 +444,7 @@ describe('isFieldValuesEqual', () => {
     } satisfies Record<string, FieldCodec>;
 
     expect(
-      isFieldValuesEqual(
-        definition,
-        { page: 2, tags: ['a', 'b'] },
-        { page: 1, tags: ['a', 'b'] },
-      ),
+      isFieldValuesEqual(definition, { page: 2, tags: ['a', 'b'] }, { page: 1, tags: ['a', 'b'] }),
     ).toBe(false);
   });
 

@@ -8,29 +8,22 @@ type EnumDefinition = Record<string, string | number>;
 
 type EnumValue<TDefinition extends EnumDefinition> = TDefinition[keyof TDefinition];
 
-type WhereDecode<TValue> = <TInput extends TValue>(
-  input: TInput,
-) => TInput | undefined;
+type WhereDecode<TValue> = <TInput extends TValue>(input: TInput) => TInput | undefined;
 
 export function where<TValue, TOutput extends TValue>(
   predicate: (value: TValue) => value is TOutput,
 ): Decode<TValue, TOutput>;
 
-export function where<TValue>(
-  predicate: (value: TValue) => boolean,
-): WhereDecode<TValue>;
+export function where<TValue>(predicate: (value: TValue) => boolean): WhereDecode<TValue>;
 
-export function where<TValue>(
-  predicate: (value: TValue) => boolean,
-): Decode<TValue, TValue> {
+export function where<TValue>(predicate: (value: TValue) => boolean): Decode<TValue, TValue> {
   return (input) => (predicate(input) ? input : undefined);
 }
 
 export const startsWith = <TPrefix extends string>(
   prefix: TPrefix,
 ): Decode<string, `${TPrefix}${string}`> => {
-  return (input) =>
-    input.startsWith(prefix) ? (input as `${TPrefix}${string}`) : undefined;
+  return (input) => (input.startsWith(prefix) ? (input as `${TPrefix}${string}`) : undefined);
 };
 
 export function elementOf<const TValues extends readonly unknown[]>(
@@ -48,8 +41,7 @@ export function elementOf(
     ? valuesOrEnumDefinition
     : Object.values(valuesOrEnumDefinition);
 
-  return (input) =>
-    values.some((value) => Object.is(value, input)) ? input : undefined;
+  return (input) => (values.some((value) => Object.is(value, input)) ? input : undefined);
 }
 
 export const min = (minimum: number): Decode<number, number> => {
@@ -69,9 +61,7 @@ export const length = <T extends LengthLike>(
     }
 
     const [minimum, maximum] = sizeOrRange;
-    return input.length >= minimum && input.length <= maximum
-      ? input
-      : undefined;
+    return input.length >= minimum && input.length <= maximum ? input : undefined;
   };
 };
 

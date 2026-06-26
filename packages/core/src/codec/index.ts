@@ -1,6 +1,5 @@
 export {
   type DefinedFields,
-  type DefineFieldsOptions,
   defineFields,
 } from './definition';
 export {

@@ -1,11 +1,6 @@
 import { isUndefined } from '../_internal/isUndefined';
 import type { Prettier } from '../_internal/types';
-import type {
-  DefinedFieldName,
-  FieldName,
-  RecordCodec,
-  WithDefinedFieldName,
-} from './types';
+import type { DefinedFieldName, FieldName, RecordCodec, WithDefinedFieldName } from './types';
 
 export type DefinedFields<TDefinition extends RecordCodec> = Prettier<{
   [key in keyof TDefinition]: WithDefinedFieldName<TDefinition[key]>;
@@ -34,10 +29,7 @@ export const defineFields = <TDefinition extends RecordCodec>(
   return fields;
 };
 
-const normalizeFieldNames = (
-  name: FieldName | undefined,
-  key: string,
-): DefinedFieldName => {
+const normalizeFieldNames = (name: FieldName | undefined, key: string): DefinedFieldName => {
   if (typeof name === 'string') {
     return name;
   }
@@ -53,9 +45,7 @@ const toFieldNames = (name: DefinedFieldName): readonly string[] => {
   return typeof name === 'string' ? [name] : name;
 };
 
-const checkFieldNameConflicts = (
-  definition: Record<string, { name: DefinedFieldName }>,
-): void => {
+const checkFieldNameConflicts = (definition: Record<string, { name: DefinedFieldName }>): void => {
   const nameOwners = new Map<string, string>();
 
   for (const [key, codec] of Object.entries(definition)) {

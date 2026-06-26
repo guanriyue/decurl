@@ -46,9 +46,7 @@ const isRealDate = (year: number, month: number, day: number): boolean => {
   const date = new Date(Date.UTC(year, month - 1, day));
 
   return (
-    date.getUTCFullYear() === year &&
-    date.getUTCMonth() === month - 1 &&
-    date.getUTCDate() === day
+    date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
   );
 };
 
@@ -63,11 +61,7 @@ const isDate = (input: string): boolean => {
   return isRealDate(Number(year), Number(month), Number(day));
 };
 
-const isRealTime = (
-  hour: number,
-  minute: number,
-  second: number | undefined,
-): boolean => {
+const isRealTime = (hour: number, minute: number, second: number | undefined): boolean => {
   return (
     Number.isInteger(hour) &&
     hour >= 0 &&
@@ -75,8 +69,7 @@ const isRealTime = (
     Number.isInteger(minute) &&
     minute >= 0 &&
     minute <= 59 &&
-    (isUndefined(second) ||
-      (Number.isInteger(second) && second >= 0 && second <= 59))
+    (isUndefined(second) || (Number.isInteger(second) && second >= 0 && second <= 59))
   );
 };
 
@@ -104,20 +97,13 @@ const isDatetime = (input: string): boolean => {
     return false;
   }
 
-  const [, year, month, day, separator, hour, minute, second, timezone] =
-    matched;
+  const [, year, month, day, separator, hour, minute, second, timezone] = matched;
 
   if (!isRealDate(Number(year), Number(month), Number(day))) {
     return false;
   }
 
-  if (
-    !isRealTime(
-      Number(hour),
-      Number(minute),
-      isUndefined(second) ? undefined : Number(second),
-    )
-  ) {
+  if (!isRealTime(Number(hour), Number(minute), isUndefined(second) ? undefined : Number(second))) {
     return false;
   }
 
@@ -125,9 +111,7 @@ const isDatetime = (input: string): boolean => {
     return true;
   }
 
-  return (
-    separator === 'T' && !isUndefined(second) && isTimezoneOffset(timezone)
-  );
+  return separator === 'T' && !isUndefined(second) && isTimezoneOffset(timezone);
 };
 
 const createShape = (regexp: RegExp): Decode<string, string> => {

@@ -82,9 +82,7 @@ export const encodeFieldValue = <TCodec extends FieldCodec>(
       return undefined as EncodedFieldValue<TCodec>;
     }
 
-    return (value as readonly unknown[])
-      .filter(isDef)
-      .map(String) as EncodedFieldValue<TCodec>;
+    return (value as readonly unknown[]).filter(isDef).map(String) as EncodedFieldValue<TCodec>;
   }
 
   return String(value) as EncodedFieldValue<TCodec>;
@@ -181,9 +179,7 @@ export const isFieldValueEqual = <TCodec extends FieldCodec>(
 
 const isMultiFieldCodec = <TValue>(
   codec: FieldCodec<TValue>,
-): codec is
-  | MultiOptionalFieldCodec<TValue>
-  | MultiRequiredFieldCodec<TValue> => {
+): codec is MultiOptionalFieldCodec<TValue> | MultiRequiredFieldCodec<TValue> => {
   return codec.mode === 'multi';
 };
 
@@ -205,10 +201,7 @@ const decodeSafely = <TInput, TValue>(
   }
 };
 
-const deleteSearchKeys = (
-  searchParams: URLSearchParams,
-  keys: readonly string[],
-): void => {
+const deleteSearchKeys = (searchParams: URLSearchParams, keys: readonly string[]): void => {
   for (const key of keys) {
     searchParams.delete(key);
   }

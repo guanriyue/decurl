@@ -1,3 +1,1 @@
-export type Decode<TInput, TOutput> = (
-  input: TInput,
-) => TOutput | null | undefined;
+export type Decode<TInput, TOutput> = (input: TInput) => TOutput | null | undefined;

@@ -22,9 +22,7 @@ describe('createURLSearchParamsCodec', () => {
   it('creates a codec that decodes URLSearchParams with inferred values', () => {
     const codec = createURLSearchParamsCodec(definition);
 
-    const values = codec.decode(
-      new URLSearchParams('q=decurl&page=2&tags=a&tags=b'),
-    );
+    const values = codec.decode(new URLSearchParams('q=decurl&page=2&tags=a&tags=b'));
 
     expect(values).toEqual({
       keyword: 'decurl',

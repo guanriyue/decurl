@@ -12,9 +12,10 @@ describe('unique', () => {
     const itemB = { id: 1, label: 'b' };
     const itemC = { id: 2, label: 'c' };
 
-    expect(
-      unique.by((item: { id: number }) => item.id)([itemA, itemB, itemC]),
-    ).toEqual([itemA, itemC]);
+    expect(unique.by((item: { id: number }) => item.id)([itemA, itemB, itemC])).toEqual([
+      itemA,
+      itemC,
+    ]);
   });
 
   it('can be used as a pipe step after mapItems', () => {
@@ -74,9 +75,7 @@ describe('shape.datetime', () => {
     expect(shape.datetime('2026-06-07 13:45')).toBe('2026-06-07 13:45');
     expect(shape.datetime('2026-06-07 13:45:30')).toBe('2026-06-07 13:45:30');
     expect(shape.datetime('2026-06-07T13:45:30Z')).toBe('2026-06-07T13:45:30Z');
-    expect(shape.datetime('2026-06-07T13:45:30+08:00')).toBe(
-      '2026-06-07T13:45:30+08:00',
-    );
+    expect(shape.datetime('2026-06-07T13:45:30+08:00')).toBe('2026-06-07T13:45:30+08:00');
   });
 
   it('rejects invalid datetime shapes', () => {

@@ -20,9 +20,7 @@ describe('FieldCodec types', () => {
     } satisfies SingleOptionalFieldCodec<number>;
 
     expectTypeOf(codec.decode).parameter(0).toEqualTypeOf<string>();
-    expectTypeOf<InferFieldValue<typeof codec>>().toEqualTypeOf<
-      number | undefined
-    >();
+    expectTypeOf<InferFieldValue<typeof codec>>().toEqualTypeOf<number | undefined>();
   });
 
   it('infers required single field values as value', () => {
@@ -42,9 +40,7 @@ describe('FieldCodec types', () => {
     } satisfies MultiOptionalFieldCodec<string[]>;
 
     expectTypeOf(codec.decode).parameter(0).toEqualTypeOf<string[]>();
-    expectTypeOf<InferFieldValue<typeof codec>>().toEqualTypeOf<
-      string[] | undefined
-    >();
+    expectTypeOf<InferFieldValue<typeof codec>>().toEqualTypeOf<string[] | undefined>();
   });
 
   it('infers required multi field values as value', () => {
@@ -68,12 +64,8 @@ describe('FieldCodec types', () => {
       decode: (input) => input,
     } satisfies FieldCodec<string[]>;
 
-    expectTypeOf<InferFieldValue<typeof singleCodec>>().toEqualTypeOf<
-      string | undefined
-    >();
-    expectTypeOf<InferFieldValue<typeof multiCodec>>().toEqualTypeOf<
-      string[] | undefined
-    >();
+    expectTypeOf<InferFieldValue<typeof singleCodec>>().toEqualTypeOf<string | undefined>();
+    expectTypeOf<InferFieldValue<typeof multiCodec>>().toEqualTypeOf<string[] | undefined>();
   });
 
   it('rejects nullish default values', () => {
@@ -161,12 +153,8 @@ describe('FieldCodec types', () => {
     }>;
 
     expectTypeOf<SearchSchema>().toEqualTypeOf<{
-      tags:
-        | SingleRequiredFieldCodec<string[]>
-        | MultiRequiredFieldCodec<string[]>;
-      selectedIds:
-        | SingleOptionalFieldCodec<number[]>
-        | MultiOptionalFieldCodec<number[]>;
+      tags: SingleRequiredFieldCodec<string[]> | MultiRequiredFieldCodec<string[]>;
+      selectedIds: SingleOptionalFieldCodec<number[]> | MultiOptionalFieldCodec<number[]>;
     }>();
   });
 
@@ -176,9 +164,7 @@ describe('FieldCodec types', () => {
       decode: (input) => input,
     });
 
-    expectTypeOf(codec).toEqualTypeOf<
-      WithDefinedFieldName<SingleOptionalFieldCodec<string>>
-    >();
+    expectTypeOf(codec).toEqualTypeOf<WithDefinedFieldName<SingleOptionalFieldCodec<string>>>();
     expectTypeOf(codec).toExtend<NamedFieldCodec>();
   });
 
@@ -189,9 +175,7 @@ describe('FieldCodec types', () => {
       decode: (input) => input,
     });
 
-    expectTypeOf(codec).toEqualTypeOf<
-      WithDefinedFieldName<MultiOptionalFieldCodec<string[]>>
-    >();
+    expectTypeOf(codec).toEqualTypeOf<WithDefinedFieldName<MultiOptionalFieldCodec<string[]>>>();
     expectTypeOf(codec).toExtend<NamedFieldCodec>();
   });
 

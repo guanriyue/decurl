@@ -1,18 +1,16 @@
-import { readFileSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { defineConfig } from 'vite'
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { defineConfig } from 'vite';
 
-const root = dirname(fileURLToPath(import.meta.url))
+const root = dirname(fileURLToPath(import.meta.url));
 
-const pkg = JSON.parse(
-  readFileSync(resolve(root, 'package.json'), 'utf-8'),
-)
+const pkg = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf-8'));
 
 const external = [
   ...Object.keys(pkg.dependencies ?? {}),
   ...Object.keys(pkg.peerDependencies ?? {}),
-]
+];
 
 export default defineConfig({
   build: {
@@ -37,4 +35,4 @@ export default defineConfig({
       },
     },
   },
-})
+});

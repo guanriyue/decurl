@@ -23,11 +23,7 @@ describe('decodeField', () => {
       decode: (input) => input,
     } satisfies SingleOptionalFieldCodec<string>;
 
-    const value = decodeField(
-      new URLSearchParams('keyword=decurl'),
-      codec,
-      'keyword',
-    );
+    const value = decodeField(new URLSearchParams('keyword=decurl'), codec, 'keyword');
 
     expect(value).toBe('decurl');
     expectTypeOf(value).toEqualTypeOf<string | undefined>();
@@ -67,11 +63,7 @@ describe('decodeField', () => {
       defaultValue: 1,
     } satisfies SingleRequiredFieldCodec<number>;
 
-    const value = decodeField(
-      new URLSearchParams('keyword='),
-      codec,
-      'keyword',
-    );
+    const value = decodeField(new URLSearchParams('keyword='), codec, 'keyword');
 
     expect(value).toBe(0);
     expect(decode).toHaveBeenCalledWith('');
@@ -88,9 +80,7 @@ describe('decodeField', () => {
 
   it('falls back to defaultValue when single decode throws', () => {
     const error = new Error('Invalid page');
-    const consoleError = vi
-      .spyOn(console, 'error')
-      .mockImplementation(() => undefined);
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const codec = {
       decode: () => {
         throw error;
@@ -99,10 +89,7 @@ describe('decodeField', () => {
     } satisfies SingleRequiredFieldCodec<number>;
 
     expect(decodeField(new URLSearchParams('page=x'), codec, 'page')).toBe(1);
-    expect(consoleError).toHaveBeenNthCalledWith(
-      1,
-      '[decurl] Field decode threw an exception.',
-    );
+    expect(consoleError).toHaveBeenNthCalledWith(1, '[decurl] Field decode threw an exception.');
     expect(consoleError).toHaveBeenNthCalledWith(2, error);
   });
 
@@ -114,9 +101,7 @@ describe('decodeField', () => {
       },
     } satisfies SingleOptionalFieldCodec<number>;
 
-    expect(
-      decodeField(new URLSearchParams('page=x'), codec, 'page'),
-    ).toBeUndefined();
+    expect(decodeField(new URLSearchParams('page=x'), codec, 'page')).toBeUndefined();
   });
 
   it('decodes multi fields from all values in order', () => {
@@ -180,26 +165,18 @@ describe('decodeField', () => {
       decode: (input) => Number(input),
     } satisfies SingleOptionalFieldCodec<number>;
 
-    const value = decodeField(new URLSearchParams('p=2'), codec, [
-      'page_num',
-      'p',
-    ]);
+    const value = decodeField(new URLSearchParams('p=2'), codec, ['page_num', 'p']);
 
     expect(value).toBe(2);
   });
 
   it('continues to later aliases when decode returns nullish', () => {
-    const decode = vi.fn((input: string) =>
-      input === 'bad' ? undefined : Number(input),
-    );
+    const decode = vi.fn((input: string) => (input === 'bad' ? undefined : Number(input)));
     const codec = {
       decode,
     } satisfies SingleOptionalFieldCodec<number>;
 
-    const value = decodeField(new URLSearchParams('page_num=bad&p=2'), codec, [
-      'page_num',
-      'p',
-    ]);
+    const value = decodeField(new URLSearchParams('page_num=bad&p=2'), codec, ['page_num', 'p']);
 
     expect(value).toBe(2);
     expect(decode).toHaveBeenCalledWith('bad');
@@ -219,10 +196,7 @@ describe('decodeField', () => {
       decode,
     } satisfies SingleOptionalFieldCodec<number>;
 
-    const value = decodeField(new URLSearchParams('page_num=bad&p=2'), codec, [
-      'page_num',
-      'p',
-    ]);
+    const value = decodeField(new URLSearchParams('page_num=bad&p=2'), codec, ['page_num', 'p']);
 
     expect(value).toBe(2);
     expect(decode).toHaveBeenCalledWith('bad');
@@ -290,9 +264,7 @@ describe('encodeFieldValue', () => {
       decode: (input) => input,
     } satisfies MultiOptionalFieldCodec<string[]>;
 
-    expect(
-      encodeFieldValue(codec, ['a', null, undefined, 'b'] as never),
-    ).toEqual(['a', 'b']);
+    expect(encodeFieldValue(codec, ['a', null, undefined, 'b'] as never)).toEqual(['a', 'b']);
   });
 
   it('uses custom multi field encode when provided', () => {
@@ -355,12 +327,7 @@ describe('encodeField', () => {
       encode: () => undefined,
     } satisfies SingleOptionalFieldCodec<number>;
 
-    const searchParams = encodeField(
-      new URLSearchParams('page=1&sort=desc'),
-      codec,
-      'page',
-      2,
-    );
+    const searchParams = encodeField(new URLSearchParams('page=1&sort=desc'), codec, 'page', 2);
 
     expect(searchParams.toString()).toBe('sort=desc');
   });
@@ -371,9 +338,7 @@ describe('encodeField', () => {
       defaultValue: 1,
     } satisfies SingleRequiredFieldCodec<number>;
 
-    expect(
-      encodeField(new URLSearchParams('page=2'), codec, 'page', 1).toString(),
-    ).toBe('');
+    expect(encodeField(new URLSearchParams('page=2'), codec, 'page', 1).toString()).toBe('');
 
     expect(
       encodeField(new URLSearchParams('page=2'), codec, 'page', 1, {
@@ -388,12 +353,10 @@ describe('encodeField', () => {
       decode: (input) => input,
     } satisfies MultiOptionalFieldCodec<string[]>;
 
-    const searchParams = encodeField(
-      new URLSearchParams('tags=old&page=1'),
-      codec,
-      'tags',
-      ['a', 'b'],
-    );
+    const searchParams = encodeField(new URLSearchParams('tags=old&page=1'), codec, 'tags', [
+      'a',
+      'b',
+    ]);
 
     expect(searchParams.toString()).toBe('page=1&tags=a&tags=b');
   });
@@ -406,12 +369,7 @@ describe('encodeFieldInternal', () => {
     } satisfies SingleOptionalFieldCodec<number>;
     const searchParams = new URLSearchParams('page=1&sort=desc');
 
-    const nextSearchParams = encodeFieldInternal(
-      searchParams,
-      codec,
-      'page',
-      2,
-    );
+    const nextSearchParams = encodeFieldInternal(searchParams, codec, 'page', 2);
 
     expect(nextSearchParams).toBe(searchParams);
     expect(searchParams.toString()).toBe('page=2&sort=desc');
@@ -442,9 +400,7 @@ describe('isFieldValueEqual', () => {
       decode: (input) => ({ value: input }),
     } satisfies SingleOptionalFieldCodec<{ value: string }>;
 
-    expect(
-      isFieldValueEqual(codec, { value: 'decurl' }, { value: 'decurl' }),
-    ).toBe(false);
+    expect(isFieldValueEqual(codec, { value: 'decurl' }, { value: 'decurl' })).toBe(false);
   });
 
   it('uses custom field equality when provided', () => {
@@ -453,9 +409,7 @@ describe('isFieldValueEqual', () => {
       eq: (left, right) => left.value === right.value,
     } satisfies SingleOptionalFieldCodec<{ value: string }>;
 
-    expect(
-      isFieldValueEqual(codec, { value: 'decurl' }, { value: 'decurl' }),
-    ).toBe(true);
+    expect(isFieldValueEqual(codec, { value: 'decurl' }, { value: 'decurl' })).toBe(true);
   });
 
   it('uses order-sensitive shallow array equality for multi fields', () => {

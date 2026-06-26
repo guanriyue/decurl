@@ -82,9 +82,7 @@ export function pipe<A, B, C, D, E, F, G, H, I, J, K>(
   jk: Decode<J, K>,
 ): Decode<A, K>;
 
-export function pipe<A, B>(
-  ...decodes: Array<Decode<unknown, unknown>>
-): Decode<A, B> {
+export function pipe<A, B>(...decodes: Array<Decode<unknown, unknown>>): Decode<A, B> {
   return (input) => {
     let output: unknown = input;
 
@@ -102,10 +100,7 @@ export function pipe<A, B>(
 
 export function mapItems<A, B>(ab: Decode<A, B>): Decode<A[], B[]>;
 
-export function mapItems<A, B, C>(
-  ab: Decode<A, B>,
-  bc: Decode<B, C>,
-): Decode<A[], C[]>;
+export function mapItems<A, B, C>(ab: Decode<A, B>, bc: Decode<B, C>): Decode<A[], C[]>;
 
 export function mapItems<A, B, C, D>(
   ab: Decode<A, B>,
@@ -183,9 +178,7 @@ export function mapItems<A, B, C, D, E, F, G, H, I, J, K>(
   jk: Decode<J, K>,
 ): Decode<A[], K[]>;
 
-export function mapItems<A, B>(
-  ...decodes: Array<Decode<unknown, unknown>>
-): Decode<A[], B[]> {
+export function mapItems<A, B>(...decodes: Array<Decode<unknown, unknown>>): Decode<A[], B[]> {
   return (input) => {
     const values: B[] = [];
 
