@@ -1,7 +1,7 @@
 {
   "name": "@decurl/react-router",
   "version": "0.0.0",
-  "description": "",
+  "description": "React Router hooks and runtime helpers for typed Decurl URL Search Params state.",
   "type": "module",
   "sideEffects": false,
   "files": [
@@ -44,9 +44,30 @@
     "test": "vitest run --pool=threads --maxWorkers=1 --no-file-parallelism",
     "lint": "biome check ."
   },
-  "keywords": [],
-  "author": "wangyuze0319@outlook.com",
+  "keywords": [
+    "decurl",
+    "react",
+    "react-router",
+    "url",
+    "urlsearchparams",
+    "search-params",
+    "hooks",
+    "typescript"
+  ],
+  "author": {
+    "name": "guanriyue",
+    "url": "https://github.com/guanriyue"
+  },
   "license": "MIT",
+  "homepage": "https://guanriyue.github.io/decurl/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guanriyue/decurl.git",
+    "directory": "packages/react-router"
+  },
+  "bugs": {
+    "url": "https://github.com/guanriyue/decurl/issues"
+  },
   "publishConfig": {
     "access": "public",
     "main": "./dist/index.js",
