@@ -1,0 +1,114 @@
+{
+  "demo.empty": {
+    "en": "(empty)",
+    "zh": "（空）"
+  },
+  "demo.keyword": {
+    "en": "Keyword",
+    "zh": "关键词"
+  },
+  "demo.currentValue": {
+    "en": "Current value",
+    "zh": "当前值"
+  },
+  "demo.currentSearch": {
+    "en": "Current search params",
+    "zh": "当前参数"
+  },
+  "demo.queryInput.placeholder": {
+    "en": "Type router, search, docs...",
+    "zh": "输入 router、search、docs..."
+  },
+  "demo.queryForm.placeholder": {
+    "en": "Search docs",
+    "zh": "搜索文档"
+  },
+  "demo.queryForm.category": {
+    "en": "Category",
+    "zh": "分类"
+  },
+  "demo.queryForm.all": {
+    "en": "All",
+    "zh": "全部"
+  },
+  "demo.queryForm.guides": {
+    "en": "Guides",
+    "zh": "指南"
+  },
+  "demo.queryForm.api": {
+    "en": "API",
+    "zh": "API"
+  },
+  "demo.queryForm.availableOnly": {
+    "en": "Available results only",
+    "zh": "只看可用结果"
+  },
+  "demo.queryForm.submit": {
+    "en": "Submit query",
+    "zh": "提交查询"
+  },
+  "demo.reset": {
+    "en": "Reset",
+    "zh": "重置"
+  },
+  "demo.shared.singlePlaceholder": {
+    "en": "Update from single field hook",
+    "zh": "从单字段 hook 更新"
+  },
+  "demo.shared.valuesPlaceholder": {
+    "en": "Update from values hook",
+    "zh": "从多字段 hook 更新"
+  },
+  "demo.shared.singleValue": {
+    "en": "Value read by useSearchValue",
+    "zh": "useSearchValue 读到的值"
+  },
+  "demo.shared.valuesValue": {
+    "en": "Value read by useSearchValues",
+    "zh": "useSearchValues 读到的值"
+  },
+  "demo.equality.watchedKey": {
+    "en": "Watched key",
+    "zh": "监听的 key"
+  },
+  "demo.equality.unrelatedKey": {
+    "en": "Unrelated key",
+    "zh": "无关的 key"
+  },
+  "demo.equality.watchedPlaceholder": {
+    "en": "Changes the values reference",
+    "zh": "会改变 values 引用"
+  },
+  "demo.equality.unrelatedPlaceholder": {
+    "en": "Keeps the values reference",
+    "zh": "不会改变 values 引用"
+  },
+  "demo.equality.renderCount": {
+    "en": "Component renders",
+    "zh": "组件渲染次数"
+  },
+  "demo.equality.valuesChangeCount": {
+    "en": "Values reference changes",
+    "zh": "values 引用变化次数"
+  },
+  "demo.configured.updateA": {
+    "en": "Update A",
+    "zh": "更新 A"
+  },
+  "demo.configured.updateB": {
+    "en": "Update B",
+    "zh": "更新 B"
+  },
+  "demo.sharedDefaults.writeLeft": {
+    "en": "Write left",
+    "zh": "写入 left"
+  },
+  "demo.sharedDefaults.writeRight": {
+    "en": "Write right",
+    "zh": "写入 right"
+  },
+  "demo.sharedDefaults.deleteKey": {
+    "en": "Delete key",
+    "zh": "删除 key"
+  }
+}

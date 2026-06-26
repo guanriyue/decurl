@@ -2,6 +2,7 @@ import { useSearchValue } from '@decurl/react-router';
 import { defineFields } from '@decurl/react-router/codec';
 import { trim } from '@decurl/react-router/decode';
 import { useLocation } from 'react-router';
+import { toSearchText, useDemoI18n } from '@/examples/i18n';
 
 const fields = defineFields({
   keyword: {
@@ -10,21 +11,18 @@ const fields = defineFields({
   },
 });
 
-const toSearchText = (search: string): string => {
-  return search.length > 0 ? search : '(empty)';
-};
-
 const QueryInputDemo = () => {
+  const t = useDemoI18n();
   const location = useLocation();
   const [keyword, setKeyword] = useSearchValue(fields.keyword);
 
   return (
     <div className="decurl-demo">
       <label className="decurl-demo__field">
-        <span>关键词</span>
+        <span>{t('demo.keyword')}</span>
         <input
           value={keyword ?? ''}
-          placeholder="输入 router、search、docs..."
+          placeholder={t('demo.queryInput.placeholder')}
           onChange={(event) => {
             const nextValue = event.currentTarget.value.trim();
             setKeyword(nextValue === '' ? undefined : nextValue);
@@ -32,12 +30,12 @@ const QueryInputDemo = () => {
         />
       </label>
       <div className="decurl-demo__state">
-        <span>当前值</span>
+        <span>{t('demo.currentValue')}</span>
         <code>{keyword}</code>
       </div>
       <div className="decurl-demo__state">
-        <span>当前路由参数</span>
-        <code>{toSearchText(location.search)}</code>
+        <span>{t('demo.currentSearch')}</span>
+        <code>{toSearchText(location.search, t)}</code>
       </div>
     </div>
   );

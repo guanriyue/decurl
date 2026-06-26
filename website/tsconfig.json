@@ -22,10 +22,11 @@
     "noUnusedParameters": true,
 
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "i18n": ["./i18n.json"]
     }
   },
-  "include": ["docs", "src", "theme", "rspress.config.ts"],
+  "include": ["docs", "src", "theme", "rspress.config.ts", "i18n.json"],
   "mdx": {
     "checkMdx": true
   }

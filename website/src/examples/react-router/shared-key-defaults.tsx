@@ -2,6 +2,7 @@ import { useSearchValue, useSearchValues } from '@decurl/react-router';
 import { defineFields, field } from '@decurl/react-router/codec';
 import { trim } from '@decurl/react-router/decode';
 import { useLocation } from 'react-router';
+import { toSearchText, useDemoI18n } from '@/examples/i18n';
 
 const leftField = defineFields({
   value: field({
@@ -19,11 +20,8 @@ const rightFields = defineFields({
   }),
 });
 
-const toSearchText = (search: string): string => {
-  return search.length > 0 ? search : '(empty)';
-};
-
 const SharedKeyDefaultsDemo = () => {
+  const t = useDemoI18n();
   const location = useLocation();
   const [leftValue, setLeftValue] = useSearchValue(leftField.value);
   const [rightValues, setRightValues] = useSearchValues(rightFields);
@@ -47,7 +45,7 @@ const SharedKeyDefaultsDemo = () => {
             setLeftValue('from-left');
           }}
         >
-          写入 left
+          {t('demo.sharedDefaults.writeLeft')}
         </button>
         <button
           type="button"
@@ -55,7 +53,7 @@ const SharedKeyDefaultsDemo = () => {
             setRightValues({ value: 'from-right' });
           }}
         >
-          写入 right
+          {t('demo.sharedDefaults.writeRight')}
         </button>
         <button
           type="button"
@@ -64,12 +62,12 @@ const SharedKeyDefaultsDemo = () => {
             setLeftValue(undefined);
           }}
         >
-          删除 key
+          {t('demo.sharedDefaults.deleteKey')}
         </button>
       </div>
       <div className="decurl-demo__state">
-        <span>当前参数</span>
-        <code>{toSearchText(location.search)}</code>
+        <span>{t('demo.currentSearch')}</span>
+        <code>{toSearchText(location.search, t)}</code>
       </div>
     </div>
   );

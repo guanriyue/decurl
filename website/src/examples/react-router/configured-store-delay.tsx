@@ -3,6 +3,7 @@ import { createReactRouterSearch } from '@decurl/react-router/configured';
 import { min, pipe, shape, toNumber } from '@decurl/react-router/decode';
 import { memo, useRef } from 'react';
 import { useLocation } from 'react-router';
+import { toSearchText, useDemoI18n } from '@/examples/i18n';
 
 const fields = defineFields({
   countA: field({
@@ -24,10 +25,6 @@ const search = createReactRouterSearch({
   flushMode: 'debounce',
 });
 
-const toSearchText = (searchText: string): string => {
-  return searchText.length > 0 ? searchText : '(empty)';
-};
-
 const ConfiguredStoreDelayDemo = () => {
   return (
     <search.Provider>
@@ -37,6 +34,7 @@ const ConfiguredStoreDelayDemo = () => {
 };
 
 const DemoShell = () => {
+  const t = useDemoI18n();
   const renderCountRef = useRef(0);
   const location = useLocation();
 
@@ -46,7 +44,7 @@ const DemoShell = () => {
     <div className="decurl-demo">
       <div className="decurl-demo__state">
         <span>parent / React Router location</span>
-        <code>{toSearchText(location.search)}</code>
+        <code>{toSearchText(location.search, t)}</code>
         <code>parent renders: {renderCountRef.current}</code>
         <code>observation flushDelay: {observationDelay}ms</code>
       </div>
@@ -54,24 +52,24 @@ const DemoShell = () => {
         <CountPanel
           fieldKey="countA"
           title="plain countA"
-          buttonText="更新 A"
+          buttonText={t('demo.configured.updateA')}
         />
         <CountPanel
           fieldKey="countB"
           title="plain countB"
-          buttonText="更新 B"
+          buttonText={t('demo.configured.updateB')}
         />
       </div>
       <div className="decurl-demo__grid">
         <MemoCountPanel
           fieldKey="countA"
           title="memo countA"
-          buttonText="更新 A"
+          buttonText={t('demo.configured.updateA')}
         />
         <MemoCountPanel
           fieldKey="countB"
           title="memo countB"
-          buttonText="更新 B"
+          buttonText={t('demo.configured.updateB')}
         />
       </div>
     </div>

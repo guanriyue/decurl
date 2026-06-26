@@ -3,6 +3,7 @@ import { createReactRouterSearch } from '@decurl/react-router/configured';
 import { min, pipe, shape, toNumber } from '@decurl/react-router/decode';
 import { useRef } from 'react';
 import { useLocation } from 'react-router';
+import { toSearchText, useDemoI18n } from '@/examples/i18n';
 
 const fields = defineFields({
   countA: field({
@@ -24,10 +25,6 @@ const search = createReactRouterSearch({
   flushMode: 'debounce',
 });
 
-const toSearchText = (searchText: string): string => {
-  return searchText.length > 0 ? searchText : '(empty)';
-};
-
 const ConfiguredStoreRendersDemo = () => {
   return (
     <search.Provider>
@@ -47,6 +44,7 @@ const ConfiguredStoreRendersDemo = () => {
 };
 
 const LocationSearch = () => {
+  const t = useDemoI18n();
   const renderCountRef = useRef(0);
   const location = useLocation();
 
@@ -55,13 +53,14 @@ const LocationSearch = () => {
   return (
     <div className="decurl-demo__state">
       <span>React Router location</span>
-      <code>{toSearchText(location.search)}</code>
+      <code>{toSearchText(location.search, t)}</code>
       <code>renders: {renderCountRef.current}</code>
     </div>
   );
 };
 
 const CountA = () => {
+  const t = useDemoI18n();
   const renderCountRef = useRef(0);
   const [count, setCount] = search.useSearchValue(fields.countA);
 
@@ -79,7 +78,7 @@ const CountA = () => {
             setCount((value) => value + 1);
           }}
         >
-          更新 A
+          {t('demo.configured.updateA')}
         </button>
       </div>
     </section>
@@ -87,6 +86,7 @@ const CountA = () => {
 };
 
 const CountB = () => {
+  const t = useDemoI18n();
   const renderCountRef = useRef(0);
   const [count, setCount] = search.useSearchValue(fields.countB);
 
@@ -104,7 +104,7 @@ const CountB = () => {
             setCount((value) => value + 1);
           }}
         >
-          更新 B
+          {t('demo.configured.updateB')}
         </button>
       </div>
     </section>

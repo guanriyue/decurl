@@ -3,6 +3,7 @@ import { defineFields, field } from '@decurl/react-router/codec';
 import { trim } from '@decurl/react-router/decode';
 import { useRef } from 'react';
 import { useLocation } from 'react-router';
+import { toSearchText, useDemoI18n } from '@/examples/i18n';
 
 const watchedFields = defineFields({
   keyword: field({
@@ -20,11 +21,8 @@ const unrelatedFields = defineFields({
   }),
 });
 
-const toSearchText = (search: string): string => {
-  return search.length > 0 ? search : '(empty)';
-};
-
 const EqualityStableReferenceDemo = () => {
+  const t = useDemoI18n();
   const location = useLocation();
   const [values, setValues] = useSearchValues(watchedFields);
   const [unrelatedValue, setUnrelatedValue] = useSearchValue(
@@ -45,20 +43,20 @@ const EqualityStableReferenceDemo = () => {
     <div className="decurl-demo">
       <div className="decurl-demo__grid">
         <label className="decurl-demo__field">
-          <span>监听的 key</span>
+          <span>{t('demo.equality.watchedKey')}</span>
           <input
             value={values.keyword}
-            placeholder="会改变 values 引用"
+            placeholder={t('demo.equality.watchedPlaceholder')}
             onChange={(event) => {
               setValues({ keyword: event.currentTarget.value });
             }}
           />
         </label>
         <label className="decurl-demo__field">
-          <span>无关的 key</span>
+          <span>{t('demo.equality.unrelatedKey')}</span>
           <input
             value={unrelatedValue}
-            placeholder="不会改变 values 引用"
+            placeholder={t('demo.equality.unrelatedPlaceholder')}
             onChange={(event) => {
               setUnrelatedValue(event.currentTarget.value);
             }}
@@ -67,17 +65,17 @@ const EqualityStableReferenceDemo = () => {
       </div>
       <div className="decurl-demo__grid">
         <div className="decurl-demo__state">
-          <span>组件渲染次数</span>
+          <span>{t('demo.equality.renderCount')}</span>
           <code>{renderCountRef.current}</code>
         </div>
         <div className="decurl-demo__state">
-          <span>values 引用变化次数</span>
+          <span>{t('demo.equality.valuesChangeCount')}</span>
           <code>{valuesChangeCountRef.current}</code>
         </div>
       </div>
       <div className="decurl-demo__state">
-        <span>当前参数</span>
-        <code>{toSearchText(location.search)}</code>
+        <span>{t('demo.currentSearch')}</span>
+        <code>{toSearchText(location.search, t)}</code>
       </div>
     </div>
   );

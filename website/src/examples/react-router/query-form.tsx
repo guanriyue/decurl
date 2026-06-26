@@ -11,6 +11,7 @@ import {
 } from '@decurl/react-router/decode';
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router';
+import { toSearchText, useDemoI18n } from '@/examples/i18n';
 
 const fields = defineFields({
   query: field({
@@ -33,10 +34,6 @@ const fields = defineFields({
     defaultValue: 1,
   }),
 });
-
-const toSearchText = (search: string): string => {
-  return search.length > 0 ? search : '(empty)';
-};
 
 const setFieldValue = (
   form: HTMLFormElement,
@@ -70,6 +67,7 @@ const normalizeCategory = (value: FormDataEntryValue | undefined) => {
 };
 
 const QueryFormDemo = () => {
+  const t = useDemoI18n();
   const location = useLocation();
   const formRef = useRef<HTMLFormElement>(null);
   const [values, setValues] = useSearchValues(fields);
@@ -108,24 +106,24 @@ const QueryFormDemo = () => {
     >
       <div className="decurl-demo__grid">
         <label className="decurl-demo__field">
-          <span>关键词</span>
-          <input name="query" placeholder="搜索文档" />
+          <span>{t('demo.keyword')}</span>
+          <input name="query" placeholder={t('demo.queryForm.placeholder')} />
         </label>
         <label className="decurl-demo__field">
-          <span>分类</span>
+          <span>{t('demo.queryForm.category')}</span>
           <select name="category">
-            <option value="all">全部</option>
-            <option value="docs">指南</option>
-            <option value="api">API</option>
+            <option value="all">{t('demo.queryForm.all')}</option>
+            <option value="docs">{t('demo.queryForm.guides')}</option>
+            <option value="api">{t('demo.queryForm.api')}</option>
           </select>
         </label>
       </div>
       <label className="decurl-demo__check">
         <input name="inStock" type="checkbox" value="true" />
-        <span>只看可用结果</span>
+        <span>{t('demo.queryForm.availableOnly')}</span>
       </label>
       <div className="decurl-demo__actions">
-        <button type="submit">提交查询</button>
+        <button type="submit">{t('demo.queryForm.submit')}</button>
         <button
           type="button"
           className="decurl-demo__button-secondary"
@@ -138,12 +136,12 @@ const QueryFormDemo = () => {
             });
           }}
         >
-          重置
+          {t('demo.reset')}
         </button>
       </div>
       <div className="decurl-demo__state">
-        <span>当前参数</span>
-        <code>{toSearchText(location.search)}</code>
+        <span>{t('demo.currentSearch')}</span>
+        <code>{toSearchText(location.search, t)}</code>
       </div>
     </form>
   );
