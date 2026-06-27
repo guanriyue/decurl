@@ -20,8 +20,8 @@ See [FieldCodec](./field-codec) for FieldCodec properties, and [Decode pipeline]
 `defineFields` accepts a group of field codecs and returns a group of named field codecs.
 
 ```ts
-import { defineFields, field } from '@decurl/react-router/codec';
-import { elementOf, min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+import { defineFields, field } from 'decurl/codec';
+import { elementOf, min, pipe, shape, toNumber, trim } from 'decurl/decode';
 
 const searchFields = defineFields({
   keyword: field({
@@ -66,7 +66,7 @@ If a developer has already provided an explicit `name`, `defineFields` is not re
 Search Fields let a single field codec carry its URL key, so upper-level APIs do not need another magic string.
 
 ```tsx
-import { useSearchValue } from '@decurl/react-router';
+import { useSearchValue } from 'decurl';
 
 const SearchInput = () => {
   const [keyword, setKeyword] = useSearchValue(searchFields.keyword);
@@ -120,8 +120,8 @@ New write-back: ?page=3
 A field codec with an explicit `name` can be passed directly to `useSearchValue`:
 
 ```ts twoslash
-import { useSearchValue } from '@decurl/react-router';
-import { trim } from '@decurl/react-router/decode';
+import { useSearchValue } from 'decurl';
+import { trim } from 'decurl/decode';
 
 const keywordField = {
   name: 'q',
@@ -141,8 +141,8 @@ const SearchInput = () => {
 If a field codec does not contain `name`, a single-field hook cannot know which URL key to read or write, and TypeScript prevents that usage:
 
 ```ts twoslash
-import { useSearchValue } from '@decurl/react-router';
-import { trim } from '@decurl/react-router/decode';
+import { useSearchValue } from 'decurl';
+import { trim } from 'decurl/decode';
 
 // @noErrorValidation
 useSearchValue({
@@ -153,9 +153,9 @@ useSearchValue({
 A group of Search Fields can continue to infer the full values type through `InferFieldValues`:
 
 ```ts twoslash
-import type { InferFieldValues } from '@decurl/react-router/codec';
-import { defineFields, field } from '@decurl/react-router/codec';
-import { elementOf, min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+import type { InferFieldValues } from 'decurl/codec';
+import { defineFields, field } from 'decurl/codec';
+import { elementOf, min, pipe, shape, toNumber, trim } from 'decurl/decode';
 
 const searchFields = defineFields({
   keyword: field({

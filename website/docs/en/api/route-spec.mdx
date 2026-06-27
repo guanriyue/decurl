@@ -1,13 +1,13 @@
 ---
-description: '@decurl/react-router/routeSpec defines path and Search Fields in one place, then generates type-safe in-app hrefs.'
+description: 'decurl/routeSpec defines path and Search Fields in one place, then generates type-safe in-app hrefs.'
 ---
 
-# @decurl/react-router/routeSpec
+# decurl/routeSpec
 
-`@decurl/react-router/routeSpec` defines React Router paths and Search Fields in one place, then generates type-safe in-app hrefs from business values.
+`decurl/routeSpec` defines React Router paths and Search Fields in one place, then generates type-safe in-app hrefs from business values.
 
 ```ts
-import { routeSpec } from '@decurl/react-router/routeSpec';
+import { routeSpec } from 'decurl/routeSpec';
 ```
 
 RouteSpec is a URL contract and href builder. It does not define components, loaders, actions, or route hierarchy.
@@ -26,8 +26,8 @@ routeSpec({
 The definition below preserves the concrete types of the path pattern and Search Fields:
 
 ```ts
-import { defineFields, field } from '@decurl/react-router/codec';
-import { routeSpec } from '@decurl/react-router/routeSpec';
+import { defineFields, field } from 'decurl/codec';
+import { routeSpec } from 'decurl/routeSpec';
 
 const usersSearch = defineFields({
   keyword: field({
@@ -170,8 +170,8 @@ Conflict detection is based on path param names and Search Fields property keys.
 
 ```ts twoslash
 // @errors: 2345
-import { defineFields, field } from '@decurl/react-router/codec';
-import { routeSpec } from '@decurl/react-router/routeSpec';
+import { defineFields, field } from 'decurl/codec';
+import { routeSpec } from 'decurl/routeSpec';
 
 const detail = routeSpec({
   path: '/users/:id',
@@ -255,13 +255,13 @@ RouteSpec does not store parent/child relationships. Object or directory hierarc
 Public type extractors correspond to path params, search encode input, and search decode values:
 
 ```ts twoslash
-import { defineFields, field } from '@decurl/react-router/codec';
+import { defineFields, field } from 'decurl/codec';
 import {
   type InferRouteSpecParams,
   type InferRouteSpecSearchInput,
   type InferRouteSpecSearchValues,
   routeSpec,
-} from '@decurl/react-router/routeSpec';
+} from 'decurl/routeSpec';
 
 const searchFields = defineFields({
   keyword: field({

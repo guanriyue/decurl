@@ -1,19 +1,19 @@
 ---
-description: "@decurl/react-router connects Decurl Search Fields to React Router and exposes URL search state as hooks."
+description: "decurl connects Decurl Search Fields to React Router and exposes URL search state as hooks."
 ---
 
 # React Router Integration
 
-`@decurl/react-router` connects Decurl Search Fields to React Router. Its goal is to let URL search be read and updated like ordinary React state, while keeping the URL as the final source of truth.
+`decurl` connects Decurl Search Fields to React Router. Its goal is to let URL search be read and updated like ordinary React state, while keeping the URL as the final source of truth.
 
 ## hooks
 
 The minimal usage is to import hooks and Search Fields tools directly:
 
 ```tsx
-import { useSearchValue } from '@decurl/react-router';
-import { defineFields, field } from '@decurl/react-router/codec';
-import { pipe, shape, trim } from '@decurl/react-router/decode';
+import { useSearchValue } from 'decurl';
+import { defineFields, field } from 'decurl/codec';
+import { pipe, shape, trim } from 'decurl/decode';
 
 const fields = defineFields({
   keyword: field({
@@ -37,9 +37,9 @@ const SearchInput = () => {
 };
 ```
 
-This style fits applications that only need one default search store.
+This style fits applications with one default search store.
 
-Main-entry hooks do not require you to manually create a Provider. `useSearchValue` and `useSearchValues` use the default search store and automatically wire the current React Router runtime.
+Default hooks do not require you to manually create a Provider. `useSearchValue` and `useSearchValues` use the default search store and automatically wire the current React Router runtime.
 
 ## Single Value
 
@@ -93,16 +93,16 @@ export const App = () => {
 };
 ```
 
-As long as the component is inside a React Router environment, it can use the main-entry hooks directly.
+As long as the component is inside a React Router environment, it can use the default hooks directly.
 
 If you need to bind a store, configure flush strategy, or isolate multiple search states, see [Bound Store](./configured-store).
 
 ## Relationship with the codec Entry
 
-React Router hooks do not redefine URL fields. Search Fields are defined with `@decurl/react-router/codec` and then reused by hooks:
+React Router hooks do not redefine URL fields. Search Fields are defined with `decurl/codec` and then reused by hooks:
 
 ```ts
-import { defineFields, field } from '@decurl/react-router/codec';
+import { defineFields, field } from 'decurl/codec';
 
 const searchFields = defineFields({
   page: field({

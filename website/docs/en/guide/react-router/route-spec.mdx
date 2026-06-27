@@ -48,9 +48,9 @@ RouteSpec and router config are intentionally not defined together. RouteSpec si
 Define Search Fields for a page first, then combine them with a React Router path pattern into a route spec:
 
 ```ts
-import { defineFields, field } from '@decurl/react-router/codec';
-import { pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
-import { routeSpec } from '@decurl/react-router/routeSpec';
+import { defineFields, field } from 'decurl/codec';
+import { pipe, shape, toNumber, trim } from 'decurl/decode';
+import { routeSpec } from 'decurl/routeSpec';
 
 const usersSearch = defineFields({
   keyword: field({
@@ -158,7 +158,7 @@ RouteSpec does not store parent/child relationships, and it does not infer route
 A route spec with `search` preserves the original Search Fields. When a page reads URL search state, it can reuse the same definition:
 
 ```tsx
-import { useSearchValues } from '@decurl/react-router';
+import { useSearchValues } from 'decurl';
 import { to } from './routes';
 
 const UsersPage = () => {
@@ -298,4 +298,4 @@ This document describes one way to organize URL contracts, not a routing archite
 - Search Fields should still be defined by page and business semantics. RouteSpec only places them next to path in one contract.
 - If your project already has clear href management, route assembly, and Search Fields organization, keep using your own approach.
 
-For concrete API boundaries, see [@decurl/react-router/routeSpec](/api/route-spec).
+For concrete API boundaries, see [decurl/routeSpec](/api/route-spec).

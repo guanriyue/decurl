@@ -1,25 +1,23 @@
 ---
 title: API Overview
-description: Decurl uses @decurl/react-router as the main entry and exposes codec, decode, routeSpec, pagination, and configured APIs through conditional exports.
+description: Decurl API reference for hooks, codec, decode, routeSpec, pagination, and configured APIs.
 overview: true
 ---
 
 # API Overview
 
-The application-facing Decurl API uses `@decurl/react-router` as the main entry.
-
-Besides the default entry, `@decurl/react-router` exposes `configured`, `codec`, `decode`, `routeSpec`, and `pagination` sub-entries through conditional exports.
+The default `decurl` entry provides React Router hooks. Additional API entries cover `configured`, `codec`, `decode`, `routeSpec`, and `pagination`.
 
 ## Entries
 
-| Package | Entry | Purpose |
-| --- | --- | --- |
-| `@decurl/react-router` | `@decurl/react-router` | Ready-to-use React Router hooks |
-| `@decurl/react-router` | `@decurl/react-router/configured` | Create store-bound hooks and Provider |
-| `@decurl/react-router` | `@decurl/react-router/codec` | FieldCodec, Search Fields, URLSearchParams codec |
-| `@decurl/react-router` | `@decurl/react-router/decode` | Decode primitives and composition helpers |
-| `@decurl/react-router` | `@decurl/react-router/routeSpec` | Define path and search contracts, then generate type-safe hrefs |
-| `@decurl/react-router` | `@decurl/react-router/pagination` | Page, pageSize, and pagination behavior |
+| Entry | Purpose |
+| --- | --- |
+| `decurl` | Ready-to-use React Router hooks |
+| `decurl/configured` | Create store-bound hooks and Provider |
+| `decurl/codec` | FieldCodec, Search Fields, URLSearchParams codec |
+| `decurl/decode` | Decode primitives and composition helpers |
+| `decurl/routeSpec` | Define path and search contracts, then generate type-safe hrefs |
+| `decurl/pagination` | Page, pageSize, and pagination behavior |
 
 ## Recommended Reading Order
 
@@ -31,9 +29,9 @@ Besides the default entry, `@decurl/react-router` exposes `configured`, `codec`,
 
 ## Reference
 
-- [@decurl/react-router/codec](./codec)
-- [@decurl/react-router/decode](./decode)
-- [@decurl/react-router](./react-router)
-- [@decurl/react-router/routeSpec](./route-spec)
-- [@decurl/react-router/pagination](./pagination)
-- [@decurl/react-router/configured](./configured)
+- [decurl/codec](./codec)
+- [decurl/decode](./decode)
+- [decurl](./react-router)
+- [decurl/routeSpec](./route-spec)
+- [decurl/pagination](./pagination)
+- [decurl/configured](./configured)

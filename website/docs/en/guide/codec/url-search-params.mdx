@@ -7,7 +7,7 @@ description: createURLSearchParamsCodec compiles Search Fields into type-safe UR
 `createURLSearchParamsCodec` turns Search Fields into a directly usable URLSearchParams codec.
 
 ```ts
-import { createURLSearchParamsCodec } from '@decurl/react-router/codec';
+import { createURLSearchParamsCodec } from 'decurl/codec';
 
 const codec = createURLSearchParamsCodec(searchFields);
 ```
@@ -30,8 +30,8 @@ But `encode` is still important. When you need to build links, navigation target
 The input of `encode` comes from Search Fields. Both field names and field values are checked by TypeScript.
 
 ```ts twoslash
-import { createURLSearchParamsCodec, defineFields, field } from '@decurl/react-router/codec';
-import { elementOf, min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+import { createURLSearchParamsCodec, defineFields, field } from 'decurl/codec';
+import { elementOf, min, pipe, shape, toNumber, trim } from 'decurl/decode';
 
 const searchFields = defineFields({
   keyword: field({
@@ -72,8 +72,8 @@ Type errors surface at the call site:
 
 ```ts twoslash
 // @noErrorValidation
-import { createURLSearchParamsCodec, defineFields, field } from '@decurl/react-router/codec';
-import { elementOf, trim } from '@decurl/react-router/decode';
+import { createURLSearchParamsCodec, defineFields, field } from 'decurl/codec';
+import { elementOf, trim } from 'decurl/decode';
 
 const searchFields = defineFields({
   keyword: field({
@@ -210,7 +210,7 @@ codec.encode({ page: 1 }, { preserveDefault: true }).toString();
 Multi fields write multiple keys with the same name in array order.
 
 ```ts
-import { mapItems, pipe, unique } from '@decurl/react-router/decode';
+import { mapItems, pipe, unique } from 'decurl/decode';
 
 const searchFields = defineFields({
   tag: field({

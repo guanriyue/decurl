@@ -12,7 +12,7 @@
   {
     "type": "dir-section-header",
     "name": "react-router",
-    "label": "@decurl/react-router"
+    "label": "React Router Integration"
   },
   {
     "type": "dir-section-header",

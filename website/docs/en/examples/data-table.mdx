@@ -16,7 +16,7 @@ Click **Page 999**, or manually change `page` in the URL to a very large number,
 
 When `page=999` is set repeatedly in a short time, SWR may dedupe the same request and the success callback will not fire again, so that run cannot automatically correct the page. This also shows that `preventOverflow` is a one-time recovery after receiving a trustworthy `total`; it does not coordinate request cache. See [Understanding Pagination Overflow](/guide/react-router/pagination/overflow) for more background.
 
-```tsx file="./_demos/data-table.tsx" preview
+```tsx file="<root>/src/examples/react-router/examples/data-table.tsx" preview
 ```
 
 ## Related APIs

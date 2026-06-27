@@ -1,12 +1,12 @@
 ---
-description: 'API reference for @decurl/react-router/configured.'
+description: 'API reference for decurl/configured.'
 ---
 
-# @decurl/react-router/configured
+# decurl/configured
 
-`@decurl/react-router/configured` creates hooks and runtime configuration components bound to the same search store.
+`decurl/configured` creates hooks and runtime configuration components bound to the same search store.
 
-The main-entry hooks can be used directly. The configured entry is better suited for these scenarios:
+The default hooks can be used directly. The configured entry is better suited for these scenarios:
 
 - The application has multiple React Router runtimes and needs isolated search state.
 - You want to hold the `store` explicitly.
@@ -14,7 +14,7 @@ The main-entry hooks can be used directly. The configured entry is better suited
 - You need to configure `flushDelay` or `flushMode`.
 
 ```tsx
-import { createReactRouterSearch } from '@decurl/react-router/configured';
+import { createReactRouterSearch } from 'decurl/configured';
 ```
 
 ## createReactRouterSearch
@@ -53,7 +53,7 @@ Configured hooks do not configure the runtime automatically. Before using them, 
 
 ```tsx
 import { BrowserRouter } from 'react-router';
-import { createReactRouterSearch } from '@decurl/react-router/configured';
+import { createReactRouterSearch } from 'decurl/configured';
 
 const search = createReactRouterSearch();
 
@@ -102,7 +102,7 @@ If you use a data router instance, pass `router` to `Provider`:
 
 ## Hooks
 
-Configured hooks are called the same way as main-entry hooks, but they are bound to the store returned by the current `createReactRouterSearch` object.
+Configured hooks are called the same way as the default hooks, but they are bound to the store returned by the current `createReactRouterSearch` object.
 
 ```tsx
 const SearchPanel = () => {
@@ -140,15 +140,15 @@ const PageButton = () => {
 };
 ```
 
-Setter semantics such as patch values, `setValues(undefined)` clearing the current Search Fields, `null` / `undefined` deleting fields, and navigate options are the same as the main [@decurl/react-router](./react-router) entry.
+Setter semantics such as patch values, `setValues(undefined)` clearing the current Search Fields, `null` / `undefined` deleting fields, and navigate options are the same as the default [decurl](./react-router) entry.
 
 ### Composing Pagination
 
 Pagination can be bound to the current search store with `createUseSearchPagination`:
 
 ```tsx
-import { createReactRouterSearch } from '@decurl/react-router/configured';
-import { createUseSearchPagination } from '@decurl/react-router/pagination';
+import { createReactRouterSearch } from 'decurl/configured';
+import { createUseSearchPagination } from 'decurl/pagination';
 
 const search = createReactRouterSearch();
 
@@ -157,7 +157,7 @@ const useSearchPagination = createUseSearchPagination({
 });
 ```
 
-The object returned by `createReactRouterSearch` does not include a pagination hook by itself. See [@decurl/react-router/pagination](./pagination#createusesearchpagination) for the complete API.
+The object returned by `createReactRouterSearch` does not include a pagination hook by itself. See [decurl/pagination](./pagination#createusesearchpagination) for the complete API.
 
 ## Options
 
@@ -203,7 +203,7 @@ For a fuller observation example, see [Bound Store](/guide/react-router/configur
 
 ## Related
 
-- [@decurl/react-router](./react-router)
-- [@decurl/react-router/pagination](./pagination)
-- [@decurl/react-router/codec](./codec)
+- [decurl](./react-router)
+- [decurl/pagination](./pagination)
+- [decurl/codec](./codec)
 - [Bound Store](/guide/react-router/configured-store)

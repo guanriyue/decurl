@@ -1,5 +1,5 @@
 ---
-description: Define Search Fields with @decurl/react-router and reuse them in hooks and URLSearchParams codecs.
+description: Define Search Fields with decurl and reuse them in hooks and URLSearchParams codecs.
 ---
 
 # Getting Started
@@ -9,16 +9,16 @@ The core Decurl workflow is: define a set of Search Fields first, then reuse the
 ## Install
 
 ```bash
-pnpm add @decurl/react-router
+pnpm add decurl
 ```
 
-`@decurl/react-router` supports React 18 and React 19, and requires React Router 7. For an existing React Router application, adding the Decurl dependency is enough.
+`decurl` supports React 18 and React 19, and requires React Router 7.
 
 ## Define Fields
 
 ```ts
-import { createURLSearchParamsCodec, defineFields, field } from '@decurl/react-router/codec';
-import { elementOf, min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+import { createURLSearchParamsCodec, defineFields, field } from 'decurl/codec';
+import { elementOf, min, pipe, shape, toNumber, trim } from 'decurl/decode';
 
 const searchFields = defineFields({
   q: field({
@@ -82,10 +82,10 @@ See [`createURLSearchParamsCodec`](/api/codec#createurlsearchparamscodec) for mo
 
 ## Use It with React Router
 
-React Router hooks can use the same Search Fields directly. Main-entry hooks do not require an extra Provider.
+React Router hooks can use the same Search Fields directly. Default hooks do not require an extra Provider.
 
 ```tsx
-import { useSearchValues } from '@decurl/react-router';
+import { useSearchValues } from 'decurl';
 
 const SearchPanel = () => {
   const [values, setValues] = useSearchValues(searchFields);
@@ -98,7 +98,7 @@ const SearchPanel = () => {
 };
 ```
 
-Use [`useSearchValue`](/api/react-router#usesearchvalue) when reading a single field. If you need to bind a store, isolate multiple React Router runtimes, or reduce direct dependency on React Router `useLocation`, continue with [`@decurl/react-router/configured`](/api/configured).
+Use [`useSearchValue`](/api/react-router#usesearchvalue) when reading a single field. If you need to bind a store, isolate multiple React Router runtimes, or reduce direct dependency on React Router `useLocation`, continue with [`decurl/configured`](/api/configured).
 
 Continue reading:
 

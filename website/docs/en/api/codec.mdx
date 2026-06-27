@@ -1,15 +1,15 @@
 ---
-description: 'API reference for @decurl/react-router/codec.'
+description: 'API reference for decurl/codec.'
 ---
 
-# @decurl/react-router/codec
+# decurl/codec
 
-`@decurl/react-router/codec` defines field rules for URL search params. It focuses on how URL keys map to business values, and how business values are serialized back to URLSearchParams.
+`decurl/codec` defines field rules for URL search params. It focuses on how URL keys map to business values, and how business values are serialized back to URLSearchParams.
 
-Decode logic can be a plain function, or it can use primitives from [`@decurl/react-router/decode`](./decode).
+Decode logic can be a plain function, or it can use primitives from [`decurl/decode`](./decode).
 
 ```ts
-import { createURLSearchParamsCodec, defineFields, field } from '@decurl/react-router/codec';
+import { createURLSearchParamsCodec, defineFields, field } from 'decurl/codec';
 ```
 
 ## field
@@ -17,7 +17,7 @@ import { createURLSearchParamsCodec, defineFields, field } from '@decurl/react-r
 `field(definition)` freezes the type of a single FieldCodec. The smallest codec can be a plain object, but `field` is recommended because it helps TypeScript preserve information such as `mode`, `defaultValue`, `decode`, and `encode` more reliably.
 
 ```ts
-import { field } from '@decurl/react-router/codec';
+import { field } from 'decurl/codec';
 
 const keyword = field({
   decode: (value: string) => {
@@ -45,7 +45,7 @@ For more design details, see [FieldCodec](/guide/codec/field-codec).
 `defineFields(fields, options?)` defines a set of Search Fields. For fields without an explicit `name`, it uses the object key as the URL key.
 
 ```ts
-import { defineFields, field } from '@decurl/react-router/codec';
+import { defineFields, field } from 'decurl/codec';
 
 const searchFields = defineFields({
   keyword: field({
@@ -73,7 +73,7 @@ When a field has multiple `name` values, the first one is the canonical key and 
 | `encode(values, options?)` | Serializes a business object into a new `URLSearchParams`. |
 
 ```ts
-import { createURLSearchParamsCodec, defineFields, field } from '@decurl/react-router/codec';
+import { createURLSearchParamsCodec, defineFields, field } from 'decurl/codec';
 
 const fields = defineFields({
   page: field({

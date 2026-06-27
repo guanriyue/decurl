@@ -4,12 +4,12 @@ description: createReactRouterSearch creates store-bound Providers and hooks to 
 
 # Bound Store
 
-The main-entry `useSearchValue` and `useSearchValues` hooks can be used directly without manually creating a Provider. They use the default singleton search store and fit most applications with only one React Router runtime.
+The default `useSearchValue` and `useSearchValues` hooks can be used directly without manually creating a Provider. They use the default singleton search store and fit most applications with only one React Router runtime.
 
-When an application needs to isolate stores, bind to a specific router runtime, or reduce some unrelated updates, use `@decurl/react-router/configured`:
+When an application needs to isolate stores, bind to a specific router runtime, or reduce some unrelated updates, use `decurl/configured`:
 
 ```tsx
-import { createReactRouterSearch } from '@decurl/react-router/configured';
+import { createReactRouterSearch } from 'decurl/configured';
 
 const search = createReactRouterSearch({
   flushMode: 'debounce',
@@ -28,7 +28,7 @@ const search = createReactRouterSearch({
 
 ```tsx
 import { BrowserRouter } from 'react-router';
-import { createReactRouterSearch } from '@decurl/react-router/configured';
+import { createReactRouterSearch } from 'decurl/configured';
 
 const search = createReactRouterSearch();
 
@@ -84,14 +84,14 @@ If `memo` is not used at all, React Router may still re-render the current docs 
 
 This entry can still reduce some renders, mainly because:
 
-- Bound hooks consume the bound store snapshot and do not directly depend on React Router `useLocation` inside the hook like main-entry hooks do.
+- Bound hooks consume the bound store snapshot and do not directly depend on React Router `useLocation` inside the hook like default hooks do.
 - When React Router location is confirmed, bound hooks do not necessarily re-run because they called `useLocation` themselves.
 
 ## When to Use It
 
-Prefer the main-entry hooks first. Consider a bound store when:
+Prefer the default hooks first. Consider a bound store when:
 
-- The application has multiple React Router runtimes. Main-entry hooks use the default singleton store, and sharing one default store across multiple router instances can make runtime boundaries unclear. In that case, create a bound store for each router instance.
+- The application has multiple React Router runtimes. Default hooks use the default singleton store, and sharing one default store across multiple router instances can make runtime boundaries unclear. In that case, create a bound store for each router instance.
 - You need to reduce hook consumer renders caused by React Router location changes. Bound hooks do not directly depend on React Router `useLocation`, so they are less affected by the location confirmation phase.
 - You want to configure `flushMode` or `flushDelay` for a group of hooks.
 - You need to wire the runtime explicitly through a data router instance.

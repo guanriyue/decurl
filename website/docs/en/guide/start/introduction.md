@@ -19,20 +19,18 @@ That may sound like validation, but Decurl is not trying to become a general-pur
 - Frontend state updates are usually patches, not full replacements of the entire search object.
 - Router integration often needs optimistic state during user interaction before the URL refresh catches up.
 
-## Package Structure
+## Entry Structure
 
-The current documentation focuses on `@decurl/react-router` and its conditional exports:
+The current documentation covers these API entries:
 
 | Entry | Responsibility |
 | --- | --- |
-| `@decurl/react-router` | Ready-to-use React Router hooks |
-| `@decurl/react-router/codec` | FieldCodec, Search Fields, type inference, and URLSearchParams decode/encode |
-| `@decurl/react-router/decode` | Decode pipelines and primitive parsing helpers |
-| `@decurl/react-router/routeSpec` | Define path and search contracts, then generate type-safe hrefs |
-| `@decurl/react-router/pagination` | Page, pageSize, and pagination behavior |
-| `@decurl/react-router/configured` | Create store-bound hooks, Provider, and React Router runtime wiring |
-
-Users only need to install `@decurl/react-router`. These entries are provided by the same package and share the same Search Fields rules.
+| `decurl` | Ready-to-use React Router hooks |
+| `decurl/codec` | FieldCodec, Search Fields, type inference, and URLSearchParams decode/encode |
+| `decurl/decode` | Decode pipelines and primitive parsing helpers |
+| `decurl/routeSpec` | Define path and search contracts, then generate type-safe hrefs |
+| `decurl/pagination` | Page, pageSize, and pagination behavior |
+| `decurl/configured` | Create store-bound hooks, Provider, and React Router runtime wiring |
 
 ## Design Direction
 

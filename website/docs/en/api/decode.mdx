@@ -1,13 +1,13 @@
 ---
-description: 'API reference for @decurl/react-router/decode.'
+description: 'API reference for decurl/decode.'
 ---
 
-# @decurl/react-router/decode
+# decurl/decode
 
-`@decurl/react-router/decode` provides optional decode primitives. They compose common string parsing logic, but they are not required; complex structures can use a custom `decode` function directly.
+`decurl/decode` provides optional decode primitives. They compose common string parsing logic, but they are not required; complex structures can use a custom `decode` function directly.
 
 ```ts
-import { pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+import { pipe, shape, toNumber, trim } from 'decurl/decode';
 ```
 
 ## Failure Semantics
@@ -15,7 +15,7 @@ import { pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
 `Decode<TInput, TOutput>` is a synchronous function. Returning `null` or `undefined` means parsing failed, and `pipe` stops later steps.
 
 ```ts
-import type { Decode } from '@decurl/react-router/decode';
+import type { Decode } from 'decurl/decode';
 
 const compact: Decode<string, string> = (value) => {
   const nextValue = value.trim();
@@ -32,7 +32,7 @@ Composition helpers organize a decode pipeline.
 `mapItems(...steps)` runs pipe-like decode logic for every array item. Items that fail to parse are filtered out.
 
 ```ts
-import { mapItems, pipe, shape, toNumber, unique } from '@decurl/react-router/decode';
+import { mapItems, pipe, shape, toNumber, unique } from 'decurl/decode';
 
 const decodeIds = pipe(
   mapItems(shape.integer, toNumber),
@@ -47,7 +47,7 @@ const decodeIds = pipe(
 When a step returns `null` or `undefined`, `pipe` stops later steps and returns `undefined`.
 
 ```ts
-import { min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+import { min, pipe, shape, toNumber, trim } from 'decurl/decode';
 
 const decodePage = pipe(trim, shape.integer, toNumber, min(1));
 ```
@@ -61,7 +61,7 @@ Normalize APIs arrange raw strings into a better shape for later parsing.
 `trim(input)` removes whitespace from both ends of a string.
 
 ```ts
-import { trim } from '@decurl/react-router/decode';
+import { trim } from 'decurl/decode';
 
 trim('  decurl  ');
 // 'decurl'
@@ -94,7 +94,7 @@ Shape and Guard APIs only check whether a value satisfies a requirement. They do
 `elementOf(values)` requires the value to be included in the given array. It uses `Object.is` for membership checks and does not perform type conversion.
 
 ```ts
-import { elementOf, pipe, shape, toNumber } from '@decurl/react-router/decode';
+import { elementOf, pipe, shape, toNumber } from 'decurl/decode';
 
 const decodePageSize = pipe(
   shape.integer,
@@ -121,7 +121,7 @@ const decodePageSize = pipe(shape.integer, toNumber, elementOf(PageSize));
 `shape(regexp)` requires the string to match the given regular expression. The output is still the original string.
 
 ```ts
-import { shape } from '@decurl/react-router/decode';
+import { shape } from 'decurl/decode';
 
 const nonEmpty = shape(/.+/);
 ```
@@ -131,7 +131,7 @@ const nonEmpty = shape(/.+/);
 `shape.boolish` requires the string to be `'true'` or `'false'`, and narrows the type to `'true' | 'false'`.
 
 ```ts
-import { pipe, shape, toBoolean } from '@decurl/react-router/decode';
+import { pipe, shape, toBoolean } from 'decurl/decode';
 
 const decodeEnabled = pipe(shape.boolish, toBoolean);
 ```
@@ -159,7 +159,7 @@ shape.datetime('2026-06-07T13:45:30Z');
 `shape.integer` requires the string to match a decimal integer shape. It does not convert the string to number.
 
 ```ts
-import { pipe, shape, toNumber } from '@decurl/react-router/decode';
+import { pipe, shape, toNumber } from 'decurl/decode';
 
 const decodeInteger = pipe(shape.integer, toNumber);
 ```
@@ -186,7 +186,7 @@ const decodeNumber = pipe(shape.number, toNumber);
 `startsWith(prefix)` requires the string to start with the prefix and narrows the type to a template literal type.
 
 ```ts
-import { startsWith } from '@decurl/react-router/decode';
+import { startsWith } from 'decurl/decode';
 
 const decodeUserId = startsWith('user_');
 ```
@@ -196,7 +196,7 @@ const decodeUserId = startsWith('user_');
 `where(predicate)` filters a value with a predicate or type guard. When the predicate returns `false`, the decode result is `undefined`.
 
 ```ts
-import { where } from '@decurl/react-router/decode';
+import { where } from 'decurl/decode';
 
 const positive = where((value: number) => value > 0);
 ```
@@ -210,7 +210,7 @@ Convert APIs transform a value into a new type.
 `toBoolean(input)` converts `'true'` / `'false'` into `boolean`. Other inputs return `undefined`.
 
 ```ts
-import { shape, pipe, toBoolean } from '@decurl/react-router/decode';
+import { shape, pipe, toBoolean } from 'decurl/decode';
 
 const decodeBoolean = pipe(shape.boolish, toBoolean);
 ```
@@ -220,7 +220,7 @@ const decodeBoolean = pipe(shape.boolish, toBoolean);
 `toNumber(input)` converts with `Number(input)` and requires the result to be a finite number.
 
 ```ts
-import { shape, pipe, toNumber } from '@decurl/react-router/decode';
+import { shape, pipe, toNumber } from 'decurl/decode';
 
 const decodeNumber = pipe(shape.number, toNumber);
 ```
@@ -236,7 +236,7 @@ Constraint APIs continue narrowing the valid range. They only check constraints 
 `length([min, max])` requires the input `length` to be in the closed interval.
 
 ```ts
-import { length, pipe, trim } from '@decurl/react-router/decode';
+import { length, pipe, trim } from 'decurl/decode';
 
 const decodeCode = pipe(trim, length(6));
 const decodeKeyword = pipe(trim, length([1, 40]));
@@ -263,7 +263,7 @@ const decodeKeyword = pipe(trim, length.min(1));
 `max(value)` requires a number to be less than or equal to the given value. It does not change the input; if the constraint is not met, it returns `undefined`.
 
 ```ts
-import { max, pipe, shape, toNumber } from '@decurl/react-router/decode';
+import { max, pipe, shape, toNumber } from 'decurl/decode';
 
 const decodePercent = pipe(shape.number, toNumber, max(100));
 ```
@@ -273,7 +273,7 @@ const decodePercent = pipe(shape.number, toNumber, max(100));
 `min(value)` requires a number to be greater than or equal to the given value. It does not change the input; if the constraint is not met, it returns `undefined`.
 
 ```ts
-import { min, pipe, shape, toNumber } from '@decurl/react-router/decode';
+import { min, pipe, shape, toNumber } from 'decurl/decode';
 
 const decodePage = pipe(shape.integer, toNumber, min(1));
 ```
@@ -287,7 +287,7 @@ Array APIs handle arrays as a whole.
 `unique(input)` removes duplicates with `Object.is` and preserves the first occurrence order.
 
 ```ts
-import { mapItems, pipe, shape, toNumber, unique } from '@decurl/react-router/decode';
+import { mapItems, pipe, shape, toNumber, unique } from 'decurl/decode';
 
 const decodeIds = pipe(
   mapItems(shape.integer, toNumber),
@@ -300,7 +300,7 @@ const decodeIds = pipe(
 `unique.by(identity)` removes duplicates by the identity result.
 
 ```ts
-import { unique } from '@decurl/react-router/decode';
+import { unique } from 'decurl/decode';
 
 const uniqueById = unique.by((item: { id: number }) => item.id);
 ```
