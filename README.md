@@ -1,42 +1,58 @@
-1. 项目定位
-   Decurl 是一个专注 URL Search Params 的类型安全状态管理库。
+# Decurl
 
-2. 核心问题
-   Search Params 的难点不是写入，而是 decode：
-   string / string[] / null → typed value。
+Typed URL Search Params state for React Router applications.
 
-3. 与 nuqs / zod / valibot 的关系
-   不是复刻 nuqs，也不是通用校验库。
-   重点是 URLSearchParams 场景下的轻量解析、过滤、类型推导。
+Decurl lets you describe URL search params as typed fields, decode raw URL
+values into application values, and update the URL through React hooks. The
+published package is `decurl`.
 
-4. 包结构方向
-   多包架构：
-   @decurl/core
-   @decurl/react-router
-   @decurl/navigation
+## Installation
 
-5. 当前阶段范围
-   先实现 core。
-   不做 hook。
-   不做 router adapter。
-   不做 pending flush。
-   不做 React 相关逻辑。
+```bash
+pnpm add decurl
+```
 
-6. core 包职责
-   codec 类型
-   decode pipeline
-   schema 定义
-   URLSearchParams decode / encode
+React and React Router are peer dependencies:
 
-7. 设计约束
-   ESM
-   TypeScript-first
-   类型推导优先
-   小步实现
-   每步易 review
+```bash
+pnpm add react react-router
+```
 
-8. 未来方向，仅作为上下文
-   react-router runtime
-   navigation runtime
-   optimistic partial update
-   route search memory
+## Documentation
+
+https://guanriyue.github.io/decurl/
+
+## Package
+
+The source for the published package lives in [`packages/decurl`](packages/decurl).
+
+```ts
+import { useSearchValue, useSearchValues } from 'decurl';
+import { defineFields, field } from 'decurl/codec';
+import { pipe, shape, toNumber } from 'decurl/decode';
+import { createReactRouterSearch } from 'decurl/configured';
+import { useSearchPagination } from 'decurl/pagination';
+import { routeSpec } from 'decurl/routeSpec';
+```
+
+## Development
+
+```bash
+pnpm install
+pnpm precheck
+pnpm --filter decurl-website build
+```
+
+## Release
+
+This repository uses Changesets.
+
+```bash
+pnpm changeset
+pnpm version
+pnpm release
+```
+
+## License
+
+MIT
