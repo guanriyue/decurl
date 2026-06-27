@@ -11,7 +11,7 @@ Store 只负责 search state 的同步语义、pending journal、optimistic stat
 Runtime 负责：
 
 - 提供当前 location。
-- 将 decurl 的 flush 结果持久化到路由系统。
+- 将 @guanriyue/decurl 的 flush 结果持久化到路由系统。
 - 在可订阅 runtime 中通知 store location change。
 
 ## 最小接口
@@ -51,7 +51,7 @@ Store flush 时会把 resolved navigate options 交给 runtime。
 
 支持透传 `preventScrollReset`。
 
-`SearchLocation.search` 在 decurl 内部统一不带 `?` 前缀。
+`SearchLocation.search` 在 @guanriyue/decurl 内部统一不带 `?` 前缀。
 
 Runtime 可以返回 React Router 原始 search。
 
@@ -175,7 +175,7 @@ React Router location changed
 
 Store 再根据状态机判断：
 
-- decurl flush confirmation。
+- @guanriyue/decurl flush confirmation。
 - external location change。
 
 Hook 不应自行合并 pending entry，也不应自行判断 location change 来源。

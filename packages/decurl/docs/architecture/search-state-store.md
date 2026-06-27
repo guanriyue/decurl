@@ -15,7 +15,7 @@ URL 写入是异步持久化。它可以延迟 flush，也可以等待 React Rou
 - hook setter 立即改变 optimistic state。
 - flush 只是把 optimistic state 持久化到 React Router。
 - React Router 发出的 location change 需要判断来源。
-- 如果 location change 来自 decurl 自己的 flush，则视为持久化确认。
+- 如果 location change 来自 @guanriyue/decurl 自己的 flush，则视为持久化确认。
 - 如果 location change 来自外部，则以外部结果为准，并丢弃 pending entry。
 
 ## State
@@ -97,11 +97,11 @@ type PendingEntry = {
 
 ### inflightFlushes
 
-`inflightFlushes` 表示 decurl 已经调用 runtime navigate，但 React Router 还没有确认的 search 目标队列。
+`inflightFlushes` 表示 @guanriyue/decurl 已经调用 runtime navigate，但 React Router 还没有确认的 search 目标队列。
 
 它用于区分：
 
-- decurl 自己 flush 导致的 location change。
+- @guanriyue/decurl 自己 flush 导致的 location change。
 - 外部系统导致的 location change。
 
 `inflightFlushes` 不属于 `SearchStoreState`，而是 store 内部维护的静态归因信息。它不参与 React snapshot，也不应因为归因记录变化而通知 subscribers。
@@ -119,7 +119,7 @@ inflightFlushes = [A, B, C]
 
 数组保留 flush 顺序。匹配时使用 `lastIndexOf(search)`，命中后移除该 index 及其之前的 inflight search。
 
-这代表状态机兼容 React Router 可能合并或延迟 location 通知的行为：如果收到某个 decurl-owned search，则将它之前的 inflight search 视为中间态。
+这代表状态机兼容 React Router 可能合并或延迟 location 通知的行为：如果收到某个 @guanriyue/decurl-owned search，则将它之前的 inflight search 视为中间态。
 
 `hash` 和 `state` 不纳入 search state 状态机考量。
 
@@ -237,7 +237,7 @@ setValues({ page: 4 })
 optimistic search: page=4
 ```
 
-当 React Router 随后通知 `page=3` 时，它是 decurl flush 的确认，不应覆盖当前 `page=4` optimistic state。
+当 React Router 随后通知 `page=3` 时，它是 @guanriyue/decurl flush 的确认，不应覆盖当前 `page=4` optimistic state。
 
 ## Location Change
 
@@ -269,7 +269,7 @@ flush C: name=1
 inflightFlushes: [name=1, name=2, name=1]
 ```
 
-如果 incoming `name=1` 先被 confirmed 命中并 no-op，`inflightFlushes` 不会被消费。后面的外部 search 恰好为 `name=2` 时，可能被误判为 decurl confirmation。
+如果 incoming `name=1` 先被 confirmed 命中并 no-op，`inflightFlushes` 不会被消费。后面的外部 search 恰好为 `name=2` 时，可能被误判为 @guanriyue/decurl confirmation。
 
 因此同 pathname 下应先用 `lastIndexOf(search)` 消费 inflight，再判断 confirmed noop。StrictMode 重复通知也能成立：第一次命中 inflight 并更新 confirmed，第二次相同 search 会命中 confirmed noop。
 
@@ -285,7 +285,7 @@ pendingEntries unchanged
 no notify
 ```
 
-此分支只确认 router 已经到达 decurl 之前发出的某个 search。
+此分支只确认 router 已经到达 @guanriyue/decurl 之前发出的某个 search。
 
 它不应覆盖当前 optimistic state，也不应清理 `latestInflightFlushLocation`。
 
@@ -293,7 +293,7 @@ no notify
 
 即使 next location 与当前 `optimisticLocation` 不同，也不代表外部覆盖。
 
-它可能只是 React Router 正在确认 decurl 之前发出的 flush，而 decurl 在确认到达前又收到了新的 `setValues`。
+它可能只是 React Router 正在确认 @guanriyue/decurl 之前发出的 flush，而 @guanriyue/decurl 在确认到达前又收到了新的 `setValues`。
 
 ### External Location Change
 
@@ -310,7 +310,7 @@ notify subscribers
 
 外部变化以外部结果为准。
 
-原因是 pending entry 在语义上已经被视为同步生效。如果真实系统随后给出一个无法归因到 decurl flush 的 location，它代表更晚发生的事实结果。
+原因是 pending entry 在语义上已经被视为同步生效。如果真实系统随后给出一个无法归因到 @guanriyue/decurl flush 的 location，它代表更晚发生的事实结果。
 
 保留 previous pending entry 会导致“时序更早的 entry”在外部结果之后重新应用，从而产生错误顺序。
 
@@ -336,7 +336,7 @@ Pending entry 是已经同步生效的 optimistic state，但不是 durable stat
 /users -> /users/:id
 ```
 
-且该 navigation 不是 decurl 当前 `inflightFlushes` 的确认，则它属于 external location change。
+且该 navigation 不是 @guanriyue/decurl 当前 `inflightFlushes` 的确认，则它属于 external location change。
 
 状态机行为：
 

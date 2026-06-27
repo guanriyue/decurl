@@ -1,6 +1,6 @@
 # Decurl Codec API
 
-这里是 `decurl/codec` 与 `decurl/decode` 的使用者文档。
+这里是 `@guanriyue/decurl/codec` 与 `@guanriyue/decurl/decode` 的使用者文档。
 
 ## API 文档
 

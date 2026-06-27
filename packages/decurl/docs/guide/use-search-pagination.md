@@ -30,7 +30,7 @@
 `useSearchPagination` 从 pagination 子路径导入：
 
 ```ts
-import { useSearchPagination } from 'decurl/pagination'
+import { useSearchPagination } from '@guanriyue/decurl/pagination'
 ```
 
 Hook 支持以下调用形式：
@@ -361,6 +361,6 @@ pagination.preventOverflow(result.total)
 
 ## API 边界
 
-`fields` 是 decurl 的一等模型。`useSearchPagination` 的核心职责是分页行为封装，而不是分页参数定义系统。
+`fields` 是 @guanriyue/decurl 的一等模型。`useSearchPagination` 的核心职责是分页行为封装，而不是分页参数定义系统。
 
 默认分页场景使用内置 fields 和 `useSearchPagination.pageSizeOptions`。自定义分页场景由开发者显式定义 fields，并由页面自己管理对应的 page size 静态选项。

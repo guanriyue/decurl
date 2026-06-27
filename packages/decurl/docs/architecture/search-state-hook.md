@@ -1,6 +1,6 @@
 # Search State Hook 目标
 
-本文记录 `decurl` search state hooks 的行为边界。
+本文记录 `@guanriyue/decurl` search state hooks 的行为边界。
 
 ## Public API
 
@@ -74,7 +74,7 @@ const pagination = useSearchPagination()
 
 ## Codec Semantics
 
-`useSearchValues` 和 `useSearchValue` 的 encode/decode 行为应遵守 `decurl/codec` 语义。
+`useSearchValues` 和 `useSearchValue` 的 encode/decode 行为应遵守 `@guanriyue/decurl/codec` 语义。
 
 React Router runtime 不重新定义 codec 行为。
 

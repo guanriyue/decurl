@@ -6,7 +6,7 @@
 
 默认入口使用 singleton store 和 React Router hooks runtime。
 
-配置化优化入口可以通过 `decurl/configured` 创建绑定 store 的
+配置化优化入口可以通过 `@guanriyue/decurl/configured` 创建绑定 store 的
 `Provider`。该 Provider 负责提供 factory 创建的 store，并自动通过 React Router
 hooks runtime 完成接线。
 

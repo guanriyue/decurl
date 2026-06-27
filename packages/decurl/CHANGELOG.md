@@ -1,4 +1,4 @@
-# decurl
+# @guanriyue/decurl
 
 ## 0.0.1
 

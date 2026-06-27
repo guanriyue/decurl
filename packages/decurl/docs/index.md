@@ -1,6 +1,6 @@
-# decurl 维护文档
+# @guanriyue/decurl 维护文档
 
-这里是 `decurl` 的维护者文档。
+这里是 `@guanriyue/decurl` 的维护者文档。
 
 维护文档回答：
 
@@ -9,7 +9,7 @@
 - 实现时必须遵守哪些行为语义。
 - 哪些能力不属于 API 边界。
 
-这些文档是实现和维护 `decurl` 的行为契约。
+这些文档是实现和维护 `@guanriyue/decurl` 的行为契约。
 
 ## API
 
