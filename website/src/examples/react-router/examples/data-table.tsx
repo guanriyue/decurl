@@ -1,13 +1,13 @@
-import { useSearchValues } from 'decurl';
-import { defineFields, field } from 'decurl/codec';
+import { useSearchValues } from '@guanriyue/decurl';
+import { defineFields, field } from '@guanriyue/decurl/codec';
 import {
   elementOf,
   length,
   mapItems,
   pipe,
   unique,
-} from 'decurl/decode';
-import { useSearchPagination } from 'decurl/pagination';
+} from '@guanriyue/decurl/decode';
+import { useSearchPagination } from '@guanriyue/decurl/pagination';
 import {
   ArrowDown,
   ArrowUp,

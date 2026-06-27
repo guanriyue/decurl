@@ -1,15 +1,15 @@
 ---
-description: 'decurl/codec 的 API reference。'
+description: '@guanriyue/decurl/codec 的 API reference。'
 ---
 
-# decurl/codec
+# @guanriyue/decurl/codec
 
-`decurl/codec` 用于定义 URL search params 的字段规则。它关注的是：URL key 如何映射到业务值，业务值又如何被序列化回 URLSearchParams。
+`@guanriyue/decurl/codec` 用于定义 URL search params 的字段规则。它关注的是：URL key 如何映射到业务值，业务值又如何被序列化回 URLSearchParams。
 
-Decode 可以是普通函数，也可以使用 [`decurl/decode`](./decode) 提供的 primitives。
+Decode 可以是普通函数，也可以使用 [`@guanriyue/decurl/decode`](./decode) 提供的 primitives。
 
 ```ts
-import { createURLSearchParamsCodec, defineFields, field } from 'decurl/codec';
+import { createURLSearchParamsCodec, defineFields, field } from '@guanriyue/decurl/codec';
 ```
 
 ## field
@@ -17,7 +17,7 @@ import { createURLSearchParamsCodec, defineFields, field } from 'decurl/codec';
 `field(definition)` 用于固化单个 FieldCodec 的类型。最简 codec 可以只是普通对象；但推荐使用 `field`，让 TypeScript 更稳定地保留 `mode`、`defaultValue`、`decode` 和 `encode` 等信息。
 
 ```ts
-import { field } from 'decurl/codec';
+import { field } from '@guanriyue/decurl/codec';
 
 const keyword = field({
   decode: (value: string) => {
@@ -45,7 +45,7 @@ const keyword = field({
 `defineFields(fields)` 用于定义一组 Search Fields，并为没有显式 `name` 的字段使用对象 key 作为 URL key。
 
 ```ts
-import { defineFields, field } from 'decurl/codec';
+import { defineFields, field } from '@guanriyue/decurl/codec';
 
 const searchFields = defineFields({
   keyword: field({
@@ -73,7 +73,7 @@ const searchFields = defineFields({
 | `encode(values, options?)` | 把业务对象序列化为新的 `URLSearchParams`。 |
 
 ```ts
-import { createURLSearchParamsCodec, defineFields, field } from 'decurl/codec';
+import { createURLSearchParamsCodec, defineFields, field } from '@guanriyue/decurl/codec';
 
 const fields = defineFields({
   page: field({

@@ -1,20 +1,20 @@
 ---
-description: 'decurl 默认 hooks 入口的 API reference。'
+description: '@guanriyue/decurl 默认 hooks 入口的 API reference。'
 ---
 
-# decurl
+# @guanriyue/decurl
 
-`decurl` 默认入口提供开箱即用的 React Router hooks。它们会在 hook 内部接线当前 React Router runtime，不需要手动放置 Provider。
+`@guanriyue/decurl` 默认入口提供开箱即用的 React Router hooks。它们会在 hook 内部接线当前 React Router runtime，不需要手动放置 Provider。
 
 ```tsx
-import { useSearchValue, useSearchValues } from 'decurl';
+import { useSearchValue, useSearchValues } from '@guanriyue/decurl';
 ```
 
 默认 hooks 使用默认的单例 search store。对于一个应用只有一套 React Router runtime 的场景，通常直接使用即可。
 
 这些 hooks 需要运行在 React Router 上下文内，例如 `BrowserRouter`、`RouterProvider` 或其他 React Router runtime 内部。
 
-如果需要绑定 store、多 React Router runtime 隔离，或者减少组件对 React Router `useLocation` 的直接依赖，见 [decurl/configured](./configured)。
+如果需要绑定 store、多 React Router runtime 隔离，或者减少组件对 React Router `useLocation` 的直接依赖，见 [@guanriyue/decurl/configured](./configured)。
 
 ## useSearchValues
 
@@ -38,7 +38,7 @@ useSearchValues(searchFields): [values, setValues]
 | `setValues` | 更新多个字段的 setter。 |
 
 ```tsx
-import { useSearchValues } from 'decurl';
+import { useSearchValues } from '@guanriyue/decurl';
 
 const SearchPanel = () => {
   const [values, setValues] = useSearchValues(searchFields);
@@ -98,7 +98,7 @@ useSearchValue(codec): [value, setValue]
 | `setValue` | 更新单个字段的 setter。 |
 
 ```tsx
-import { useSearchValue } from 'decurl';
+import { useSearchValue } from '@guanriyue/decurl';
 
 const PageButton = () => {
   const [page, setPage] = useSearchValue(searchFields.page);
@@ -126,7 +126,7 @@ setPage((previousPage) => previousPage + 1);
 
 ## Render behavior
 
-默认 hooks 会直接接线当前 React Router runtime。某些路由更新可能让组件跟随 React Router 重新渲染；如果你需要绑定 store 或观察渲染次数优化，可以阅读 [decurl/configured](./configured) 和 [绑定 Store](/zh/guide/react-router/configured-store)。
+默认 hooks 会直接接线当前 React Router runtime。某些路由更新可能让组件跟随 React Router 重新渲染；如果你需要绑定 store 或观察渲染次数优化，可以阅读 [@guanriyue/decurl/configured](./configured) 和 [绑定 Store](/zh/guide/react-router/configured-store)。
 
 ## Navigate options
 
@@ -156,6 +156,6 @@ setPage(1, { replace: true, preventScrollReset: true });
 
 ## Related
 
-- [decurl/configured](./configured)
-- [decurl/codec](./codec)
+- [@guanriyue/decurl/configured](./configured)
+- [@guanriyue/decurl/codec](./codec)
 - [React Router 集成概览](/zh/guide/react-router/overview)

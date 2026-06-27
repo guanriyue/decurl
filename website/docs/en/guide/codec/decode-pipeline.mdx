@@ -4,10 +4,10 @@ description: Decode pipelines use small composable functions to parse raw URLSea
 
 # Decode pipeline
 
-The `decode` of a FieldCodec can be a plain function. `decurl/decode` provides helpers that write common parsing steps as shorter, more explicit, and easier-to-review pipelines.
+The `decode` of a FieldCodec can be a plain function. `@guanriyue/decurl/decode` provides helpers that write common parsing steps as shorter, more explicit, and easier-to-review pipelines.
 
 ```ts
-import { min, pipe, shape, toNumber, trim } from 'decurl/decode';
+import { min, pipe, shape, toNumber, trim } from '@guanriyue/decurl/decode';
 
 const decodePage = pipe(trim, shape.integer, toNumber, min(1));
 ```
@@ -27,7 +27,7 @@ type Decode<Input, Output> = (
 Returning `null` or `undefined` means the current step failed, the value is missing, or the value is invalid. When `pipe` sees a failed result, it stops later steps.
 
 ```ts
-import { min, pipe, shape, toNumber, trim } from 'decurl/decode';
+import { min, pipe, shape, toNumber, trim } from '@guanriyue/decurl/decode';
 
 const decodePage = pipe(trim, shape.integer, toNumber, min(1));
 
@@ -48,7 +48,7 @@ How failed results fall back to `defaultValue` belongs to the FieldCodec layer. 
 Prefer using `shape` to constrain the string shape before converting.
 
 ```ts
-import { pipe, shape, toNumber } from 'decurl/decode';
+import { pipe, shape, toNumber } from '@guanriyue/decurl/decode';
 
 const decodeInteger = pipe(shape.integer, toNumber);
 const decodeNumber = pipe(shape.number, toNumber);
@@ -71,7 +71,7 @@ These conversions are legal JavaScript, but they are usually not reviewable enou
 `elementOf` fits enum-like values:
 
 ```ts
-import { elementOf } from 'decurl/decode';
+import { elementOf } from '@guanriyue/decurl/decode';
 
 const decodeSort = elementOf(['relevance', 'latest']);
 
@@ -85,7 +85,7 @@ decodeSort('random');
 `where` fits custom predicates or type guards:
 
 ```ts
-import { where } from 'decurl/decode';
+import { where } from '@guanriyue/decurl/decode';
 
 const decodeNonEmpty = where((value: string) => value.length > 0);
 ```
@@ -103,7 +103,7 @@ URLSearchParams allows the same key to appear multiple times:
 The `decode` input for a multi-value field is usually `string[]`. Use `mapItems` to run pipe-like decode logic for each item and automatically filter out failed items.
 
 ```ts
-import { elementOf, mapItems, pipe, unique } from 'decurl/decode';
+import { elementOf, mapItems, pipe, unique } from '@guanriyue/decurl/decode';
 
 const decodeTags = pipe(
   mapItems(elementOf(['react', 'router', 'docs'])),
@@ -129,7 +129,7 @@ const decodeSortedTags = pipe(
 Decode primitives preserve pipeline type information. `elementOf` can infer a union type from an inline array literal; `as const` is not required.
 
 ```ts twoslash
-import { elementOf, mapItems, min, pipe, shape, toNumber, trim, unique } from 'decurl/decode';
+import { elementOf, mapItems, min, pipe, shape, toNumber, trim, unique } from '@guanriyue/decurl/decode';
 
 const decodeSort = elementOf(['relevance', 'latest']);
 

@@ -2,19 +2,19 @@
 description: 'API reference for the default hooks from decurl.'
 ---
 
-# decurl
+# @guanriyue/decurl
 
-The default `decurl` entry provides ready-to-use React Router hooks. They wire the current React Router runtime inside the hook, so you do not need to place a Provider manually.
+The default `@guanriyue/decurl` entry provides ready-to-use React Router hooks. They wire the current React Router runtime inside the hook, so you do not need to place a Provider manually.
 
 ```tsx
-import { useSearchValue, useSearchValues } from 'decurl';
+import { useSearchValue, useSearchValues } from '@guanriyue/decurl';
 ```
 
 The default hooks use the default singleton search store and are the recommended starting point for applications with one React Router runtime.
 
 These hooks must run inside a React Router context, such as `BrowserRouter`, `RouterProvider`, or another React Router runtime.
 
-If you need to bind a store, isolate multiple React Router runtimes, or reduce direct dependency on React Router `useLocation`, see [decurl/configured](./configured).
+If you need to bind a store, isolate multiple React Router runtimes, or reduce direct dependency on React Router `useLocation`, see [@guanriyue/decurl/configured](./configured).
 
 ## useSearchValues
 
@@ -38,7 +38,7 @@ Returns:
 | `setValues` | Setter for updating multiple fields. |
 
 ```tsx
-import { useSearchValues } from 'decurl';
+import { useSearchValues } from '@guanriyue/decurl';
 
 const SearchPanel = () => {
   const [values, setValues] = useSearchValues(searchFields);
@@ -98,7 +98,7 @@ Returns:
 | `setValue` | Setter for updating the single field. |
 
 ```tsx
-import { useSearchValue } from 'decurl';
+import { useSearchValue } from '@guanriyue/decurl';
 
 const PageButton = () => {
   const [page, setPage] = useSearchValue(searchFields.page);
@@ -126,7 +126,7 @@ setPage((previousPage) => previousPage + 1);
 
 ## Render Behavior
 
-The default hooks wire the current React Router runtime directly. Some route updates may cause components to re-render with React Router. If you need to bind a store or observe render-count optimization, see [decurl/configured](./configured) and [Bound Store](/guide/react-router/configured-store).
+The default hooks wire the current React Router runtime directly. Some route updates may cause components to re-render with React Router. If you need to bind a store or observe render-count optimization, see [@guanriyue/decurl/configured](./configured) and [Bound Store](/guide/react-router/configured-store).
 
 ## Navigate Options
 
@@ -156,6 +156,6 @@ If multiple setter calls happen before the same flush, the navigate options from
 
 ## Related
 
-- [decurl/configured](./configured)
-- [decurl/codec](./codec)
+- [@guanriyue/decurl/configured](./configured)
+- [@guanriyue/decurl/codec](./codec)
 - [React Router Integration Overview](/guide/react-router/overview)

@@ -1,19 +1,19 @@
 ---
-description: "decurl connects Decurl Search Fields to React Router and exposes URL search state as hooks."
+description: "@guanriyue/decurl connects Decurl Search Fields to React Router and exposes URL search state as hooks."
 ---
 
 # React Router Integration
 
-`decurl` connects Decurl Search Fields to React Router. Its goal is to let URL search be read and updated like ordinary React state, while keeping the URL as the final source of truth.
+`@guanriyue/decurl` connects Decurl Search Fields to React Router. Its goal is to let URL search be read and updated like ordinary React state, while keeping the URL as the final source of truth.
 
 ## hooks
 
 The minimal usage is to import hooks and Search Fields tools directly:
 
 ```tsx
-import { useSearchValue } from 'decurl';
-import { defineFields, field } from 'decurl/codec';
-import { pipe, shape, trim } from 'decurl/decode';
+import { useSearchValue } from '@guanriyue/decurl';
+import { defineFields, field } from '@guanriyue/decurl/codec';
+import { pipe, shape, trim } from '@guanriyue/decurl/decode';
 
 const fields = defineFields({
   keyword: field({
@@ -99,10 +99,10 @@ If you need to bind a store, configure flush strategy, or isolate multiple searc
 
 ## Relationship with the codec Entry
 
-React Router hooks do not redefine URL fields. Search Fields are defined with `decurl/codec` and then reused by hooks:
+React Router hooks do not redefine URL fields. Search Fields are defined with `@guanriyue/decurl/codec` and then reused by hooks:
 
 ```ts
-import { defineFields, field } from 'decurl/codec';
+import { defineFields, field } from '@guanriyue/decurl/codec';
 
 const searchFields = defineFields({
   page: field({

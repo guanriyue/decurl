@@ -1,30 +1,30 @@
 ---
-description: 安装 decurl，并了解 Decurl 的基础使用方式。
+description: 安装 @guanriyue/decurl，并了解 Decurl 的基础使用方式。
 ---
 
 # 安装使用
 
-Decurl 目前以 `decurl` 单包提供能力。使用默认 hooks 时，它支持 React 18、React 19，并要求使用 React Router 7。
+Decurl 目前以 `@guanriyue/decurl` 单包提供能力。使用默认 hooks 时，它支持 React 18、React 19，并要求使用 React Router 7。
 
 ## 安装
 
 使用你项目中的包管理器安装：
 
 ```bash
-pnpm add decurl
+pnpm add @guanriyue/decurl
 ```
 
 也可以使用 npm 或 yarn：
 
 ```bash
-npm install decurl
+npm install @guanriyue/decurl
 ```
 
 ```bash
-yarn add decurl
+yarn add @guanriyue/decurl
 ```
 
-`decurl` 会通过 conditional exports 暴露 codec、decode、pagination、routeSpec 等子入口。一般不需要单独安装其他 Decurl 包。
+`@guanriyue/decurl` 会通过 conditional exports 暴露 codec、decode、pagination、routeSpec 等子入口。一般不需要单独安装其他 Decurl 包。
 
 ## 基础用法
 
@@ -34,9 +34,9 @@ Decurl 的基本流程是：
 2. 在 React Router hooks 中读取和更新 URL search state。
 
 ```tsx
-import { useSearchValue } from 'decurl';
-import { defineFields, field } from 'decurl/codec';
-import { pipe, shape, trim } from 'decurl/decode';
+import { useSearchValue } from '@guanriyue/decurl';
+import { defineFields, field } from '@guanriyue/decurl/codec';
+import { pipe, shape, trim } from '@guanriyue/decurl/decode';
 
 const searchFields = defineFields({
   keyword: field({

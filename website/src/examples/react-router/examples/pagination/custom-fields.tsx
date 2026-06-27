@@ -1,4 +1,4 @@
-import { field } from 'decurl/codec';
+import { field } from '@guanriyue/decurl/codec';
 import {
   elementOf,
   min,
@@ -7,9 +7,9 @@ import {
   toNumber,
   trim,
   where,
-} from 'decurl/decode';
-import type { SearchPaginationFields } from 'decurl/pagination';
-import { useSearchPagination } from 'decurl/pagination';
+} from '@guanriyue/decurl/decode';
+import type { SearchPaginationFields } from '@guanriyue/decurl/pagination';
+import { useSearchPagination } from '@guanriyue/decurl/pagination';
 import { useEffect } from 'react';
 import { useLocation } from 'react-router';
 import { Badge } from '@/components/ui/badge';

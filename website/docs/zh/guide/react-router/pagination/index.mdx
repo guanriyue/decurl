@@ -4,14 +4,14 @@ description: 使用 useSearchPagination 管理 URL 中的 page、pageSize 和越
 
 # 分页状态
 
-`useSearchPagination` 是 `decurl` 提供的可选能力。你可以直接使用 `useSearchValues` 自己管理 `page` 和 `pageSize`，也可以在分页场景中使用这个 hook，把常见的分页状态和联动行为集中起来。
+`useSearchPagination` 是 `@guanriyue/decurl` 提供的可选能力。你可以直接使用 `useSearchValues` 自己管理 `page` 和 `pageSize`，也可以在分页场景中使用这个 hook，把常见的分页状态和联动行为集中起来。
 
 分页状态被单独放进 Guide，是因为它是 URL search params 中非常典型的一类状态：通常由 `page` 和 `pageSize` 共同描述，同时又会受到异步数据返回的 `total` 影响。`page` 和 `pageSize` 可以同步 decode，但“当前页是否超过最大页”只能在拿到可信 `total` 后进行后置校验。
 
 `useSearchPagination` 在 Search Fields 之上提供这组状态及其联动行为：
 
 ```tsx
-import { useSearchPagination } from 'decurl/pagination';
+import { useSearchPagination } from '@guanriyue/decurl/pagination';
 
 const PaginationBar = () => {
   const pagination = useSearchPagination();
@@ -138,7 +138,7 @@ pagination.setPagination({
 如果页面需要不同的 URL key、默认 page size 或 page size 选项，应显式定义自己的 Fields：
 
 ```tsx
-import { field } from 'decurl/codec';
+import { field } from '@guanriyue/decurl/codec';
 import {
   elementOf,
   min,
@@ -146,9 +146,9 @@ import {
   shape,
   toNumber,
   trim,
-} from 'decurl/decode';
-import type { SearchPaginationFields } from 'decurl/pagination';
-import { useSearchPagination } from 'decurl/pagination';
+} from '@guanriyue/decurl/decode';
+import type { SearchPaginationFields } from '@guanriyue/decurl/pagination';
+import { useSearchPagination } from '@guanriyue/decurl/pagination';
 
 const pageSizeOptions = [25, 50, 100];
 
@@ -248,7 +248,7 @@ SWR 可以在实际请求成功后执行恢复：
 
 ```tsx
 import useSWR from 'swr';
-import { useSearchPagination } from 'decurl/pagination';
+import { useSearchPagination } from '@guanriyue/decurl/pagination';
 
 const UserTable = () => {
   const pagination = useSearchPagination();
@@ -306,7 +306,7 @@ React Query 可以结合 observer 状态，保守地选择调用时机：
 ```tsx
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useSearchPagination } from 'decurl/pagination';
+import { useSearchPagination } from '@guanriyue/decurl/pagination';
 
 const UserTable = () => {
   const pagination = useSearchPagination();
@@ -365,8 +365,8 @@ const UserTable = () => {
 使用 configured search store 时，可以显式创建绑定的 pagination hook：
 
 ```tsx
-import { createReactRouterSearch } from 'decurl/configured';
-import { createUseSearchPagination } from 'decurl/pagination';
+import { createReactRouterSearch } from '@guanriyue/decurl/configured';
+import { createUseSearchPagination } from '@guanriyue/decurl/pagination';
 
 const search = createReactRouterSearch();
 
@@ -385,6 +385,6 @@ const PaginationBar = () => {
 
 ## 相关 API
 
-- [decurl/pagination](/zh/api/pagination)
-- [decurl](/zh/api/react-router)
-- [decurl/configured](/zh/api/configured)
+- [@guanriyue/decurl/pagination](/zh/api/pagination)
+- [@guanriyue/decurl](/zh/api/react-router)
+- [@guanriyue/decurl/configured](/zh/api/configured)

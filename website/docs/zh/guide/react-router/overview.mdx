@@ -1,19 +1,19 @@
 ---
-description: "decurl 的默认 hooks 把 Decurl Search Fields 接入 React Router，并暴露 URL search state。"
+description: "@guanriyue/decurl 的默认 hooks 把 Decurl Search Fields 接入 React Router，并暴露 URL search state。"
 ---
 
 # React Router 集成
 
-`decurl` 的默认 hooks 把 Decurl 的 Search Fields 接入 React Router。它们的目标是让 URL search 像普通 React state 一样被读取和更新，同时保持 URL 是最终状态来源。
+`@guanriyue/decurl` 的默认 hooks 把 Decurl 的 Search Fields 接入 React Router。它们的目标是让 URL search 像普通 React state 一样被读取和更新，同时保持 URL 是最终状态来源。
 
 ## hooks
 
 最小使用方式是直接导入 hooks 和 Search Fields 工具：
 
 ```tsx
-import { useSearchValue } from 'decurl';
-import { defineFields, field } from 'decurl/codec';
-import { pipe, shape, trim } from 'decurl/decode';
+import { useSearchValue } from '@guanriyue/decurl';
+import { defineFields, field } from '@guanriyue/decurl/codec';
+import { pipe, shape, trim } from '@guanriyue/decurl/decode';
 
 const fields = defineFields({
   keyword: field({
@@ -99,10 +99,10 @@ export const App = () => {
 
 ## 和 codec 子入口的关系
 
-React Router hooks 不重新定义 URL 字段。Search Fields 通过 `decurl/codec` 定义，再交给 hooks 复用：
+React Router hooks 不重新定义 URL 字段。Search Fields 通过 `@guanriyue/decurl/codec` 定义，再交给 hooks 复用：
 
 ```ts
-import { defineFields, field } from 'decurl/codec';
+import { defineFields, field } from '@guanriyue/decurl/codec';
 
 const searchFields = defineFields({
   page: field({

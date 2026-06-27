@@ -26,11 +26,11 @@ In real code, `field(...)` is still recommended to freeze the codec type. It let
 
 Without `defaultValue`, the decoded field may be `undefined`; with `defaultValue`, the decoded field always has a value.
 
-`decurl/decode` provides composable helpers. Using them is not required by FieldCodec. They only reduce repeated code and make common parsing rules easier to read.
+`@guanriyue/decurl/decode` provides composable helpers. Using them is not required by FieldCodec. They only reduce repeated code and make common parsing rules easier to read.
 
 ```ts
-import { field } from 'decurl/codec';
-import { min, pipe, shape, toNumber, trim } from 'decurl/decode';
+import { field } from '@guanriyue/decurl/codec';
+import { min, pipe, shape, toNumber, trim } from '@guanriyue/decurl/decode';
 
 const page = field({
   decode: pipe(trim, shape.integer, toNumber, min(1)),
@@ -77,9 +77,9 @@ Most fields do not need custom `encode` or `eq`. Use `encode` only when values s
 ### Type Inference
 
 ```ts twoslash
-import type { InferFieldValue } from 'decurl/codec';
-import { field } from 'decurl/codec';
-import { min, pipe, shape, toNumber, trim } from 'decurl/decode';
+import type { InferFieldValue } from '@guanriyue/decurl/codec';
+import { field } from '@guanriyue/decurl/codec';
+import { min, pipe, shape, toNumber, trim } from '@guanriyue/decurl/decode';
 
 const keyword = field({
   decode: trim,
@@ -103,9 +103,9 @@ type Page = InferFieldValue<typeof page>;
 Literal objects can also be inferred, but `field(...)` is recommended to freeze the codec type. That lets TypeScript check each field's mode, default value, and decode input shape earlier, and avoids unnecessary type widening during later composition.
 
 ```ts twoslash
-import type { InferFieldValue } from 'decurl/codec';
-import { field } from 'decurl/codec';
-import { trim } from 'decurl/decode';
+import type { InferFieldValue } from '@guanriyue/decurl/codec';
+import { field } from '@guanriyue/decurl/codec';
+import { trim } from '@guanriyue/decurl/decode';
 
 const literalCodec = {
   decode: trim,
@@ -128,9 +128,9 @@ type StableValue = InferFieldValue<typeof stableCodec>;
 `useSearchValue` reads a single named field codec. Usually it comes from the return value of `defineFields`.
 
 ```ts twoslash
-import { useSearchValue } from 'decurl';
-import { defineFields, field } from 'decurl/codec';
-import { trim } from 'decurl/decode';
+import { useSearchValue } from '@guanriyue/decurl';
+import { defineFields, field } from '@guanriyue/decurl/codec';
+import { trim } from '@guanriyue/decurl/decode';
 
 const fields = defineFields({
   keyword: field({
@@ -156,9 +156,9 @@ const SearchInput = () => {
 `useSearchValues` reads a group of field codecs. The Search Fields below cover single optional, multi optional, single required, and multi required fields.
 
 ```ts twoslash
-import { useSearchValues } from 'decurl';
-import { defineFields, field } from 'decurl/codec';
-import { elementOf, mapItems, min, pipe, shape, toNumber, trim, unique } from 'decurl/decode';
+import { useSearchValues } from '@guanriyue/decurl';
+import { defineFields, field } from '@guanriyue/decurl/codec';
+import { elementOf, mapItems, min, pipe, shape, toNumber, trim, unique } from '@guanriyue/decurl/decode';
 
 const fields = defineFields({
   keyword: field({

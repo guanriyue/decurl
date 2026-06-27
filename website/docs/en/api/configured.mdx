@@ -2,9 +2,9 @@
 description: 'API reference for decurl/configured.'
 ---
 
-# decurl/configured
+# @guanriyue/decurl/configured
 
-`decurl/configured` creates hooks and runtime configuration components bound to the same search store.
+`@guanriyue/decurl/configured` creates hooks and runtime configuration components bound to the same search store.
 
 The default hooks can be used directly. The configured entry is better suited for these scenarios:
 
@@ -14,7 +14,7 @@ The default hooks can be used directly. The configured entry is better suited fo
 - You need to configure `flushDelay` or `flushMode`.
 
 ```tsx
-import { createReactRouterSearch } from 'decurl/configured';
+import { createReactRouterSearch } from '@guanriyue/decurl/configured';
 ```
 
 ## createReactRouterSearch
@@ -53,7 +53,7 @@ Configured hooks do not configure the runtime automatically. Before using them, 
 
 ```tsx
 import { BrowserRouter } from 'react-router';
-import { createReactRouterSearch } from 'decurl/configured';
+import { createReactRouterSearch } from '@guanriyue/decurl/configured';
 
 const search = createReactRouterSearch();
 
@@ -136,15 +136,15 @@ const PageButton = () => {
 };
 ```
 
-Setter semantics such as patch values, `setValues(undefined)` clearing the current Search Fields, `null` / `undefined` deleting fields, and navigate options are the same as the default [decurl](./react-router) entry.
+Setter semantics such as patch values, `setValues(undefined)` clearing the current Search Fields, `null` / `undefined` deleting fields, and navigate options are the same as the default [@guanriyue/decurl](./react-router) entry.
 
 ### Composing Pagination
 
 Pagination can be bound to the current search store with `createUseSearchPagination`:
 
 ```tsx
-import { createReactRouterSearch } from 'decurl/configured';
-import { createUseSearchPagination } from 'decurl/pagination';
+import { createReactRouterSearch } from '@guanriyue/decurl/configured';
+import { createUseSearchPagination } from '@guanriyue/decurl/pagination';
 
 const search = createReactRouterSearch();
 
@@ -153,7 +153,7 @@ const useSearchPagination = createUseSearchPagination({
 });
 ```
 
-The object returned by `createReactRouterSearch` does not include a pagination hook by itself. See [decurl/pagination](./pagination#createusesearchpagination) for the complete API.
+The object returned by `createReactRouterSearch` does not include a pagination hook by itself. See [@guanriyue/decurl/pagination](./pagination#createusesearchpagination) for the complete API.
 
 ## Options
 
@@ -199,7 +199,7 @@ For a fuller observation example, see [Bound Store](/guide/react-router/configur
 
 ## Related
 
-- [decurl](./react-router)
-- [decurl/pagination](./pagination)
-- [decurl/codec](./codec)
+- [@guanriyue/decurl](./react-router)
+- [@guanriyue/decurl/pagination](./pagination)
+- [@guanriyue/decurl/codec](./codec)
 - [Bound Store](/guide/react-router/configured-store)

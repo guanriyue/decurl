@@ -1,5 +1,5 @@
 ---
-description: Define Search Fields with decurl and reuse them in hooks and URLSearchParams codecs.
+description: Define Search Fields with @guanriyue/decurl and reuse them in hooks and URLSearchParams codecs.
 ---
 
 # Getting Started
@@ -9,16 +9,16 @@ The core Decurl workflow is: define a set of Search Fields first, then reuse the
 ## Install
 
 ```bash
-pnpm add decurl
+pnpm add @guanriyue/decurl
 ```
 
-`decurl` supports React 18 and React 19, and requires React Router 7.
+`@guanriyue/decurl` supports React 18 and React 19, and requires React Router 7.
 
 ## Define Fields
 
 ```ts
-import { createURLSearchParamsCodec, defineFields, field } from 'decurl/codec';
-import { elementOf, min, pipe, shape, toNumber, trim } from 'decurl/decode';
+import { createURLSearchParamsCodec, defineFields, field } from '@guanriyue/decurl/codec';
+import { elementOf, min, pipe, shape, toNumber, trim } from '@guanriyue/decurl/decode';
 
 const searchFields = defineFields({
   q: field({
@@ -85,7 +85,7 @@ See [`createURLSearchParamsCodec`](/api/codec#createurlsearchparamscodec) for mo
 React Router hooks can use the same Search Fields directly. Default hooks do not require an extra Provider.
 
 ```tsx
-import { useSearchValues } from 'decurl';
+import { useSearchValues } from '@guanriyue/decurl';
 
 const SearchPanel = () => {
   const [values, setValues] = useSearchValues(searchFields);
@@ -98,7 +98,7 @@ const SearchPanel = () => {
 };
 ```
 
-Use [`useSearchValue`](/api/react-router#usesearchvalue) when reading a single field. If you need to bind a store, isolate multiple React Router runtimes, or reduce direct dependency on React Router `useLocation`, continue with [`decurl/configured`](/api/configured).
+Use [`useSearchValue`](/api/react-router#usesearchvalue) when reading a single field. If you need to bind a store, isolate multiple React Router runtimes, or reduce direct dependency on React Router `useLocation`, continue with [`@guanriyue/decurl/configured`](/api/configured).
 
 Continue reading:
 

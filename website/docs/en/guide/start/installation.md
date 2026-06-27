@@ -1,27 +1,27 @@
 ---
-description: Install decurl and learn the basic usage model of Decurl.
+description: Install @guanriyue/decurl and learn the basic usage model of Decurl.
 ---
 
 # Installation
 
-Install the `decurl` package in a React Router application. It supports React 18, React 19, and requires React Router 7.
+Install the `@guanriyue/decurl` package in a React Router application. It supports React 18, React 19, and requires React Router 7.
 
 ## Install
 
 Install it with the package manager used by your project:
 
 ```bash
-pnpm add decurl
+pnpm add @guanriyue/decurl
 ```
 
 You can also use npm or yarn:
 
 ```bash
-npm install decurl
+npm install @guanriyue/decurl
 ```
 
 ```bash
-yarn add decurl
+yarn add @guanriyue/decurl
 ```
 
 ## Basic Usage
@@ -32,9 +32,9 @@ The basic Decurl flow is:
 2. Read and update URL search state through React Router hooks.
 
 ```tsx
-import { useSearchValue } from 'decurl';
-import { defineFields, field } from 'decurl/codec';
-import { pipe, shape, trim } from 'decurl/decode';
+import { useSearchValue } from '@guanriyue/decurl';
+import { defineFields, field } from '@guanriyue/decurl/codec';
+import { pipe, shape, trim } from '@guanriyue/decurl/decode';
 
 const searchFields = defineFields({
   keyword: field({

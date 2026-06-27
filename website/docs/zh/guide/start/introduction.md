@@ -21,18 +21,18 @@ string | string[] | null -> typed value
 
 ## 入口结构
 
-当前文档围绕 `decurl` 及其 conditional exports 展开：
+当前文档围绕 `@guanriyue/decurl` 及其 conditional exports 展开：
 
 | 入口 | 职责 |
 | --- | --- |
-| `decurl` | 开箱即用的 React Router hooks |
-| `decurl/codec` | FieldCodec、Search Fields、类型推导、URLSearchParams decode/encode |
-| `decurl/decode` | decode pipeline 与基础解析工具 |
-| `decurl/routeSpec` | 定义 path 与 search contract，并生成类型安全的 href |
-| `decurl/pagination` | page、pageSize 与分页联动行为 |
-| `decurl/configured` | 创建绑定 store 的 hooks、Provider 和 React Router runtime 接线 |
+| `@guanriyue/decurl` | 开箱即用的 React Router hooks |
+| `@guanriyue/decurl/codec` | FieldCodec、Search Fields、类型推导、URLSearchParams decode/encode |
+| `@guanriyue/decurl/decode` | decode pipeline 与基础解析工具 |
+| `@guanriyue/decurl/routeSpec` | 定义 path 与 search contract，并生成类型安全的 href |
+| `@guanriyue/decurl/pagination` | page、pageSize 与分页联动行为 |
+| `@guanriyue/decurl/configured` | 创建绑定 store 的 hooks、Provider 和 React Router runtime 接线 |
 
-使用者只需要安装 `decurl`。这些入口由同一个包提供，并共享同一套 Search Fields 规则。
+使用者只需要安装 `@guanriyue/decurl`。这些入口由同一个包提供，并共享同一套 Search Fields 规则。
 
 ## 设计取向
 

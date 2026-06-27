@@ -25,12 +25,12 @@ The current documentation covers these API entries:
 
 | Entry | Responsibility |
 | --- | --- |
-| `decurl` | Ready-to-use React Router hooks |
-| `decurl/codec` | FieldCodec, Search Fields, type inference, and URLSearchParams decode/encode |
-| `decurl/decode` | Decode pipelines and primitive parsing helpers |
-| `decurl/routeSpec` | Define path and search contracts, then generate type-safe hrefs |
-| `decurl/pagination` | Page, pageSize, and pagination behavior |
-| `decurl/configured` | Create store-bound hooks, Provider, and React Router runtime wiring |
+| `@guanriyue/decurl` | Ready-to-use React Router hooks |
+| `@guanriyue/decurl/codec` | FieldCodec, Search Fields, type inference, and URLSearchParams decode/encode |
+| `@guanriyue/decurl/decode` | Decode pipelines and primitive parsing helpers |
+| `@guanriyue/decurl/routeSpec` | Define path and search contracts, then generate type-safe hrefs |
+| `@guanriyue/decurl/pagination` | Page, pageSize, and pagination behavior |
+| `@guanriyue/decurl/configured` | Create store-bound hooks, Provider, and React Router runtime wiring |
 
 ## Design Direction
 

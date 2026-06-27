@@ -4,14 +4,14 @@ description: Use useSearchPagination to manage page, pageSize, and overflow reco
 
 # Pagination State
 
-`useSearchPagination` is an optional capability provided by `decurl`. You can manage `page` and `pageSize` yourself with `useSearchValues`, or use this hook in pagination scenarios to centralize common pagination state and coupling behavior.
+`useSearchPagination` is an optional capability provided by `@guanriyue/decurl`. You can manage `page` and `pageSize` yourself with `useSearchValues`, or use this hook in pagination scenarios to centralize common pagination state and coupling behavior.
 
 Pagination state has its own Guide page because it is a typical kind of URL search params state: it is usually described by `page` and `pageSize` together, while also being affected by the asynchronous `total` returned by data requests. `page` and `pageSize` can be decoded synchronously, but "whether the current page exceeds the max page" can only be checked after a trustworthy `total` is available.
 
 `useSearchPagination` provides this state and behavior on top of Search Fields:
 
 ```tsx
-import { useSearchPagination } from 'decurl/pagination';
+import { useSearchPagination } from '@guanriyue/decurl/pagination';
 
 const PaginationBar = () => {
   const pagination = useSearchPagination();
@@ -138,7 +138,7 @@ pagination.setPagination({
 If a page needs different URL keys, default page size, or page size options, define its own Fields explicitly:
 
 ```tsx
-import { field } from 'decurl/codec';
+import { field } from '@guanriyue/decurl/codec';
 import {
   elementOf,
   min,
@@ -146,9 +146,9 @@ import {
   shape,
   toNumber,
   trim,
-} from 'decurl/decode';
-import type { SearchPaginationFields } from 'decurl/pagination';
-import { useSearchPagination } from 'decurl/pagination';
+} from '@guanriyue/decurl/decode';
+import type { SearchPaginationFields } from '@guanriyue/decurl/pagination';
+import { useSearchPagination } from '@guanriyue/decurl/pagination';
 
 const pageSizeOptions = [25, 50, 100];
 
@@ -248,7 +248,7 @@ The `<Table />` below represents a controlled table component already owned by t
 
 ```tsx
 import useSWR from 'swr';
-import { useSearchPagination } from 'decurl/pagination';
+import { useSearchPagination } from '@guanriyue/decurl/pagination';
 
 const UserTable = () => {
   const pagination = useSearchPagination();
@@ -306,7 +306,7 @@ React Query can combine observer state and choose a conservative call timing:
 ```tsx
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useSearchPagination } from 'decurl/pagination';
+import { useSearchPagination } from '@guanriyue/decurl/pagination';
 
 const UserTable = () => {
   const pagination = useSearchPagination();
@@ -365,8 +365,8 @@ See [Understanding Pagination Overflow](./overflow) for how different cache sour
 When using a configured search store, explicitly create a bound pagination hook:
 
 ```tsx
-import { createReactRouterSearch } from 'decurl/configured';
-import { createUseSearchPagination } from 'decurl/pagination';
+import { createReactRouterSearch } from '@guanriyue/decurl/configured';
+import { createUseSearchPagination } from '@guanriyue/decurl/pagination';
 
 const search = createReactRouterSearch();
 
@@ -385,6 +385,6 @@ This lets the pagination hook consume the same store as `search.useSearchValue` 
 
 ## Related API
 
-- [decurl/pagination](/api/pagination)
-- [decurl](/api/react-router)
-- [decurl/configured](/api/configured)
+- [@guanriyue/decurl/pagination](/api/pagination)
+- [@guanriyue/decurl](/api/react-router)
+- [@guanriyue/decurl/configured](/api/configured)

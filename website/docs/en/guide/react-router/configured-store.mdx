@@ -6,10 +6,10 @@ description: createReactRouterSearch creates store-bound Providers and hooks to 
 
 The default `useSearchValue` and `useSearchValues` hooks can be used directly without manually creating a Provider. They use the default singleton search store and fit most applications with only one React Router runtime.
 
-When an application needs to isolate stores, bind to a specific router runtime, or reduce some unrelated updates, use `decurl/configured`:
+When an application needs to isolate stores, bind to a specific router runtime, or reduce some unrelated updates, use `@guanriyue/decurl/configured`:
 
 ```tsx
-import { createReactRouterSearch } from 'decurl/configured';
+import { createReactRouterSearch } from '@guanriyue/decurl/configured';
 
 const search = createReactRouterSearch({
   flushMode: 'debounce',
@@ -28,7 +28,7 @@ const search = createReactRouterSearch({
 
 ```tsx
 import { BrowserRouter } from 'react-router';
-import { createReactRouterSearch } from 'decurl/configured';
+import { createReactRouterSearch } from '@guanriyue/decurl/configured';
 
 const search = createReactRouterSearch();
 
