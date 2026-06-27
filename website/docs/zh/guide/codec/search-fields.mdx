@@ -20,8 +20,8 @@ FieldCodec 的属性细节见 [FieldCodec 定义](./field-codec)，`decode` help
 `defineFields` 接收一组 field codec，并返回一组 named field codec。
 
 ```ts
-import { defineFields, field } from '@decurl/react-router/codec';
-import { elementOf, min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+import { defineFields, field } from 'decurl/codec';
+import { elementOf, min, pipe, shape, toNumber, trim } from 'decurl/decode';
 
 const searchFields = defineFields({
   keyword: field({
@@ -66,7 +66,7 @@ const searchFields = defineFields({
 Search Fields 让单个 field codec 自带 URL key，因此上层 API 不需要再传一个魔法字符串。
 
 ```tsx
-import { useSearchValue } from '@decurl/react-router';
+import { useSearchValue } from 'decurl';
 
 const SearchInput = () => {
   const [keyword, setKeyword] = useSearchValue(searchFields.keyword);
@@ -120,8 +120,8 @@ const searchFields = defineFields({
 显式定义了 `name` 的 field codec 可以直接传给 `useSearchValue`：
 
 ```ts twoslash
-import { useSearchValue } from '@decurl/react-router';
-import { trim } from '@decurl/react-router/decode';
+import { useSearchValue } from 'decurl';
+import { trim } from 'decurl/decode';
 
 const keywordField = {
   name: 'q',
@@ -141,8 +141,8 @@ const SearchInput = () => {
 如果 field codec 不包含 `name`，单字段 hook 无法知道应该读写哪个 URL key，TypeScript 会阻止这种用法：
 
 ```ts twoslash
-import { useSearchValue } from '@decurl/react-router';
-import { trim } from '@decurl/react-router/decode';
+import { useSearchValue } from 'decurl';
+import { trim } from 'decurl/decode';
 
 // @noErrorValidation
 useSearchValue({
@@ -153,9 +153,9 @@ useSearchValue({
 一组 Search Fields 可以继续通过 `InferFieldValues` 推导完整 values 类型：
 
 ```ts twoslash
-import type { InferFieldValues } from '@decurl/react-router/codec';
-import { defineFields, field } from '@decurl/react-router/codec';
-import { elementOf, min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+import type { InferFieldValues } from 'decurl/codec';
+import { defineFields, field } from 'decurl/codec';
+import { elementOf, min, pipe, shape, toNumber, trim } from 'decurl/decode';
 
 const searchFields = defineFields({
   keyword: field({

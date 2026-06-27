@@ -102,9 +102,9 @@ URL search state 库通常会提供更高层的 hook、parser 和 router adapter
 
 Decurl 更强调 URL codec 与 router hook 的边界：
 
-- `@decurl/react-router/codec` 负责 Search Fields 语义。
-- `@decurl/react-router/decode` 负责原始字符串的显式解析。
-- `@decurl/react-router/configured` 负责 React Router runtime 和 hooks。
+- `decurl/codec` 负责 Search Fields 语义。
+- `decurl/decode` 负责原始字符串的显式解析。
+- `decurl` 默认入口和 `decurl/configured` 负责 React Router runtime 和 hooks。
 - decode pipeline 保持显式组合，方便 review 和测试。
 - alias、default、patch encode 是 URLSearchParams 层的一等语义。
 

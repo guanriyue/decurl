@@ -1,4 +1,4 @@
-import { useSearchPagination } from '@decurl/react-router/pagination';
+import { useSearchPagination } from 'decurl/pagination';
 import { useEffect } from 'react';
 import { useLocation } from 'react-router';
 

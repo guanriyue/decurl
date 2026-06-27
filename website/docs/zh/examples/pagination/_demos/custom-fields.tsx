@@ -1,4 +1,4 @@
-import { field } from '@decurl/react-router/codec';
+import { field } from 'decurl/codec';
 import {
   elementOf,
   min,
@@ -7,9 +7,9 @@ import {
   toNumber,
   trim,
   where,
-} from '@decurl/react-router/decode';
-import type { SearchPaginationFields } from '@decurl/react-router/pagination';
-import { useSearchPagination } from '@decurl/react-router/pagination';
+} from 'decurl/decode';
+import type { SearchPaginationFields } from 'decurl/pagination';
+import { useSearchPagination } from 'decurl/pagination';
 import { useEffect } from 'react';
 import { useLocation } from 'react-router';
 import { Badge } from '@/components/ui/badge';

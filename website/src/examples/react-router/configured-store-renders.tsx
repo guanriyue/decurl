@@ -1,6 +1,6 @@
-import { defineFields, field } from '@decurl/react-router/codec';
-import { createReactRouterSearch } from '@decurl/react-router/configured';
-import { min, pipe, shape, toNumber } from '@decurl/react-router/decode';
+import { defineFields, field } from 'decurl/codec';
+import { createReactRouterSearch } from 'decurl/configured';
+import { min, pipe, shape, toNumber } from 'decurl/decode';
 import { useRef } from 'react';
 import { useLocation } from 'react-router';
 import { toSearchText, useDemoI18n } from '@/examples/i18n';

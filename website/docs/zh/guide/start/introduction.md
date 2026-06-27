@@ -1,5 +1,5 @@
 ---
-description: Decurl 是面向 URLSearchParams 的类型安全状态管理库，强调显式 decode、Search Fields 类型推导和 router 集成。
+description: Decurl 是面向 URLSearchParams 的类型安全状态管理库，强调显式 decode、Search Fields 类型推导和 React Router 集成。
 ---
 
 # Decurl 是什么
@@ -17,22 +17,22 @@ string | string[] | null -> typed value
 - URL 中所有值一开始都是字符串、字符串数组或缺失值。
 - query 参数经常需要默认值、别名、数组、多值字段和兼容旧链接。
 - 前端状态更新通常是 patch，而不是完整替换整个 search object。
-- router 集成需要在用户交互时先给出乐观状态，再把结果刷新到 URL。
+- React Router 集成需要在用户交互时先给出乐观状态，再把结果刷新到 URL。
 
-## 包结构
+## 入口结构
 
-当前文档围绕 `@decurl/react-router` 及其 conditional exports 展开：
+当前文档围绕 `decurl` 及其 conditional exports 展开：
 
 | 入口 | 职责 |
 | --- | --- |
-| `@decurl/react-router` | 开箱即用的 React Router hooks |
-| `@decurl/react-router/codec` | FieldCodec、Search Fields、类型推导、URLSearchParams decode/encode |
-| `@decurl/react-router/decode` | decode pipeline 与基础解析工具 |
-| `@decurl/react-router/routeSpec` | 定义 path 与 search contract，并生成类型安全的 href |
-| `@decurl/react-router/pagination` | page、pageSize 与分页联动行为 |
-| `@decurl/react-router/configured` | 创建绑定 store 的 hooks、Provider 和 React Router runtime 接线 |
+| `decurl` | 开箱即用的 React Router hooks |
+| `decurl/codec` | FieldCodec、Search Fields、类型推导、URLSearchParams decode/encode |
+| `decurl/decode` | decode pipeline 与基础解析工具 |
+| `decurl/routeSpec` | 定义 path 与 search contract，并生成类型安全的 href |
+| `decurl/pagination` | page、pageSize 与分页联动行为 |
+| `decurl/configured` | 创建绑定 store 的 hooks、Provider 和 React Router runtime 接线 |
 
-使用者只需要安装 `@decurl/react-router`。这些入口由同一个包提供，并共享同一套 Search Fields 规则。
+使用者只需要安装 `decurl`。这些入口由同一个包提供，并共享同一套 Search Fields 规则。
 
 ## 设计取向
 

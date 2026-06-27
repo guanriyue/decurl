@@ -1,13 +1,13 @@
 ---
-description: '@decurl/react-router/pagination 的 API reference。'
+description: 'decurl/pagination 的 API reference。'
 ---
 
-# @decurl/react-router/pagination
+# decurl/pagination
 
-`@decurl/react-router/pagination` 提供基于 Search Fields 的分页状态 hook，用于读取和更新 `page`、`pageSize`，并处理分页场景中的常见联动行为。
+`decurl/pagination` 提供基于 Search Fields 的分页状态 hook，用于读取和更新 `page`、`pageSize`，并处理分页场景中的常见联动行为。
 
 ```tsx
-import { useSearchPagination } from '@decurl/react-router/pagination';
+import { useSearchPagination } from 'decurl/pagination';
 ```
 
 ## useSearchPagination
@@ -77,7 +77,7 @@ useSearchPagination.pageSizeOptions
 传入 `SearchPaginationFields` 可以自定义 URL key、默认值和 codec 规则：
 
 ```tsx
-import { field } from '@decurl/react-router/codec';
+import { field } from 'decurl/codec';
 import {
   elementOf,
   min,
@@ -85,9 +85,9 @@ import {
   shape,
   toNumber,
   trim,
-} from '@decurl/react-router/decode';
-import type { SearchPaginationFields } from '@decurl/react-router/pagination';
-import { useSearchPagination } from '@decurl/react-router/pagination';
+} from 'decurl/decode';
+import type { SearchPaginationFields } from 'decurl/pagination';
+import { useSearchPagination } from 'decurl/pagination';
 
 const pageSizeOptions = [25, 50, 100];
 
@@ -259,8 +259,8 @@ createUseSearchPagination(options: {
 它可以把 Pagination 与 configured search store 显式组合：
 
 ```tsx
-import { createReactRouterSearch } from '@decurl/react-router/configured';
-import { createUseSearchPagination } from '@decurl/react-router/pagination';
+import { createReactRouterSearch } from 'decurl/configured';
+import { createUseSearchPagination } from 'decurl/pagination';
 
 const search = createReactRouterSearch();
 

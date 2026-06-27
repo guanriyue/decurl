@@ -1,6 +1,6 @@
-import { useSearchValue, useSearchValues } from '@decurl/react-router';
-import { defineFields, field } from '@decurl/react-router/codec';
-import { trim } from '@decurl/react-router/decode';
+import { useSearchValue, useSearchValues } from 'decurl';
+import { defineFields, field } from 'decurl/codec';
+import { trim } from 'decurl/decode';
 import { useLocation } from 'react-router';
 import { toSearchText, useDemoI18n } from '@/examples/i18n';
 

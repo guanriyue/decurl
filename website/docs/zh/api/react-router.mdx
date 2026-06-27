@@ -1,20 +1,20 @@
 ---
-description: '@decurl/react-router 主入口 hooks 的 API reference。'
+description: 'decurl 默认 hooks 入口的 API reference。'
 ---
 
-# @decurl/react-router
+# decurl
 
-`@decurl/react-router` 主入口提供开箱即用的 React Router hooks。它们会在 hook 内部接线当前 React Router runtime，不需要手动放置 Provider。
+`decurl` 默认入口提供开箱即用的 React Router hooks。它们会在 hook 内部接线当前 React Router runtime，不需要手动放置 Provider。
 
 ```tsx
-import { useSearchValue, useSearchValues } from '@decurl/react-router';
+import { useSearchValue, useSearchValues } from 'decurl';
 ```
 
-主入口 hooks 使用默认的单例 search store。对于一个应用只有一套 React Router runtime 的场景，通常直接使用即可。
+默认 hooks 使用默认的单例 search store。对于一个应用只有一套 React Router runtime 的场景，通常直接使用即可。
 
 这些 hooks 需要运行在 React Router 上下文内，例如 `BrowserRouter`、`RouterProvider` 或其他 React Router runtime 内部。
 
-如果需要绑定 store、多 React Router runtime 隔离，或者减少组件对 React Router `useLocation` 的直接依赖，见 [@decurl/react-router/configured](./configured)。
+如果需要绑定 store、多 React Router runtime 隔离，或者减少组件对 React Router `useLocation` 的直接依赖，见 [decurl/configured](./configured)。
 
 ## useSearchValues
 
@@ -38,7 +38,7 @@ useSearchValues(searchFields): [values, setValues]
 | `setValues` | 更新多个字段的 setter。 |
 
 ```tsx
-import { useSearchValues } from '@decurl/react-router';
+import { useSearchValues } from 'decurl';
 
 const SearchPanel = () => {
   const [values, setValues] = useSearchValues(searchFields);
@@ -98,7 +98,7 @@ useSearchValue(codec): [value, setValue]
 | `setValue` | 更新单个字段的 setter。 |
 
 ```tsx
-import { useSearchValue } from '@decurl/react-router';
+import { useSearchValue } from 'decurl';
 
 const PageButton = () => {
   const [page, setPage] = useSearchValue(searchFields.page);
@@ -126,7 +126,7 @@ setPage((previousPage) => previousPage + 1);
 
 ## Render behavior
 
-主入口 hooks 会直接接线当前 React Router runtime。某些路由更新可能让组件跟随 React Router 重新渲染；如果你需要绑定 store 或观察渲染次数优化，可以阅读 [@decurl/react-router/configured](./configured) 和 [绑定 Store](/zh/guide/react-router/configured-store)。
+默认 hooks 会直接接线当前 React Router runtime。某些路由更新可能让组件跟随 React Router 重新渲染；如果你需要绑定 store 或观察渲染次数优化，可以阅读 [decurl/configured](./configured) 和 [绑定 Store](/zh/guide/react-router/configured-store)。
 
 ## Navigate options
 
@@ -156,6 +156,6 @@ setPage(1, { replace: true, preventScrollReset: true });
 
 ## Related
 
-- [@decurl/react-router/configured](./configured)
-- [@decurl/react-router/codec](./codec)
+- [decurl/configured](./configured)
+- [decurl/codec](./codec)
 - [React Router 集成概览](/zh/guide/react-router/overview)

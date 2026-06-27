@@ -1,5 +1,5 @@
-import { useSearchValues } from '@decurl/react-router';
-import { defineFields, field } from '@decurl/react-router/codec';
+import { useSearchValues } from 'decurl';
+import { defineFields, field } from 'decurl/codec';
 import {
   elementOf,
   length,
@@ -7,7 +7,7 @@ import {
   pipe,
   trim,
   unique,
-} from '@decurl/react-router/decode';
+} from 'decurl/decode';
 import { RotateCcw, Sparkles } from 'lucide-react';
 import { useLocation } from 'react-router';
 

@@ -1,5 +1,5 @@
-import { useSearchValues } from '@decurl/react-router';
-import { defineFields, field } from '@decurl/react-router/codec';
+import { useSearchValues } from 'decurl';
+import { defineFields, field } from 'decurl/codec';
 import {
   elementOf,
   min,
@@ -8,7 +8,7 @@ import {
   toBoolean,
   toNumber,
   trim,
-} from '@decurl/react-router/decode';
+} from 'decurl/decode';
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router';
 import { toSearchText, useDemoI18n } from '@/examples/i18n';

@@ -26,11 +26,11 @@ const keyword = {
 
 没有 `defaultValue` 时，字段 decode 后可能是 `undefined`；带 `defaultValue` 时，字段 decode 后一定有值。
 
-`@decurl/react-router/decode` 提供的是一组可组合的 helper。使用它们不是 FieldCodec 的要求，只是为了减少重复编码，并让常见解析规则更容易阅读。
+`decurl/decode` 提供的是一组可组合的 helper。使用它们不是 FieldCodec 的要求，只是为了减少重复编码，并让常见解析规则更容易阅读。
 
 ```ts
-import { field } from '@decurl/react-router/codec';
-import { min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+import { field } from 'decurl/codec';
+import { min, pipe, shape, toNumber, trim } from 'decurl/decode';
 
 const page = field({
   decode: pipe(trim, shape.integer, toNumber, min(1)),
@@ -77,9 +77,9 @@ type FieldCodec<TValue, TRaw extends string | string[] = string> = {
 ### 类型推导
 
 ```ts twoslash
-import type { InferFieldValue } from '@decurl/react-router/codec';
-import { field } from '@decurl/react-router/codec';
-import { min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+import type { InferFieldValue } from 'decurl/codec';
+import { field } from 'decurl/codec';
+import { min, pipe, shape, toNumber, trim } from 'decurl/decode';
 
 const keyword = field({
   decode: trim,
@@ -103,9 +103,9 @@ type Page = InferFieldValue<typeof page>;
 字面量对象也可以被推导，但推荐使用 `field(...)` 固化 codec 类型。这样每个字段的模式、默认值和 decode 输入形状会更早被 TypeScript 检查，也能避免对象被后续组合时发生不必要的类型拓宽。
 
 ```ts twoslash
-import type { InferFieldValue } from '@decurl/react-router/codec';
-import { field } from '@decurl/react-router/codec';
-import { trim } from '@decurl/react-router/decode';
+import type { InferFieldValue } from 'decurl/codec';
+import { field } from 'decurl/codec';
+import { trim } from 'decurl/decode';
 
 const literalCodec = {
   decode: trim,
@@ -128,9 +128,9 @@ type StableValue = InferFieldValue<typeof stableCodec>;
 `useSearchValue` 读取单个 named field codec。通常它来自 `defineFields` 的返回值。
 
 ```ts twoslash
-import { useSearchValue } from '@decurl/react-router';
-import { defineFields, field } from '@decurl/react-router/codec';
-import { trim } from '@decurl/react-router/decode';
+import { useSearchValue } from 'decurl';
+import { defineFields, field } from 'decurl/codec';
+import { trim } from 'decurl/decode';
 
 const fields = defineFields({
   keyword: field({
@@ -156,9 +156,9 @@ const SearchInput = () => {
 `useSearchValues` 读取一组 field codec。下面的 Search Fields 同时覆盖了 single optional、multi optional、single required 和 multi required 四种 field。
 
 ```ts twoslash
-import { useSearchValues } from '@decurl/react-router';
-import { defineFields, field } from '@decurl/react-router/codec';
-import { elementOf, mapItems, min, pipe, shape, toNumber, trim, unique } from '@decurl/react-router/decode';
+import { useSearchValues } from 'decurl';
+import { defineFields, field } from 'decurl/codec';
+import { elementOf, mapItems, min, pipe, shape, toNumber, trim, unique } from 'decurl/decode';
 
 const fields = defineFields({
   keyword: field({

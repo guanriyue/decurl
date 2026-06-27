@@ -1,5 +1,5 @@
-import { useSearchValue } from '@decurl/react-router';
-import { field } from '@decurl/react-router/codec';
+import { useSearchValue } from 'decurl';
+import { field } from 'decurl/codec';
 import { Search, X } from 'lucide-react';
 import { useLocation } from 'react-router';
 

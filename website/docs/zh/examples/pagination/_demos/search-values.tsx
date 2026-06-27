@@ -1,5 +1,5 @@
-import { useSearchValues } from '@decurl/react-router';
-import { defineFields, field } from '@decurl/react-router/codec';
+import { useSearchValues } from 'decurl';
+import { defineFields, field } from 'decurl/codec';
 import {
   elementOf,
   min,
@@ -7,7 +7,7 @@ import {
   shape,
   toNumber,
   trim,
-} from '@decurl/react-router/decode';
+} from 'decurl/decode';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLocation } from 'react-router';
 

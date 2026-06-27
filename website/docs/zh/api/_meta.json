@@ -7,31 +7,31 @@
   {
     "type": "file",
     "name": "codec",
-    "label": "@decurl/react-router/codec"
+    "label": "decurl/codec"
   },
   {
     "type": "file",
     "name": "decode",
-    "label": "@decurl/react-router/decode"
+    "label": "decurl/decode"
   },
   {
     "type": "file",
     "name": "react-router",
-    "label": "@decurl/react-router"
+    "label": "decurl"
   },
   {
     "type": "file",
     "name": "route-spec",
-    "label": "@decurl/react-router/routeSpec"
+    "label": "decurl/routeSpec"
   },
   {
     "type": "file",
     "name": "pagination",
-    "label": "@decurl/react-router/pagination"
+    "label": "decurl/pagination"
   },
   {
     "type": "file",
     "name": "configured",
-    "label": "@decurl/react-router/configured"
+    "label": "decurl/configured"
   }
 ]
