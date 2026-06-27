@@ -14,7 +14,7 @@ outline: false
 
 这种“一次初始化检查”只适用于当前这类静态数据场景。如果 total 会随筛选、请求或数据修改发生变化，应在获得与当前查询匹配的可信 total 后重新调用 `preventOverflow`，不能只依赖初始化 effect。
 
-```tsx file="./_demos/default-model.tsx" preview
+```tsx file="<root>/src/examples/react-router/examples/pagination/default-model.tsx" preview
 ```
 
 ## 相关文档

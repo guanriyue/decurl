@@ -215,7 +215,7 @@ const QueryForm = () => {
                 className="flex flex-wrap gap-x-4 gap-y-2"
               >
                 {tagOptions.map((option) => (
-                  // biome-ignore lint/a11y/noLabelWithoutControl: label 内关联 checkbox
+                  // biome-ignore lint/a11y/noLabelWithoutControl: label wraps the checkbox
                   <label
                     key={option.value}
                     className="flex items-center gap-2 text-sm"

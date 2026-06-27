@@ -16,7 +16,7 @@ outline: false
 
 快速重复设置 `page=999` 时，SWR 可能对相同请求执行 dedupe，成功回调不会再次触发，因而这一次无法自动修正页码。这也说明 `preventOverflow` 是收到可信 `total` 后的一次恢复操作，不负责协调请求缓存；更多背景见[理解分页越界](/zh/guide/react-router/pagination/overflow)。
 
-```tsx file="./_demos/data-table.tsx" preview
+```tsx file="<root>/src/examples/react-router/examples/data-table.tsx" preview
 ```
 
 ## 相关 API
