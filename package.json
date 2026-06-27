@@ -1,5 +1,5 @@
 {
-  "name": "decurl",
+  "name": "decurl-workspace",
   "version": "0.0.0",
   "description": "",
   "private": true,
@@ -11,7 +11,7 @@
     "precheck": "pnpm build && pnpm typecheck && pnpm test",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "pnpm precheck && changeset publish"
+    "release": "pnpm precheck && pnpm -r --filter \"./packages/*\" publish --access public --no-git-checks"
   },
   "keywords": [],
   "author": {
