@@ -1,6 +1,6 @@
-import type { FieldCodec } from '@decurl/core/codec';
-import { decodeFields, encodeFields } from '@decurl/core/codec';
 import { describe, expect, it } from 'vitest';
+import type { FieldCodec } from '../codec';
+import { decodeFields, encodeFields } from '../codec';
 import type { SearchLocation } from '../runtime/types';
 import { replay } from './replay';
 import type { PendingEntry, SearchPatch } from './types';

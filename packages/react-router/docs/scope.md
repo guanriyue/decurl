@@ -1,6 +1,6 @@
 # React Router 职责范围
 
-`@decurl/react-router` 负责将 `@decurl/core` 的 URLSearchParams codec 能力接入 React 和 React Router。
+`@decurl/react-router` 负责将 Decurl 的 URLSearchParams codec 能力接入 React 和 React Router。
 
 这个包的核心目标是提供 schema-first 的 search params state，以及基于 React Router path pattern 的类型安全 URL contract。业务开发者优先面对 decoded data 和业务值，而不是手写 `URLSearchParams` 或 URL 字符串。
 
@@ -15,22 +15,23 @@
 - 支持 pending flush，将 URL 同步延迟到一个短窗口后执行。
 - 提供常用分页 search state hook，复用同一套 optimistic URL state 语义。
 - 定义 path pattern、path params 和 search definition 组成的 route spec。
-- 使用 React Router `generatePath` 和 core codec 生成类型安全 href。
+- 使用 React Router `generatePath` 和当前包内 codec 生成类型安全 href。
 - 为后续 Provider、多 runtime 和高级能力保留内部边界。
 
-## 依赖边界
+## Codec 边界
 
-`@decurl/react-router` 依赖 `@decurl/core` 的 codec/schema 约束。
+Codec/schema 约束现在由当前包内的 `codec` 与 `decode` 模块提供。
 
 当前应优先使用：
 
-- `@decurl/core/codec`
+- `decurl/codec`
+- `decurl/decode`
 
-如果实现过程中发现 core 缺少必要能力，应先记录需要什么能力，不应为了 react-router 直接修改 core。
+React Router runtime 不应重新定义 codec 语义。如果实现过程中发现 codec 缺少必要能力，应先在 codec/decode 层补齐设计和测试，再让 React Router runtime 消费。
 
 ## 当前非目标
 
-- 修改 `@decurl/core`。
+- 在 React Router runtime 中绕过或改写 codec 语义。
 - 暴露 `URLSearchParams` 作为主 API。
 - 暴露 pending patch handle。
 - 暴露手动撤销 API。

@@ -1,7 +1,7 @@
-import type { EncodeFieldsValues, InferFieldValues, RecordCodec } from '@decurl/core/codec';
-import { decodeFields, encodeFields } from '@decurl/core/codec';
 import { useSyncExternalStore } from 'react';
 import { useStableEvent } from '../_internal/useStableEvent';
+import type { EncodeFieldsValues, InferFieldValues, RecordCodec } from '../codec';
+import { decodeFields, encodeFields } from '../codec';
 import type { SearchNavigateOptions } from '../runtime/types';
 import type { SearchStore } from '../store/types';
 import { useContextStore } from './SearchStateContext';

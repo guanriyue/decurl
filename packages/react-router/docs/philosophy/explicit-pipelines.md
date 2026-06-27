@@ -8,7 +8,7 @@ Decode pipeline 应该把每一步选择写出来。
 pipe(trim, shape.integer, toNumber, min(1))
 ```
 
-不推荐在 core 中提供：
+不推荐在 Decurl 中提供：
 
 ```ts
 parseAsPositiveInteger()
@@ -22,7 +22,6 @@ parseAsPositiveInteger()
 const positiveInteger = pipe(trim, shape.integer, toNumber, min(1))
 ```
 
-这种封装属于业务上下文，风险小于 core 提供通用成品 parser。
+这种封装属于业务上下文，风险小于 Decurl 提供通用成品 parser。
 
-添加 decode primitive 的具体规则见 [Decode Primitives 维护准则](../decode-primitives.md)。
-
+添加 decode primitive 的具体规则见 [Decode Primitives 维护准则](../architecture/decode-primitives.md)。

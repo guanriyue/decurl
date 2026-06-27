@@ -1,6 +1,6 @@
 # Decode Pipeline 架构
 
-Decode pipeline 是 `@decurl/core` 的核心组合模型。
+Decode pipeline 是 Decurl codec/decode 层的核心组合模型。
 
 基础协议：
 
@@ -42,7 +42,7 @@ codec.name ?? recordKey
 
 ## 引用稳定边界
 
-Core 提供 equality helper：
+Codec 层提供 equality helper：
 
 - `isFieldValueEqual`
 - `isFieldValuesEqual`

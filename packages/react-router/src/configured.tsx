@@ -1,5 +1,5 @@
-import type { NamedFieldCodec, RecordCodec } from '@decurl/core/codec';
 import { useLayoutEffect, useMemo } from 'react';
+import type { NamedFieldCodec, RecordCodec } from './codec';
 import { SearchStateContext, type SearchStateContextValue } from './react/SearchStateContext';
 import { useConfigureRuntimeStore } from './react/useConfigureRuntime';
 import type { SetSearchValue, UseSearchValueResult } from './react/useSearchValue';

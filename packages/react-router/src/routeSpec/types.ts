@@ -1,5 +1,5 @@
-import type { EncodeFieldsValues, InferFieldValues, RecordCodec } from '@decurl/core/codec';
 import type { generatePath, PathParam } from 'react-router';
+import type { EncodeFieldsValues, InferFieldValues, RecordCodec } from '../codec';
 
 declare const routeSpecTypes: unique symbol;
 

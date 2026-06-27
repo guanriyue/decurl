@@ -1,7 +1,7 @@
-import type { FieldCodec, InferFieldValue, NamedFieldCodec } from '@decurl/core/codec';
-import { decodeField, encodeField, isFieldValueEqual } from '@decurl/core/codec';
 import { useSyncExternalStore } from 'react';
 import { useStableEvent } from '../_internal/useStableEvent';
+import type { FieldCodec, InferFieldValue, NamedFieldCodec } from '../codec';
+import { decodeField, encodeField, isFieldValueEqual } from '../codec';
 import type { SearchNavigateOptions } from '../runtime/types';
 import type { SearchStore } from '../store/types';
 import { useContextStore } from './SearchStateContext';

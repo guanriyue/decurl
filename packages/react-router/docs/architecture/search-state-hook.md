@@ -72,19 +72,19 @@ const pagination = useSearchPagination()
 
 这意味着 hook 的主要职责不是包装 React Router 的 `useSearchParams`，而是提供 URL-backed decoded state。
 
-## Core Codec Semantics
+## Codec Semantics
 
-`useSearchValues` 和 `useSearchValue` 的 encode/decode 行为应遵守 `@decurl/core/codec` 语义。
+`useSearchValues` 和 `useSearchValue` 的 encode/decode 行为应遵守 `decurl/codec` 语义。
 
-react-router 不重新定义 codec 行为。
+React Router runtime 不重新定义 codec 行为。
 
 对 hook 有直接影响的约束：
 
-- 默认值是否写入 URL 由 core 的 `preserveDefault` 语义决定。默认情况下，等于 `defaultValue` 的 field 可以不出现在 URL 中，但 decoded data 仍应得到默认值。
-- decode 失败时应回退到默认值。该能力由 core codec 层负责；如果 core 当前能力不足，react-router 只记录需求，不修改 core。
+- 默认值是否写入 URL 由 codec 层的 `preserveDefault` 语义决定。默认情况下，等于 `defaultValue` 的 field 可以不出现在 URL 中，但 decoded data 仍应得到默认值。
+- decode 失败时应回退到默认值。该能力由 codec 层负责；如果 codec 当前能力不足，应先补齐 codec 层能力，再由 runtime 消费。
 - multi field 默认顺序敏感。如果业务需要无序集合语义，应在 FieldCodec 中自定义 `eq`，并自行处理对应 encode/decode 规则。
 
-完整 codec 规则以 core 文档为准。
+完整 codec 规则以 codec 架构文档为准。
 
 ## Partial Update
 

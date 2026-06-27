@@ -1,5 +1,5 @@
-import type { RecordCodec, SingleRequiredFieldCodec } from '@decurl/core/codec';
 import { useStableEvent } from '../_internal/useStableEvent';
+import type { RecordCodec, SingleRequiredFieldCodec } from '../codec';
 import type { UseSearchValuesResult } from '../react/useSearchValues';
 import { useSearchValues } from '../react/useSearchValues';
 import type { SearchNavigateOptions } from '../runtime/types';

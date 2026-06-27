@@ -26,7 +26,7 @@ type WithDefinedFieldName<TCodec extends FieldCodec> =
   }
 ```
 
-Core 可以提供一个 schema define 方法，例如：
+Decurl 提供一个 schema define 方法，例如：
 
 ```ts
 const schema = defineFields({
@@ -99,7 +99,7 @@ Schema define 不应修改调用方传入的 field codec 对象。
 
 如果需要固化 name，应返回新的 field codec 对象或新的 schema 对象。
 
-这样可以保持 core codec 的纯函数边界，也避免同一个 field codec 在多个 schema 中复用时被意外污染。
+这样可以保持 codec 层的纯函数边界，也避免同一个 field codec 在多个 schema 中复用时被意外污染。
 
 ## Relationship With URLSearchParams Codec
 

@@ -106,6 +106,6 @@ page_num=2&p=1
 
 ## Full Update
 
-Core 包未来也可以暴露 full-update 机制。
+Decurl 未来也可以暴露 full-update 机制。
 
 在 full-update mode 中，缺失值会被视为移除，调用方负责传入完整数据。这不是默认机制，因为 patch encode 对 URL 更新有更好的开发者体验。

@@ -149,7 +149,7 @@ type WithDefinedFieldName<TCodec extends FieldCodec> =
 
 `NamedFieldCodec` 用于表达“任意携带有效 name 的 field codec”。`WithDefinedFieldName<TCodec>` 是类型变换工具，用于保留具体 codec 子类型并覆盖 name 类型。
 
-Core 可以提供 schema define 能力，把未携带 name 或携带空数组 name 的 codec 固化为 named codec。具体框架包可以消费 `NamedFieldCodec`，从而设计不需要显式 key 参数的 API。
+Schema define 能力可以把未携带 name 或携带空数组 name 的 codec 固化为 named codec。React Router runtime 可以消费 `NamedFieldCodec`，从而设计不需要显式 key 参数的 API。
 
 ## Equality
 

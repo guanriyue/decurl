@@ -1,6 +1,6 @@
 # Decode Primitives 维护准则
 
-Decode primitive 是 core 的基础可组合单元。
+Decode primitive 是 decode 层的基础可组合单元。
 
 基础协议：
 
@@ -32,7 +32,7 @@ type Decode<I, O> = (input: I) => O | null | undefined
    优先支持过滤、分页、排序、日期范围等 search params 常见场景。
 
 6. 替代成本是否足够高  
-   如果开发者只是多写一个清楚的 lambda，就不急着放进 core。
+   如果开发者只是多写一个清楚的 lambda，就不急着放进 decode 层。
 
 ## 应该提供
 
@@ -51,7 +51,7 @@ type Decode<I, O> = (input: I) => O | null | undefined
 
 ## 成品 parser 边界
 
-不要把多个策略打包成 core primitive。
+不要把多个策略打包成 decode primitive。
 
 不推荐：
 
@@ -71,7 +71,7 @@ pipe(trim, shape.integer, toNumber)
 const positiveInteger = pipe(trim, shape.integer, toNumber, min(1))
 ```
 
-这种封装带有业务上下文，风险小于 core 提供通用成品 parser。
+这种封装带有业务上下文，风险小于 Decurl 提供通用成品 parser。
 
 ## 数组工具边界
 
@@ -87,22 +87,21 @@ pipe(
 )
 ```
 
-除非某个数组规范化步骤在 URLSearchParams 过滤场景中足够高频，并且仍然保持单一步骤，否则不要加入 core。
+除非某个数组规范化步骤在 URLSearchParams 过滤场景中足够高频，并且仍然保持单一步骤，否则不要加入 decode 层。
 
-`unique` 属于可以考虑进入 core 的高频规范化步骤。典型场景是多选过滤，URL 中同一个 key 出现多次时，最终业务值通常期望去重。
+`unique` 属于可以考虑进入 decode 层的高频规范化步骤。典型场景是多选过滤，URL 中同一个 key 出现多次时，最终业务值通常期望去重。
 
 `unique` 的设计应保持单一步骤：
 
 - `unique(values)`：直接对数组去重。
 - `unique(identity)`：返回一个 decode-compatible 函数，之后由 `pipe` 调用。
 
-`unique` 不应扩展成完整集合工具族。带业务 identity 的去重可以支持，但 `groupBy`、`take`、`slice` 等仍不属于 core。
+`unique` 不应扩展成完整集合工具族。带业务 identity 的去重可以支持，但 `groupBy`、`take`、`slice` 等仍不属于 decode 层。
 
-`toSorted.date` 也可以按个案评估，因为日期范围是常见过滤参数；但 `decodeDateRange` 不应进入 core，因为它隐藏了 shape、转换、长度校验和排序等多个策略。
+`toSorted.date` 也可以按个案评估，因为日期范围是常见过滤参数；但 `decodeDateRange` 不应进入 decode 层，因为它隐藏了 shape、转换、长度校验和排序等多个策略。
 
 ## Shape Predicate 暴露边界
 
 `isInteger`、`isNumber`、`isBoolish`、`isMonth`、`isDate` 这类函数可以作为内部实现细节存在，但暂不作为对外 API 暴露。
 
 使用者应优先通过 `shape.integer`、`shape.number`、`shape.boolish`、`shape.month`、`shape.date` 组合 pipeline。
-

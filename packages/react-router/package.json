@@ -22,12 +22,12 @@
       "import": "./src/configured.tsx"
     },
     "./codec": {
-      "types": "./src/codec.ts",
-      "import": "./src/codec.ts"
+      "types": "./src/codec/index.ts",
+      "import": "./src/codec/index.ts"
     },
     "./decode": {
-      "types": "./src/decode.ts",
-      "import": "./src/decode.ts"
+      "types": "./src/decode/index.ts",
+      "import": "./src/decode/index.ts"
     },
     "./pagination": {
       "types": "./src/pagination/index.ts",
@@ -98,9 +98,6 @@
         "import": "./dist/routeSpec.js"
       }
     }
-  },
-  "dependencies": {
-    "@decurl/core": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "^19.2.17",

@@ -2,10 +2,10 @@
  * @vitest-environment jsdom
  */
 
-import type { FieldCodec } from '@decurl/core/codec';
 import { act, cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { FieldCodec } from '../codec';
 import { createSearchStore } from '../store/searchStore';
 import type { SearchStore } from '../store/types';
 import { SearchStateContext } from './SearchStateContext';

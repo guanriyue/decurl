@@ -2,9 +2,9 @@
 
 ## 决策
 
-`@decurl/core` 不提供 `parseAsInteger`、`parseAsDateRange` 这类成品 parser 作为核心 API。
+Decurl 不提供 `parseAsInteger`、`parseAsDateRange` 这类成品 parser 作为核心 API。
 
-Core 应提供小型、可组合、步骤可见的 decode primitives。
+Codec/decode 层应提供小型、可组合、步骤可见的 decode primitives。
 
 ## 背景
 
@@ -35,9 +35,8 @@ pipe(trim, shape.integer, toNumber)
 
 ## 后果
 
-Core API 会比 parser-first API 稍长，但更可审查。
+Decurl API 会比 parser-first API 稍长，但更可审查。
 
 业务项目仍然可以基于 primitives 封装自己的成品函数。
 
-维护者不应仅因为“更短”而向 core 添加成品 parser。
-
+维护者不应仅因为“更短”而向 decode 层添加成品 parser。

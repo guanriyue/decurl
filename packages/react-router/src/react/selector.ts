@@ -1,6 +1,6 @@
-import type { InferFieldValues, RecordCodec } from '@decurl/core/codec';
-import { isFieldValuesEqual } from '@decurl/core/codec';
 import { useRef } from 'react';
+import type { InferFieldValues, RecordCodec } from '../codec';
+import { isFieldValuesEqual } from '../codec';
 import type { SearchStoreSnapshot } from '../store/types';
 
 export type SearchStateSelector<TValue> = (snapshot: SearchStoreSnapshot) => TValue;

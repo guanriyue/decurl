@@ -1,6 +1,6 @@
-import { encodeFields, type RecordCodec } from '@decurl/core/codec';
 import { generatePath } from 'react-router';
 import { isNil } from '../_internal/isNil';
+import { encodeFields, type RecordCodec } from '../codec';
 import type { RouteSpec, RouteSpecPath, RouteSpecPathParams } from './types';
 
 /** routeSpec 的定义选项。 */

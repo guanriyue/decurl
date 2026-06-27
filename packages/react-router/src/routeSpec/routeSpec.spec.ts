@@ -1,5 +1,5 @@
-import type { FieldCodec } from '@decurl/core/codec';
 import { describe, expect, expectTypeOf, it } from 'vitest';
+import type { FieldCodec } from '../codec';
 import { routeSpec } from './routeSpec';
 
 describe('routeSpec', () => {

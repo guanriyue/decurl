@@ -1,5 +1,5 @@
-import type { SingleOptionalFieldCodec, SingleRequiredFieldCodec } from '@decurl/core/codec';
 import { describe, expectTypeOf, it } from 'vitest';
+import type { SingleOptionalFieldCodec, SingleRequiredFieldCodec } from '../codec';
 import type {
   InferRouteSpecParams,
   InferRouteSpecPath,

@@ -2,11 +2,11 @@
  * @vitest-environment jsdom
  */
 
-import type { SingleRequiredFieldCodec } from '@decurl/core/codec';
 import { act, cleanup, render, screen } from '@testing-library/react';
 import { useLayoutEffect } from 'react';
 import { MemoryRouter, useLocation } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { SingleRequiredFieldCodec } from '../codec';
 import { SearchStateContext } from '../react/SearchStateContext';
 import { createSearchStore } from '../store/searchStore';
 import type { SearchStore } from '../store/types';

@@ -1,6 +1,6 @@
-import type { FieldCodec } from '@decurl/core/codec';
-import { decodeFields, encodeFields } from '@decurl/core/codec';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { FieldCodec } from '../codec';
+import { decodeFields, encodeFields } from '../codec';
 import type { SearchLocation, SearchNavigateOptions, SearchRuntime } from '../runtime/types';
 import { createSearchStore } from './searchStore';
 import type { SearchPatch, SearchStore, SearchStoreState } from './types';

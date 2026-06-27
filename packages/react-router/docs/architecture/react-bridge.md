@@ -163,13 +163,13 @@ const nextValues = decodeFields(
 1. 整个 values 对象采用 shallow equal。
 2. 每个 key 对应的 field value 采用 field codec equality。
 
-Bridge 应优先使用 core 已提供的 schema 级 helper：
+Bridge 应优先使用 codec 层提供的 schema 级 helper：
 
 ```ts
 isFieldValuesEqual(schema, nextValues, previousValues)
 ```
 
-完整 field equality 规则以 core codec 文档为准。
+完整 field equality 规则以 codec 架构文档为准。
 
 Selector 的目标是确保：
 

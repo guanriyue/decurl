@@ -2,10 +2,10 @@
  * @vitest-environment jsdom
  */
 
-import type { SingleRequiredFieldCodec, WithDefinedFieldName } from '@decurl/core/codec';
 import { act, cleanup, render, screen } from '@testing-library/react';
 import { createMemoryRouter, MemoryRouter, RouterProvider, useLocation } from 'react-router';
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
+import type { SingleRequiredFieldCodec, WithDefinedFieldName } from './codec';
 import type { ReactRouterSearch } from './configured';
 import { createReactRouterSearch } from './configured';
 import type { SetSearchValue } from './react/useSearchValue';

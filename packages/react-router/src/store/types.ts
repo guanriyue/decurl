@@ -1,4 +1,4 @@
-import type { EncodeFieldsValues, InferFieldValues, RecordCodec } from '@decurl/core/codec';
+import type { EncodeFieldsValues, InferFieldValues, RecordCodec } from '../codec';
 import type {
   SearchLocation,
   SearchLocationLike,
