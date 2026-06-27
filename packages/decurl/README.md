@@ -1,8 +1,14 @@
 # decurl
 
-React Router integration for Decurl URL Search Params state.
+Typed URL Search Params state, codecs, and React Router helpers.
 
-This package provides hooks and runtime helpers for reading and updating typed URL Search Params in React Router applications.
+`decurl` helps define URL search params as typed fields, decode them into application values, encode updates back to the URL, and use that state from React Router applications.
+
+## Installation
+
+```bash
+pnpm add decurl
+```
 
 ## Documentation
 
@@ -12,14 +18,16 @@ https://guanriyue.github.io/decurl/
 
 ```ts
 import { useSearchValue, useSearchValues } from 'decurl';
-import { createReactRouterSearch } from 'decurl/configured';
-import { field } from 'decurl/codec';
+import { defineFields, field } from 'decurl/codec';
 import { pipe, shape, toNumber } from 'decurl/decode';
 import { useSearchPagination } from 'decurl/pagination';
 import { routeSpec } from 'decurl/routeSpec';
+import { createReactRouterSearch } from 'decurl/configured';
 ```
 
 ## Peer Dependencies
+
+React and React Router are peer dependencies for the runtime hooks and React Router helpers. The codec and decode entry points are framework-independent.
 
 ```json
 {
