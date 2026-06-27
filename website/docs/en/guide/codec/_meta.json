@@ -1,0 +1,22 @@
+[
+  {
+    "type": "file",
+    "name": "field-codec",
+    "label": "FieldCodec"
+  },
+  {
+    "type": "file",
+    "name": "decode-pipeline",
+    "label": "Decode pipeline"
+  },
+  {
+    "type": "file",
+    "name": "search-fields",
+    "label": "Search Fields"
+  },
+  {
+    "type": "file",
+    "name": "url-search-params",
+    "label": "URLSearchParams"
+  }
+]

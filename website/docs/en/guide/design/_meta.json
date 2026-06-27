@@ -1,0 +1,12 @@
+[
+  {
+    "type": "file",
+    "name": "boundaries",
+    "label": "Design Boundaries"
+  },
+  {
+    "type": "file",
+    "name": "comparison",
+    "label": "Comparisons"
+  }
+]

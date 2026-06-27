@@ -1,0 +1,161 @@
+---
+description: 'API reference for the main-entry hooks from @decurl/react-router.'
+---
+
+# @decurl/react-router
+
+The main `@decurl/react-router` entry provides ready-to-use React Router hooks. They wire the current React Router runtime inside the hook, so you do not need to place a Provider manually.
+
+```tsx
+import { useSearchValue, useSearchValues } from '@decurl/react-router';
+```
+
+The main-entry hooks use the default singleton search store. If an application has only one React Router runtime, this is usually enough.
+
+These hooks must run inside a React Router context, such as `BrowserRouter`, `RouterProvider`, or another React Router runtime.
+
+If you need to bind a store, isolate multiple React Router runtimes, or reduce direct dependency on React Router `useLocation`, see [@decurl/react-router/configured](./configured).
+
+## useSearchValues
+
+`useSearchValues(searchFields)` reads and updates multiple search values.
+
+```ts
+useSearchValues(searchFields): [values, setValues]
+```
+
+Parameters:
+
+| Parameter | Description |
+| --- | --- |
+| `searchFields` | A set of Search Fields, usually returned by `defineFields`. |
+
+Returns:
+
+| Return value | Description |
+| --- | --- |
+| `values` | Values object decoded from the current URL search params. |
+| `setValues` | Setter for updating multiple fields. |
+
+```tsx
+import { useSearchValues } from '@decurl/react-router';
+
+const SearchPanel = () => {
+  const [values, setValues] = useSearchValues(searchFields);
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        setValues({ page: values.page + 1 });
+      }}
+    >
+      Next page
+    </button>
+  );
+};
+```
+
+`setValues(patch, options?)` accepts a patch. It only updates fields included in the patch, and leaves other fields unchanged. By default, it writes back to the URL with `{ replace: true }`.
+
+Passing `null` or `undefined` deletes the corresponding URL key. If the written value equals the field `defaultValue`, the key is also deleted by default; whether to preserve default values is controlled by the URLSearchParams codec encode rules.
+
+If the whole patch is `undefined`, Decurl deletes every URL key represented by the current `searchFields` and preserves search params outside those fields:
+
+```tsx
+setValues(undefined);
+```
+
+The patch can also be an updater:
+
+```tsx
+setValues((previousValues) => ({
+  page: previousValues.page + 1,
+}));
+```
+
+If the updater returns `undefined`, it has the same semantics as `setValues(undefined)`.
+
+## useSearchValue
+
+`useSearchValue(codec)` reads and updates a single field. The codec must already have a fixed `name`, usually from the return value of `defineFields`.
+
+```ts
+useSearchValue(codec): [value, setValue]
+```
+
+Parameters:
+
+| Parameter | Description |
+| --- | --- |
+| `codec` | A field codec with a fixed `name`, usually from the return value of `defineFields`. |
+
+Returns:
+
+| Return value | Description |
+| --- | --- |
+| `value` | Single field value decoded from the current URL search params. |
+| `setValue` | Setter for updating the single field. |
+
+```tsx
+import { useSearchValue } from '@decurl/react-router';
+
+const PageButton = () => {
+  const [page, setPage] = useSearchValue(searchFields.page);
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        setPage(page + 1);
+      }}
+    >
+      Next page
+    </button>
+  );
+};
+```
+
+`setValue(patch, options?)` also supports a direct value or an updater. By default, it writes back to the URL with `{ replace: true }`.
+
+Passing `null` or `undefined` deletes the URL key represented by the field. If the written value equals the field `defaultValue`, the key is also deleted by default.
+
+```tsx
+setPage((previousPage) => previousPage + 1);
+```
+
+## Render Behavior
+
+The main-entry hooks wire the current React Router runtime directly. Some route updates may cause components to re-render with React Router. If you need to bind a store or observe render-count optimization, see [@decurl/react-router/configured](./configured) and [Bound Store](/guide/react-router/configured-store).
+
+## Navigate Options
+
+The second setter argument is passed through to React Router navigate. Decurl uses `replace: true` by default to avoid writing frequent search params updates into many history entries.
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `replace` | `boolean` | `true` | Whether to replace the current history entry. |
+| `preventScrollReset` | `boolean` | React Router default | Whether to prevent scroll position reset. It is the same concept as `preventScrollReset` in React Router `navigate` options. |
+
+```tsx
+setPage(1, { replace: true, preventScrollReset: true });
+```
+
+If multiple setter calls happen before the same flush, the navigate options from the last call override the defaults.
+
+## Types
+
+| Type | Description |
+| --- | --- |
+| `SetSearchValues<TFields>` | Setter type for `useSearchValues`. |
+| `SearchValuesPatch<TFields>` | Patch type accepted by the `useSearchValues` setter. |
+| `SetSearchValue<TCodec>` | Setter type for `useSearchValue`. |
+| `SearchValuePatch<TCodec>` | Patch type accepted by the `useSearchValue` setter. |
+| `UseSearchValuesResult<TFields>` | Tuple return type of `useSearchValues`. |
+| `UseSearchValueResult<TCodec>` | Tuple return type of `useSearchValue`. |
+
+## Related
+
+- [@decurl/react-router/configured](./configured)
+- [@decurl/react-router/codec](./codec)
+- [React Router Integration Overview](/guide/react-router/overview)

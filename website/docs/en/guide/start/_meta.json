@@ -1,1 +1,17 @@
-["introduction", "getting-started"]
+[
+  {
+    "type": "file",
+    "name": "introduction",
+    "label": "What is Decurl?"
+  },
+  {
+    "type": "file",
+    "name": "installation",
+    "label": "Installation"
+  },
+  {
+    "type": "file",
+    "name": "getting-started",
+    "label": "Getting Started"
+  }
+]

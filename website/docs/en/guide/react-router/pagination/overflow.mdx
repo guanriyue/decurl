@@ -1,0 +1,164 @@
+---
+description: Pagination overflow recovery is a user experience optimization; understand trustworthy total values, missed corrections, and incorrect corrections caused by request cache.
+---
+
+# Understanding Pagination Overflow
+
+[Back to Pagination State](.) · [View Pagination API](/api/pagination)
+
+:::info Responsibility Boundary
+Pagination overflow recovery is an optional user experience optimization used to avoid leaving users on pages that no longer have data. It is not required for URL state correctness. This coordination belongs to the application's data request and cache layer. Decurl does not manage request lifecycle, cache freshness, or result trustworthiness. `preventOverflow` only performs one explicit correction after the application provides a trustworthy `total`.
+:::
+
+## What Is Pagination Overflow?
+
+A page is in overflow when the current page is greater than the max page:
+
+```ts
+const pageCount = Math.max(1, Math.ceil(total / pageSize));
+const isOverflow = page > pageCount;
+```
+
+Pagination requests usually obtain `total` only after the response returns, so the application may not know whether the current `page` is valid before the request. Overflow commonly comes from:
+
+- Users manually editing the URL.
+- Browser history or shared links whose data has changed.
+- Other users deleting data and reducing total page count.
+- Components without `total` directly running `page + 1`.
+- Other components modifying server data while the current component cache has not synchronized.
+
+## UI Limits and Post-request Recovery
+
+Pagination UI with known `pageCount` should restrict the target page before dispatching state changes:
+
+```ts
+const nextPage = Math.min(Math.max(inputPage, 1), pageCount);
+
+pagination.setPage(nextPage);
+```
+
+The UI should also disable previous on the first page, disable next on the last page, and restrict page input range. These are normal interaction boundaries and should not be delayed to `preventOverflow`.
+
+However, the UI can only use boundaries currently known by the client. When server data or another client changes, an originally valid interaction may still enter an overflow page. Post-request recovery handles cases that cannot be confirmed ahead of time:
+
+```tsx
+pagination.preventOverflow(result.total);
+```
+
+## Two Failure Directions
+
+When an application decides when to use `total` to correct the URL, it needs to avoid two kinds of errors:
+
+- **False negative**: a trustworthy `total` exists, but correction logic does not run, so the page temporarily stays in overflow.
+- **False positive**: an untrustworthy `total` is used for correction, and the application reduces a page that was actually valid.
+
+Incorrect correction actively changes the URL and may trigger new requests. Even if new data arrives later, the navigation side effect that already happened cannot be automatically undone. Therefore, the default should be to avoid false positives first.
+
+## Scenario Overview
+
+| Scenario | Is the current boundary trustworthy? | Recommended handling |
+| --- | --- | --- |
+| User turns pages through normal Pagination UI | Yes | Clamp before calling `setPage`. |
+| User manually enters a very large page | Unknown before request | Recover with the current result after request success. |
+| A historical link points to data that has been deleted | Unknown before request | Recover with the new `total` after request success. |
+| Another user deletes data | Old boundary is invalid | Recover with the new `total` after refetch. |
+| A component without `total` runs `page + 1` | Unknown | Prefer giving the component a boundary; post-request recovery is a supplement. |
+| SWR dedupe reuses the same request | Result may be trustworthy, but callback did not run | Accept a possible missed correction, or let the app actively revalidate. |
+| `keepPreviousData` or placeholder data | Usually belongs to the previous query | Can be rendered, but should not trigger URL correction by default. |
+| `total` in stale cache is too small | Stale | Direct correction may incorrectly reduce a valid page. |
+| Fresh cache without refetch | Trust depends on app strategy | Let the app decide whether to trust the cache. |
+| Server changes but client does not request | No new boundary | No client-side correction logic can discover the change. |
+
+## Successful Recovery: Multi-user Deletion
+
+Multi-user operations show why strict UI clamp still cannot cover every overflow state:
+
+```text
+pageSize=10, total=101, pageCount=11
+→ User A is on page 10
+→ User B deletes 1 row, server total becomes 100
+→ User A still clicks next based on old pageCount and enters page 11
+→ Page 11 request returns rows=[] and total=100
+→ preventOverflow(100)
+→ page is corrected to 10
+```
+
+User A's Pagination UI did not violate boundary rules. It only held an outdated `pageCount`. The new request result provides the current boundary, so calling `preventOverflow` is an explicit and predictable recovery action.
+
+If the client does not refetch, it will not obtain the new `total`. Window focus refetch, polling, revalidation after mutation, or business event refresh are still prerequisites for discovering external changes.
+
+## Missed Correction: SWR Dedupe
+
+One success callback does not guarantee that the same pagination state will be corrected every time later:
+
+```text
+page=999
+→ Request succeeds and corrects to the max page
+→ page=999 is set again within a short time
+→ SWR dedupe reuses the existing request result
+→ onSuccess does not fire again
+→ invalid page is not corrected
+```
+
+The data result may still be usable, but the success callback where the application placed `preventOverflow` did not run again. This is a missed correction. It does not mean `preventOverflow` calculated incorrectly; it means explicit calls can only complete that one recovery and cannot continuously maintain pagination invariants.
+
+Applications can actively revalidate data when business needs require it, but Decurl does not decide for the request library when to bypass dedupe, refetch, or trust cache.
+
+## Incorrect Correction: Stale Cache
+
+Simply listening to any available `data` and correcting automatically can also fail in the opposite direction:
+
+```text
+Cache stores total=100 for page=20
+→ Server later adds data and total becomes 200
+→ page=20 is now valid
+→ User enters page=20 again
+→ Request library returns cached total=100 first
+→ Application calculates pageCount=10 from old total
+→ page is incorrectly corrected from 20 to 10
+```
+
+Even if the cache key matches `page=20`, it only proves that this data once belonged to the query. It does not prove it still reflects the server.
+
+When old `total` is too large, the application may miss a correction that should happen. When old `total` is too small, the application may incorrectly reduce a valid page. The latter immediately changes URL and later requests, so the risk is higher.
+
+## Renderable Data Is Not Always Navigable Data
+
+Request libraries often provide old or preset data to reduce UI flicker. That can improve rendering, but it is not always suitable for triggering URL-changing side effects.
+
+| Data source | Can render? | Use by default for URL correction? |
+| --- | --- | --- |
+| Result returned by the current request | Yes | Yes, but the caller should still confirm query conditions match. |
+| SWR `keepPreviousData` | Yes | No. It may belong to the previous key. |
+| fallback / fallbackData | Yes | No, unless the application explicitly guarantees its source and freshness. |
+| React Query placeholder data | Yes | No. |
+| SSR hydration / initial data | Yes | Decided by the application's data strategy. |
+| Fresh cache | Yes | Decided by the application's data strategy. |
+| Known stale cache | Can render temporarily | Should not be used directly for correction. |
+
+SWR's `data`, `error`, `isLoading`, and `isValidating` cannot fully describe the data source. React Query provides finer state such as `isFetchedAfterMount` and `isPlaceholderData`, but `staleTime`, `refetchOnMount`, `enabled`, hydration, and initial data still affect their semantics.
+
+There is no universal judgment that is correct for every cache strategy. Applications need to decide based on their own request configuration: which results are only for rendering, and which are trustworthy enough to trigger URL correction.
+
+## Application Responsibilities
+
+Applications should:
+
+- Let Pagination UI restrict target pages produced by normal user interaction.
+- Ensure query keys include filters, sorting, and pagination conditions that affect data and `total`.
+- Decide whether a response, cache, or preset data belongs to the current query and is trustworthy enough.
+- Decide revalidation, polling, focus refresh, and refresh-after-mutation strategies.
+- Call `preventOverflow` only after obtaining a trustworthy `total`.
+
+Decurl is responsible for:
+
+- Calculating the max page from the current `pageSize` and a valid `total`.
+- Committing correction only when the current `page` exceeds the max page.
+- Doing nothing for missing or invalid `total`.
+
+`preventOverflow` does not provide universal cache freshness judgment, does not guarantee execution in dedupe scenarios, and does not replace the application's data request and Pagination UI.
+
+## Related
+
+- [Pagination State](.)
+- [@decurl/react-router/pagination](/api/pagination)

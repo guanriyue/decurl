@@ -1,0 +1,335 @@
+---
+description: '@decurl/react-router/routeSpec defines path and Search Fields in one place, then generates type-safe in-app hrefs.'
+---
+
+# @decurl/react-router/routeSpec
+
+`@decurl/react-router/routeSpec` defines React Router paths and Search Fields in one place, then generates type-safe in-app hrefs from business values.
+
+```ts
+import { routeSpec } from '@decurl/react-router/routeSpec';
+```
+
+RouteSpec is a URL contract and href builder. It does not define components, loaders, actions, or route hierarchy.
+
+## routeSpec
+
+### Call Signature
+
+```ts
+routeSpec({
+  path,
+  search?,
+})
+```
+
+The definition below preserves the concrete types of the path pattern and Search Fields:
+
+```ts
+import { defineFields, field } from '@decurl/react-router/codec';
+import { routeSpec } from '@decurl/react-router/routeSpec';
+
+const usersSearch = defineFields({
+  keyword: field({
+    decode: (input) => input || undefined,
+  }),
+  page: field({
+    decode: (input) => {
+      const value = Number(input);
+
+      return Number.isSafeInteger(value) && value >= 1
+        ? value
+        : undefined;
+    },
+    defaultValue: 1,
+  }),
+});
+
+const to = {
+  users: routeSpec({
+    path: '/users',
+    search: usersSearch,
+  }),
+  userDetail: routeSpec({
+    path: '/users/:id',
+  }),
+};
+```
+
+### Options
+
+| Parameter | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `path` | `` `/${string}` `` | Yes | - | React Router path pattern. |
+| `search` | `RecordCodec` | No | `undefined` | Search Fields used to generate search params. |
+
+Semantically, `path` contains only the pathname pattern. It should not contain search or hash.
+
+### Return Value
+
+`routeSpec` returns a callable object:
+
+| Member | Description |
+| --- | --- |
+| `spec(input?)` | Generates href with flat input. |
+| `spec.path` | Original React Router path pattern, preserving the literal type. |
+| `spec.search` | Original Search Fields; `undefined` when not defined. |
+| `spec.hrefByParts(input)` | Passes path params and search input separately, then generates href. |
+
+The result is an in-app href string:
+
+```ts
+to.userDetail({ id: 42 });
+// /users/42
+
+to.users({ keyword: 'type safe', page: 2 });
+// /users?keyword=type+safe&page=2
+```
+
+If no search params are generated, the result does not append `?`.
+
+### Whether Input Is Required
+
+RouteSpec decides whether callable input is required based on path params and search input:
+
+```ts
+const home = routeSpec({ path: '/' });
+const categories = routeSpec({ path: '/:lang?/categories' });
+
+home();
+categories();
+categories({ lang: 'zh' });
+to.users();
+to.userDetail({ id: 42 });
+```
+
+- When there are no path params and no search, input is not accepted.
+- When there are only optional path params or search, input can be omitted.
+- When there is a required path param, input is required.
+
+### Path Params
+
+Path param inference and pathname generation follow React Router path patterns:
+
+| Form | Example | Input |
+| --- | --- | --- |
+| Required param | `/users/:id` | `id: string \| number \| boolean` |
+| Optional param | `/:lang?/categories` | `lang?: string \| number \| boolean \| null \| undefined` |
+| Splat | `/files/*` | `'*': string \| number \| boolean` |
+
+Non-nullish path params are converted with `String(value)` first, then passed to React Router `generatePath`. Pathname param encoding follows React Router. RouteSpec does not reimplement path encoding:
+
+```ts
+const files = routeSpec({ path: '/files/*' });
+
+files({ '*': 'docs/getting-started.md' });
+// /files/docs/getting-started.md
+```
+
+### Search
+
+`search` directly reuses Search Fields. When generating hrefs, RouteSpec only passes the search input to the same codec encode capability. It does not redefine search encoding rules.
+
+```ts
+to.users({ keyword: 'decurl', page: 2 });
+```
+
+Search input is a partial object. Which business values a field accepts, and how they are written to the URL, are determined by the corresponding FieldCodec.
+
+RouteSpec does not decode search. When reading the URL, a page can directly reuse the Search Fields stored on the spec:
+
+```tsx
+const UsersPage = () => {
+  const [search] = useSearchValues(to.users.search);
+
+  return <UsersTable search={search} />;
+};
+```
+
+### Flat Input
+
+When calling RouteSpec directly, path params and search properties are merged into one flat object:
+
+```ts
+const userDetail = routeSpec({
+  path: '/users/:id',
+  search: defineFields({
+    tab: field({
+      decode: (input) => input || undefined,
+    }),
+  }),
+});
+
+userDetail({
+  id: 42,
+  tab: 'profile',
+});
+```
+
+Conflict detection is based on path param names and Search Fields property keys. If the two parts contain the same property, flat input is disabled at the type level and you must use `hrefByParts`.
+
+```ts twoslash
+// @errors: 2345
+import { defineFields, field } from '@decurl/react-router/codec';
+import { routeSpec } from '@decurl/react-router/routeSpec';
+
+const detail = routeSpec({
+  path: '/users/:id',
+  search: defineFields({
+    id: field({
+      decode: (input) => input || undefined,
+    }),
+  }),
+});
+
+detail({ id: 42 });
+```
+
+### hrefByParts
+
+`hrefByParts` accepts path params and search input separately. It is the unambiguous grouped href generation API:
+
+```ts
+const detail = routeSpec({
+  path: '/users/:id',
+  search: defineFields({
+    id: field({
+      decode: (input) => input || undefined,
+    }),
+  }),
+});
+
+detail.hrefByParts({
+  params: { id: 42 },
+  search: { id: 'filter-id' },
+});
+// /users/42?id=filter-id
+```
+
+| Part | Required Rule | Description |
+| --- | --- | --- |
+| `params` | Required when required path params exist | Used only to generate the pathname. |
+| `search` | No | Used only to generate search params. |
+
+When optional parts are omitted, runtime treats them as empty objects. The `hrefByParts` input object itself is always required.
+
+## Working with React Router
+
+### Link and navigate
+
+RouteSpec returns strings that can be passed directly to React Router:
+
+```tsx
+<Link to={to.userDetail({ id: userId })}>
+  Detail
+</Link>
+```
+
+```tsx
+const navigate = useNavigate();
+
+navigate(to.users({ keyword: 'decurl' }));
+```
+
+### Router config
+
+Router config can reuse the path pattern stored on RouteSpec:
+
+```tsx
+const routes = [
+  {
+    path: to.users.path,
+    element: <UsersPage />,
+  },
+  {
+    path: to.userDetail.path,
+    element: <UserDetailPage />,
+  },
+];
+```
+
+RouteSpec does not store parent/child relationships. Object or directory hierarchy does not create extra route semantics.
+
+## Types
+
+Public type extractors correspond to path params, search encode input, and search decode values:
+
+```ts twoslash
+import { defineFields, field } from '@decurl/react-router/codec';
+import {
+  type InferRouteSpecParams,
+  type InferRouteSpecSearchInput,
+  type InferRouteSpecSearchValues,
+  routeSpec,
+} from '@decurl/react-router/routeSpec';
+
+const searchFields = defineFields({
+  keyword: field({
+    decode: (input) => input || undefined,
+  }),
+  page: field({
+    decode: (input) => {
+      const value = Number(input);
+
+      return Number.isSafeInteger(value) && value >= 1
+        ? value
+        : undefined;
+    },
+    defaultValue: 1,
+  }),
+});
+
+const users = routeSpec({
+  path: '/users/:groupId',
+  search: searchFields,
+});
+
+type UsersParams = InferRouteSpecParams<typeof users>;
+type UsersSearchInput = InferRouteSpecSearchInput<typeof users>;
+type UsersSearchValues = InferRouteSpecSearchValues<typeof users>;
+```
+
+### InferRouteSpecParams
+
+Extracts the path params needed to generate a pathname:
+
+```ts
+type UsersParams = {
+  groupId: string | number | boolean
+}
+```
+
+### InferRouteSpecSearchInput
+
+Extracts the partial search input accepted when generating hrefs:
+
+```ts
+type UsersSearchInput = {
+  keyword?: string | null | undefined
+  page?: number | null | undefined
+}
+```
+
+It describes the write direction, so every field is optional and nullish input semantics are preserved.
+
+### InferRouteSpecSearchValues
+
+Extracts the complete business values after URL decode:
+
+```ts
+type UsersSearchValues = {
+  keyword: string | undefined
+  page: number
+}
+```
+
+It describes the read direction and reflects the type difference between optional fields and fields with `defaultValue`.
+
+## Boundaries
+
+- RouteSpec only generates in-app href strings. It does not add React Router basename.
+- RouteSpec does not match pathname or parse path params. Pages should continue using React Router `useParams`.
+- RouteSpec does not define parent/child route composition and does not replace router config.
+- RouteSpec does not generate full URLs with origin.
+- Hash contract is a TODO and is not described as RouteSpec API yet.
+- Navigation state contract is a TODO and is not described as RouteSpec API yet.

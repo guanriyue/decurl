@@ -1,0 +1,198 @@
+---
+description: Decode pipelines use small composable functions to parse raw URLSearchParams strings into business values.
+---
+
+# Decode pipeline
+
+The `decode` of a FieldCodec can be a plain function. `@decurl/react-router/decode` provides helpers that write common parsing steps as shorter, more explicit, and easier-to-review pipelines.
+
+```ts
+import { min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+
+const decodePage = pipe(trim, shape.integer, toNumber, min(1));
+```
+
+This pipeline expresses the full strategy: trim first, require an integer shape, convert to number, then require the minimum value to be 1.
+
+## Decode Step
+
+Every decode step is a plain function:
+
+```ts
+type Decode<Input, Output> = (
+  input: Input,
+) => Output | null | undefined;
+```
+
+Returning `null` or `undefined` means the current step failed, the value is missing, or the value is invalid. When `pipe` sees a failed result, it stops later steps.
+
+```ts
+import { min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+
+const decodePage = pipe(trim, shape.integer, toNumber, min(1));
+
+decodePage(' 2 ');
+// 2
+
+decodePage('0');
+// undefined
+
+decodePage('abc');
+// undefined
+```
+
+How failed results fall back to `defaultValue` belongs to the FieldCodec layer. Decode primitives only express whether "this raw value can become a business value".
+
+## Shape Before Convert
+
+Prefer using `shape` to constrain the string shape before converting.
+
+```ts
+import { pipe, shape, toNumber } from '@decurl/react-router/decode';
+
+const decodeInteger = pipe(shape.integer, toNumber);
+const decodeNumber = pipe(shape.number, toNumber);
+```
+
+This avoids implicitly converting unexpected URL values into business values.
+
+```ts
+Number('');
+// 0
+
+Number('1e3');
+// 1000
+```
+
+These conversions are legal JavaScript, but they are usually not reviewable enough for URL search fields. Decode pipelines prefer to first declare which string shapes are allowed to enter the business layer.
+
+## Conditional Constraints
+
+`elementOf` fits enum-like values:
+
+```ts
+import { elementOf } from '@decurl/react-router/decode';
+
+const decodeSort = elementOf(['relevance', 'latest']);
+
+decodeSort('latest');
+// 'latest'
+
+decodeSort('random');
+// undefined
+```
+
+`where` fits custom predicates or type guards:
+
+```ts
+import { where } from '@decurl/react-router/decode';
+
+const decodeNonEmpty = where((value: string) => value.length > 0);
+```
+
+Helpers such as `startsWith`, `min`, `max`, and `length` also do only one step. Their goal is not to become a full validation DSL, but to make common URL search params constraints easier to compose.
+
+## Multi-value Fields
+
+URLSearchParams allows the same key to appear multiple times:
+
+```txt
+?tag=react&tag=router&tag=react
+```
+
+The `decode` input for a multi-value field is usually `string[]`. Use `mapItems` to run pipe-like decode logic for each item and automatically filter out failed items.
+
+```ts
+import { elementOf, mapItems, pipe, unique } from '@decurl/react-router/decode';
+
+const decodeTags = pipe(
+  mapItems(elementOf(['react', 'router', 'docs'])),
+  unique,
+);
+
+decodeTags(['react', 'unknown', 'router', 'react']);
+// ['react', 'router']
+```
+
+`mapItems` is responsible for item decode and filtering `null` / `undefined`. If you need sorting, grouping, or other array-level business rules, attach a plain function after it in `pipe`.
+
+```ts
+const decodeSortedTags = pipe(
+  mapItems(elementOf(['react', 'router', 'docs'])),
+  unique,
+  (values) => values.toSorted(),
+);
+```
+
+## TypeScript
+
+Decode primitives preserve pipeline type information. `elementOf` can infer a union type from an inline array literal; `as const` is not required.
+
+```ts twoslash
+import { elementOf, mapItems, min, pipe, shape, toNumber, trim, unique } from '@decurl/react-router/decode';
+
+const decodeSort = elementOf(['relevance', 'latest']);
+
+const sort = decodeSort('latest');
+
+const decodePage = pipe(trim, shape.integer, toNumber, min(1));
+
+const page = decodePage('2');
+
+const decodeTags = pipe(
+  mapItems(elementOf(['react', 'router', 'docs'])),
+  unique,
+);
+
+const tags = decodeTags(['react', 'docs']);
+```
+
+## Boundaries
+
+Decode primitives only care about normal value conversion, filtering, and composition. They do not understand URLSearchParams keys, and they are not responsible for aliases, `defaultValue`, patch encode, or React Router hooks.
+
+Those boundaries are described in later documents:
+
+- [FieldCodec](./field-codec): how a single field uses `decode`, and how `defaultValue`, `encode`, and `eq` work.
+- [Search Fields](./search-fields): how multiple fields form one search object.
+- [URLSearchParams](./url-search-params): how Search Fields decode and patch encode URLSearchParams.
+
+## Why Not Ready-made Parsers
+
+Decurl does not provide ready-made parsers such as `parseAsInteger()` or `parseAsDateRange()`. URL parameter parsing usually includes multiple project-level choices, such as whether to trim, whether to allow scientific notation, and how to handle failures. Ready-made parsers hide those choices.
+
+Prefer writing the steps out:
+
+```ts
+pipe(trim, shape.integer, toNumber)
+```
+
+This is easier to adjust locally than a broad parser:
+
+```ts
+pipe(trim, shape.integer, toNumber, min(1))
+```
+
+If a project needs shorter syntax, wrap your own helper inside the project:
+
+```ts
+const positiveInteger = pipe(trim, shape.integer, toNumber, min(1));
+```
+
+That wrapper carries business context and is more controllable than hiding the strategy inside a general decode primitive.
+
+## Why Use Them
+
+Custom functions are completely fine. Decode primitives are not required by FieldCodec, and Decurl does not force this style on developers. You can write any parsing logic directly in `decode`; when the data structure is complex or the parsing steps carry clear business semantics, writing your own function is often better.
+
+Decode primitives are only an option. They mainly serve common and simple URL search params scenarios, such as pagination, sorting, filters, toggle states, and resource ids. They behave more like a small descriptive language: use small functions with clear boundaries to write down "how this URL string enters the business layer".
+
+```ts
+pipe(trim, shape.integer, toNumber, min(1))
+```
+
+This code is shorter than a hand-written function, but each step is still visible. It does not secretly trim, does not secretly accept loose numeric formats, and does not hide fallback or default strategies inside a parser.
+
+If you are familiar with functional programming, decode primitives are loosely comparable to `Optional` / `Maybe`-style monadic composition: each step receives one value and produces the next value; `null` / `undefined` are treated as "invalid value", and later steps stop. The point is not to introduce complex concepts, but to keep small parsing pieces predictable and composable.
+
+This is why the design is close to RxJS operators or small lodash functions: each function is small and explicit, and composition improves readability. Decurl will still keep the number of primitives under control instead of growing into a huge utility library. Human developers struggle to remember that many helpers. But as AI coding becomes more common, small APIs with clear names and stable boundaries are easier for agents to scan and use, and easier for developers to review.

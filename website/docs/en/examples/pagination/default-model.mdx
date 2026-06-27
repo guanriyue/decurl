@@ -1,0 +1,23 @@
+---
+description: Use the default pagination model of useSearchPagination to manage page and pageSize in the URL.
+pageType: doc-wide
+outline: false
+---
+
+# Built-in Default Model
+
+This example uses the default pagination model of `useSearchPagination()`. The page size selector consumes `useSearchPagination.pageSizeOptions` directly. When page size changes, page resets to page 1 by default.
+
+This example checks page overflow only once during page initialization. That is acceptable here because the total number of items is fixed, and the Pagination UI clamps the target page before calling `setPage`; when page size changes, the default strategy also resets page to `1`. Therefore, after the component mounts, current interactions will not produce new overflow pages.
+
+You can try manually changing the current page route params, such as `?page=999`, and the page will be corrected automatically.
+
+This "one initialization check" only applies to this kind of static data scenario. If total can change with filters, requests, or data mutations, call `preventOverflow` again after receiving a trustworthy total that matches the current query. Do not rely only on an initialization effect.
+
+```tsx file="./_demos/default-model.tsx" preview
+```
+
+## Related Docs
+
+- [Pagination State](/guide/react-router/pagination)
+- [@decurl/react-router/pagination](/api/pagination)

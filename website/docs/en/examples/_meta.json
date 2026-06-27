@@ -1,0 +1,29 @@
+[
+  {
+    "type": "file",
+    "name": "search-box",
+    "label": "Search Box"
+  },
+  {
+    "type": "file",
+    "name": "batch-updates",
+    "label": "Batch Updates"
+  },
+  {
+    "type": "file",
+    "name": "query-form",
+    "label": "Query Form"
+  },
+  {
+    "type": "dir",
+    "name": "pagination",
+    "label": "Pagination",
+    "collapsible": true,
+    "collapsed": false
+  },
+  {
+    "type": "file",
+    "name": "data-table",
+    "label": "Data Table"
+  }
+]

@@ -1,0 +1,20 @@
+---
+description: React Router pagination example showing page and pageSize synchronized with URL search params.
+pageType: doc-wide
+outline: false
+---
+
+# Search Values Mode
+
+Pagination is a good fit for writing the current position to the URL. This example uses `page` and `pageSize` to control a local list. Invalid values fall back to defaults, and changing pageSize resets page to 1.
+
+```tsx file="./_demos/search-values.tsx" preview
+```
+
+## Related APIs
+
+- [useSearchValues](/api/react-router#usesearchvalues)
+- [field](/api/codec#field)
+- [defineFields](/api/codec#definefields)
+- [elementOf](/api/decode#elementof)
+- [min](/api/decode#min)

@@ -1,0 +1,301 @@
+---
+description: "RouteSpec is an optional URL contract management pattern for defining path and Search Fields in one place and generating type-safe hrefs."
+---
+
+# RouteSpec
+
+`routeSpec` is an optional URL contract management pattern. It is useful when you want to describe a page's pathname pattern and Search Fields in one place, then generate type-safe hrefs from business values.
+
+It does not replace React Router config, and it does not require you to change your existing route organization. If your project already has a clear URL management solution, keep using it. `routeSpec` focuses on a different trade-off: keeping URL rules in static definitions so pages, navigation, and router assembly have a clearer one-way dependency.
+
+## Why RouteSpec
+
+Navigation logic in applications often concatenates URLs directly:
+
+```tsx
+navigate(`/users/${userId}?keyword=${keyword}&page=${page}`);
+```
+
+Even if pathname and search concatenation are split into helper functions, each call site still needs to compose those rules:
+
+```tsx
+navigate(`${generatePath(path, params)}?${buildSearch(search)}`);
+```
+
+This is simple and direct, but URL rules become scattered across call sites and gradually turn into hard-to-manage magic strings:
+
+- Which params exist in the pathname.
+- What the search param keys are.
+- How search values should be encoded.
+- Whether default or empty values should be written to the URL.
+
+When there are only a few pages, these issues are not obvious. As list pages, detail pages, filters, and navigation entry points grow, scattered URL rules raise maintenance cost. This is especially visible when routes change. For example, if `/users/:id` changes to `/members/:id`, a centralized route spec only needs one update; if each navigation entry writes its own string, every call site must be searched and checked. Missed locations usually do not fail when routes are defined; they are discovered only after users click an entry.
+
+`routeSpec` provides a centralized management pattern: put the path and search contract in one definition, and pass only business values at call sites.
+
+```tsx
+navigate(to.users({ keyword, page }));
+```
+
+Centralized definitions also make it easier to inspect which pages can be navigated to. Router config can tell you which pages are assembled, but it usually belongs closer to the UI layer because it involves components, loaders, layouts, and similar concerns. RouteSpec is closer to the data layer. It directly shows a page's URL shape: the pathname, path params, and search param rules.
+
+This helps external systems generate links too. For example, an admin menu may need to configure a "User Detail" entry, a notification center may need to link a message to a specific user, or a cross-module entry may need to jump to a filtered list page. In those cases, the caller mainly cares about which path params `to.userDetail` needs, or which search values `to.users` supports. Reading route specs is usually more direct than entering full router config and then tracing page implementations.
+
+RouteSpec and router config are intentionally not defined together. RouteSpec sits earlier in the data layer. Page components can consume it, and router config can consume it too. Router config is usually the final assembly layer of a system and is closer to the UI layer. This split reduces reverse references between page files and router files.
+
+## Define a Page URL Contract
+
+Define Search Fields for a page first, then combine them with a React Router path pattern into a route spec:
+
+```ts
+import { defineFields, field } from '@decurl/react-router/codec';
+import { pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+import { routeSpec } from '@decurl/react-router/routeSpec';
+
+const usersSearch = defineFields({
+  keyword: field({
+    name: 'q',
+    decode: pipe(trim, shape(/.+/)),
+  }),
+  page: field({
+    decode: pipe(trim, shape.integer, toNumber),
+    defaultValue: 1,
+  }),
+});
+
+export const to = {
+  users: routeSpec({
+    path: '/users',
+    search: usersSearch,
+  }),
+
+  userDetail: routeSpec({
+    path: '/users/:id',
+  }),
+};
+```
+
+This definition only describes the URL itself:
+
+- `path` describes the pathname pattern.
+- `search` describes the decode and encode rules for search params.
+- The route spec itself does not define components, loaders, actions, or layouts.
+
+In other words, it is a URL contract, not router config.
+
+## Generate Type-safe hrefs
+
+RouteSpec is a callable object. Pass business values to it and it returns an href string that can be used by React Router:
+
+```tsx
+import { Link, useNavigate } from 'react-router';
+import { to } from './routes';
+
+const UsersActions = ({ userId }: { userId: number }) => {
+  const navigate = useNavigate();
+
+  return (
+    <>
+      <Link to={to.userDetail({ id: userId })}>
+        Detail
+      </Link>
+
+      <button
+        type="button"
+        onClick={() => {
+          navigate(to.users({ keyword: 'decurl', page: 2 }));
+        }}
+      >
+        Search
+      </button>
+    </>
+  );
+};
+```
+
+Call sites do not need to write query strings, and they do not need to know how search params are serialized. `to.users` reuses the encode capability from FieldCodec inside `usersSearch`.
+
+If a wrong field name is passed or a required path param is missing, TypeScript reports it at the call site.
+
+## Reuse path in Router Config
+
+Router config can reuse the path pattern stored by the route spec:
+
+```tsx
+import { createBrowserRouter } from 'react-router';
+import { to } from './routes';
+import { UserDetailPage } from './UserDetailPage';
+import { UsersPage } from './UsersPage';
+
+export const router = createBrowserRouter([
+  {
+    path: to.users.path,
+    element: <UsersPage />,
+  },
+  {
+    path: to.userDetail.path,
+    element: <UserDetailPage />,
+  },
+]);
+```
+
+This lets router config and page navigation use the same path literal, while keeping dependency direction clearer:
+
+```txt
+route spec
+├── page component: to.xxx(), to.xxx.search
+└── router config: to.xxx.path
+```
+
+In this structure, page components can use route specs to generate `Link`, call `navigate`, and reuse `routeSpec.search` to read URL search state. Router config assembles page components and reuses `routeSpec.path`. They both depend on route spec without depending on each other.
+
+The important part is that page components do not need to reference router config backwards. Defining href helpers directly in the router file can work, but router assembly needs page components, while page components may need router href helpers for navigation. That easily creates circular references. RouteSpec places the URL contract earlier so page and router config can both depend on it instead of each other.
+
+RouteSpec does not store parent/child relationships, and it does not infer route structure from object hierarchy. You can still organize React Router config in the way your project prefers.
+
+## Reuse Search Fields in Pages
+
+A route spec with `search` preserves the original Search Fields. When a page reads URL search state, it can reuse the same definition:
+
+```tsx
+import { useSearchValues } from '@decurl/react-router';
+import { to } from './routes';
+
+const UsersPage = () => {
+  const [search, setSearch] = useSearchValues(to.users.search);
+
+  return (
+    <UsersTable
+      keyword={search.keyword}
+      page={search.page}
+      onKeywordChange={(keyword) => {
+        setSearch({ keyword, page: 1 });
+      }}
+    />
+  );
+};
+```
+
+The same Search Fields serve both directions:
+
+- When generating hrefs, business values are encoded into the URL.
+- When reading on the page, URLSearchParams are decoded into business values.
+
+This avoids redefining search params rules between navigation entry points and page consumption.
+
+## Recommended Organization
+
+RouteSpec can be organized differently depending on project size. The following suggestions are only references. The core goal is to place URL contracts earlier so pages and router config can both depend on them.
+
+Small projects can keep route specs in one file:
+
+```txt
+src/
+├── routes.ts
+├── router.tsx
+└── pages/
+    ├── UsersPage.tsx
+    └── UserDetailPage.tsx
+```
+
+```ts
+// routes.ts
+export const to = {
+  users: routeSpec({
+    path: '/users',
+    search: usersSearch,
+  }),
+  userDetail: routeSpec({
+    path: '/users/:id',
+  }),
+};
+```
+
+This has low lookup cost and fits applications with a small number of pages and concentrated URL rules.
+
+When business modules grow, place Search Fields and route specs near their modules, then aggregate them from one entry file:
+
+```txt
+src/
+├── routes/
+│   ├── index.ts
+│   ├── users.ts
+│   └── projects.ts
+├── router.tsx
+└── pages/
+    ├── users/
+    │   ├── UsersPage.tsx
+    │   └── UserDetailPage.tsx
+    └── projects/
+        └── ProjectsPage.tsx
+```
+
+```ts
+// routes/users.ts
+export const users = {
+  list: routeSpec({
+    path: '/users',
+    search: usersSearch,
+  }),
+  detail: routeSpec({
+    path: '/users/:id',
+  }),
+};
+```
+
+```ts
+// routes/index.ts
+import { projects } from './projects';
+import { users } from './users';
+
+export const to = {
+  users,
+  projects,
+};
+```
+
+Page components read href builders from `to`, and router config reads `path` from the same definitions. If Search Fields only serve one page, they can live next to that route spec.
+
+Be careful when reusing Field or Search Fields. Unless two fields have exactly the same business semantics, such as truly representing the same filter condition with the same defaults and encode/decode rules, defining them separately is safer. When reuse is needed, prefer reusing decode primitives, custom decode functions, or smaller helper functions instead of reusing complete Fields just to reduce code size.
+
+It is usually not recommended to define route specs inside router config files. Router config typically imports page components, while page components may need route specs to generate navigation links. Placing route specs in independent files or business module entries reduces the chance of bidirectional references.
+
+## Using hrefByParts
+
+When calling a route spec directly, path params and search input are merged into one flat object:
+
+```ts
+to.userDetail({ id: 42 });
+```
+
+If path params and Search Fields use the same property key, the flat object becomes ambiguous. Use `hrefByParts` in that case and pass pathname params and search values separately:
+
+```ts
+const detail = routeSpec({
+  path: '/users/:id',
+  search: defineFields({
+    id: field({
+      name: 'filter_id',
+      decode: pipe(trim, shape(/.+/)),
+    }),
+  }),
+});
+
+detail.hrefByParts({
+  params: { id: 42 },
+  search: { id: 'active-user' },
+});
+```
+
+`hrefByParts` is more verbose, but it clearly separates two URL parts. When a page really has fields with the same name, this is easier to maintain than relying on convention.
+
+## Boundaries
+
+This document describes one way to organize URL contracts, not a routing architecture you must adopt. Its boundaries mainly concern dependency relationships:
+
+- RouteSpec can sit before page and router config as a URL contract that both depend on.
+- Router config is still handled by React Router. RouteSpec does not require changing existing route assembly.
+- Search Fields should still be defined by page and business semantics. RouteSpec only places them next to path in one contract.
+- If your project already has clear href management, route assembly, and Search Fields organization, keep using your own approach.
+
+For concrete API boundaries, see [@decurl/react-router/routeSpec](/api/route-spec).

@@ -10,7 +10,13 @@
     "activeMatch": "/api/"
   },
   {
-    "text": "Document",
-    "link": "https://rspress.rs/"
+    "text": "Examples",
+    "link": "/examples/search-box",
+    "activeMatch": "/examples/"
+  },
+  {
+    "text": "Design",
+    "link": "/guide/design/boundaries",
+    "activeMatch": "/guide/design/"
   }
 ]

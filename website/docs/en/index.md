@@ -1,44 +1,35 @@
 ---
-description: Rspress starter homepage with guide, MDX, search, AI, SSG, and theme customization links.
+description: Decurl is a type-safe state management library for URL search params, built around explicit decode pipelines, Search Fields inference, and router integration.
 pageType: home
 
 hero:
-  name: My Site
-  text: A cool website!
-  tagline: This is the tagline
+  name: Decurl
+  text: Type-safe state management for URL search params
+  tagline: Turn string, string[], and null into typed, maintainable, and reviewable business state with explicit decode pipelines.
   actions:
     - theme: brand
-      text: Quick Start
+      text: Get Started
       link: /guide/start/introduction
     - theme: alt
-      text: GitHub
-      link: https://github.com/web-infra-dev/rspress
-  image:
-    src: /rspress-icon.png
-    alt: Logo
+      text: View API
+      link: /api/
 features:
-  - title: Blazing fast build speed
-    details: The core compilation module is based on the Rust front-end toolchain, providing a more ultimate development experience.
-    icon: 🏃🏻‍♀️
-    link: /guide/start/introduction
-  - title: Support for MDX content writing
-    details: MDX is a powerful way to write content, allowing you to use React components in Markdown.
-    icon: 📦
-    link: /guide/use-mdx/components
-  - title: Built-in full-text search
-    details: Automatically generates a full-text search index for you during construction, providing out-of-the-box full-text search capabilities.
-    icon: 🎨
-    link: https://rspress.rs/guide/advanced/custom-search
-  - title: AI-friendly
-    details: Generate llms.txt and Markdown files compliant with the llms.txt specification through SSG-MD, making it easier for large language models to understand and use your documentation.
-    icon: 🤖
-    link: https://rspress.rs/guide/basic/ssg-md
-  - title: Static site generation
-    details: In production, it automatically builds into static HTML files, which can be easily deployed anywhere.
-    icon: 🌈
-    link: https://rspress.rs/guide/basic/ssg
-  - title: Providing multiple custom capabilities
-    details: Through its extension mechanism, you can easily extend theme UI and build process.
-    icon: 🔥
-    link: https://rspress.rs/guide/basic/custom-theme
+  - title: FieldCodec
+    details: Describe a URL key, decode logic, default value, write-back behavior, and equality semantics with a single field.
+    link: /guide/codec/field-codec
+  - title: Decode first
+    details: The hard part of URL search params is not writing values, but safely decoding raw URL strings into business values.
+    link: /guide/codec/decode-pipeline
+  - title: TypeScript-first
+    details: Search Fields describe URL fields and infer value types, so hooks, codecs, and business code share the same constraints.
+    link: /guide/codec/search-fields
+  - title: Patch encode
+    details: When updating the URL, only encode the fields in the patch and preserve untouched params from the base search.
+    link: /guide/codec/url-search-params
+  - title: React Router integration
+    details: Expose search state as hooks in React Router applications, with support for optimistic URL updates.
+    link: /guide/react-router/overview
+  - title: Alias migration
+    details: Read legacy keys from old links and write back canonical keys, making URL field migrations smoother.
+    link: /guide/codec/search-fields
 ---

@@ -1,55 +1,109 @@
 ---
-description: Set up an Rspress project, run local development, build production output, and choose next docs topics.
+description: Define Search Fields with @decurl/react-router and reuse them in hooks and URLSearchParams codecs.
 ---
 
-# Getting started
+# Getting Started
 
-## Project structure
+The core Decurl workflow is: define a set of Search Fields first, then reuse the same rules in hooks or URLSearchParams codecs.
 
-After creating a project with `create-rspress`, you will get the following project structure:
-
-- `docs/` — The documentation source directory, configured via `root` in `rspress.config.ts`.
-- `docs/_nav.json` — The navigation bar configuration.
-- `docs/guide/_meta.json` — The sidebar configuration for the guide section.
-- `docs/public/` — Static assets directory.
-- `theme/` — Optional custom theme directory, generated when you choose the custom theme scaffold.
-- `rspress.config.ts` — The Rspress configuration file.
-
-## Development
-
-Start the local development server:
+## Install
 
 ```bash
-npm run dev
+pnpm add @decurl/react-router
 ```
 
-:::tip
+`@decurl/react-router` supports React 18 and React 19, and requires React Router 7. For an existing React Router application, adding the Decurl dependency is enough.
 
-You can specify the port number or host with `--port` or `--host`, such as `rspress dev --port 8080 --host 0.0.0.0`.
+## Define Fields
 
-:::
+```ts
+import { createURLSearchParamsCodec, defineFields, field } from '@decurl/react-router/codec';
+import { elementOf, min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
 
-## Production build
-
-Build the site for production:
-
-```bash
-npm run build
+const searchFields = defineFields({
+  q: field({
+    decode: pipe(trim, shape(/.+/)),
+  }),
+  page: field({
+    name: ['page', 'p'],
+    decode: pipe(trim, shape.integer, toNumber, min(1)),
+    defaultValue: 1,
+  }),
+  sort: field({
+    decode: elementOf(['relevance', 'latest']),
+    defaultValue: 'relevance',
+  }),
+});
 ```
 
-By default, Rspress will output to `doc_build` directory.
+This uses several APIs:
 
-## Preview
+- [`field`](/api/codec#field) freezes the type of a single FieldCodec.
+- [`defineFields`](/api/codec#definefields) defines a set of Search Fields and uses the object key for fields without an explicit `name`.
+- Decode primitives such as [`pipe`](/api/decode#composition), [`shape`](/api/decode#shape--guard), and [`elementOf`](/api/decode#shape--guard) compose common parsing logic.
 
-Preview the production build locally:
+## Decode URLSearchParams
 
-```bash
-npm run preview
+```ts
+const codec = createURLSearchParamsCodec(searchFields);
+
+const values = codec.decode(new URLSearchParams('?q=router&p=2&sort=latest'));
+
+// values:
+// {
+//   q: 'router',
+//   page: 2,
+//   sort: 'latest',
+// }
 ```
 
-## Next steps
+If the canonical key is missing, Decurl tries legacy aliases. The URL above uses `p=2`, but the decoded business field is `page`.
 
-- Learn how to use [MDX & React Components](/guide/use-mdx/components) in your docs.
-- Learn about [Code Blocks](/guide/use-mdx/code-blocks/) syntax highlighting and line highlighting.
-- Learn about [Custom Containers](/guide/use-mdx/container) for tips, warnings, and more.
-- Explore the full [Rspress documentation](https://rspress.rs/) for advanced features.
+## Encode URLSearchParams
+
+```ts
+const nextSearch = codec.encode(
+  { page: 3 },
+  { base: '?q=router&p=2&sort=latest' },
+);
+
+nextSearch.toString();
+// q=router&sort=latest&page=3
+```
+
+`encode` uses patch semantics by default:
+
+- Only fields present in the patch are handled.
+- Untouched fields from the base search are preserved.
+- Alias fields are written with the canonical key.
+- Writing a default value deletes the corresponding key by default.
+
+See [`createURLSearchParamsCodec`](/api/codec#createurlsearchparamscodec) for more options.
+
+## Use It with React Router
+
+React Router hooks can use the same Search Fields directly. Main-entry hooks do not require an extra Provider.
+
+```tsx
+import { useSearchValues } from '@decurl/react-router';
+
+const SearchPanel = () => {
+  const [values, setValues] = useSearchValues(searchFields);
+
+  return (
+    <button onClick={() => setValues({ page: values.page + 1 })}>
+      Next page
+    </button>
+  );
+};
+```
+
+Use [`useSearchValue`](/api/react-router#usesearchvalue) when reading a single field. If you need to bind a store, isolate multiple React Router runtimes, or reduce direct dependency on React Router `useLocation`, continue with [`@decurl/react-router/configured`](/api/configured).
+
+Continue reading:
+
+- [API Overview](/api/)
+- [FieldCodec](../codec/field-codec)
+- [Decode pipeline](../codec/decode-pipeline)
+- [Search Fields](../codec/search-fields)
+- [React Router Integration](../react-router/overview)

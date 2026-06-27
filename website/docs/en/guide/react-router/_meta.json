@@ -1,0 +1,37 @@
+[
+  {
+    "type": "file",
+    "name": "overview",
+    "label": "Integration Overview"
+  },
+  {
+    "type": "file",
+    "name": "optimistic-url-state",
+    "label": "Optimistic URL State"
+  },
+  {
+    "type": "file",
+    "name": "configured-store",
+    "label": "Bound Store"
+  },
+  {
+    "type": "custom-link",
+    "label": "Pagination State",
+    "link": "/guide/react-router/pagination",
+    "collapsible": true,
+    "collapsed": false,
+    "items": [
+      {
+        "type": "custom-link",
+        "label": "Understanding Overflow",
+        "link": "/guide/react-router/pagination/overflow",
+        "tag": "UX"
+      }
+    ]
+  },
+  {
+    "type": "file",
+    "name": "route-spec",
+    "label": "RouteSpec"
+  }
+]

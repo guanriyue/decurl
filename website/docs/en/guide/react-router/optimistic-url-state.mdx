@@ -1,0 +1,79 @@
+---
+description: "@decurl/react-router updates the local search snapshot immediately after user interaction, then flushes it to React Router according to the scheduling strategy."
+---
+
+# Optimistic URL State
+
+In real applications, URL updates are not just `setSearchParams`.
+
+Users may type continuously, switch filters, and click pagination controls. Decurl provides optimistic search state in the React Router integration layer:
+
+1. The user calls a setter.
+2. Decurl immediately updates the local snapshot so the UI responds first.
+3. Multiple patches are merged or replayed.
+4. When the flush timing is reached, Decurl calls React Router navigate.
+5. After React Router confirms the location, the store aligns with the actual URL.
+
+## Why Optimistic State
+
+Without optimistic state, UI can easily be limited by router update timing. This is especially visible in inputs or complex filters, where users expect the interface to respond immediately.
+
+Decurl setters apply the patch to the local search snapshot first:
+
+```tsx
+setValues({ q: 'router', page: 1 });
+```
+
+The values read by components change immediately without waiting for the browser address bar to finish updating.
+
+## Patch Replay
+
+When multiple updates happen continuously, Decurl replays patches in order.
+
+```tsx
+setValues({ q: 'router', page: 1 });
+setValues((values) => ({ page: values.page + 1 }));
+```
+
+The second updater calculates from the intermediate value after the first patch, not from the old URL.
+
+This matters for pagination, filter coupling, and batch updates.
+
+## Flush Strategy
+
+`createReactRouterSearch` accepts store configuration.
+
+```ts
+const search = createReactRouterSearch({
+  flushDelay: 80,
+  flushMode: 'debounce',
+});
+```
+
+Common strategies:
+
+| Strategy | Fits |
+| --- | --- |
+| `throttle` | Limit URL write frequency when users click repeatedly |
+| `debounce` | Wait for users to pause during search input or filter input |
+| `flushDelay: 0` | Flush to router as soon as possible |
+
+## External Location Changes
+
+When browser back/forward or another component triggers navigation, React Router location may change from the outside.
+
+Decurl treats external location as the new source of truth and discards pending patches that no longer apply.
+
+This guarantees that the final URL semantics are still determined by router location, not solely by the local store.
+
+## Default navigate Behavior
+
+Search state updates use `{ replace: true }` by default, because input and filter changes usually should not create many history entries.
+
+If an update needs to create a new history entry, override the default with the second setter argument:
+
+```tsx
+setValues({ page: 2 }, { replace: false });
+```
+
+See [Navigate options](/api/react-router#navigate-options) for other options and defaults.

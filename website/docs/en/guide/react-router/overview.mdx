@@ -1,0 +1,126 @@
+---
+description: "@decurl/react-router connects Decurl Search Fields to React Router and exposes URL search state as hooks."
+---
+
+# React Router Integration
+
+`@decurl/react-router` connects Decurl Search Fields to React Router. Its goal is to let URL search be read and updated like ordinary React state, while keeping the URL as the final source of truth.
+
+## hooks
+
+The minimal usage is to import hooks and Search Fields tools directly:
+
+```tsx
+import { useSearchValue } from '@decurl/react-router';
+import { defineFields, field } from '@decurl/react-router/codec';
+import { pipe, shape, trim } from '@decurl/react-router/decode';
+
+const fields = defineFields({
+  keyword: field({
+    name: 'q',
+    decode: pipe(trim, shape(/.+/)),
+  }),
+});
+
+const SearchInput = () => {
+  const [keyword, setKeyword] = useSearchValue(fields.keyword);
+
+  return (
+    <input
+      value={keyword ?? ''}
+      onChange={(event) => {
+        const value = event.currentTarget.value.trim();
+        setKeyword(value === '' ? undefined : value);
+      }}
+    />
+  );
+};
+```
+
+This style fits applications that only need one default search store.
+
+Main-entry hooks do not require you to manually create a Provider. `useSearchValue` and `useSearchValues` use the default search store and automatically wire the current React Router runtime.
+
+## Single Value
+
+Use `useSearchValue` when you only care about one field. The demo below uses an input as a common scenario: the input value is synchronized to the `demo_q` param in the current page URL.
+
+```tsx file="<root>/src/examples/react-router/query-input.tsx" preview
+```
+
+## Multiple Values
+
+Use `useSearchValues` when you need to read and update multiple fields at the same time. The demo below uses a query form as a common scenario: when URL values change, the demo syncs them to form elements; on submit, it reads raw input with `FormData` and patches the result to the URL.
+
+```tsx file="<root>/src/examples/react-router/query-form.tsx" preview
+```
+
+## Shared URL Key
+
+Different hooks can listen to the same URL key. As long as the field codecs map to the same `name`, they read values from the same URL search state.
+
+```tsx file="<root>/src/examples/react-router/shared-key-hooks.tsx" preview
+```
+
+## Equality and Stable References
+
+Hooks compare previous and next values after decode. When the values are equal, the hook reuses the previous value reference.
+
+Stable references fit React's optimization model better: when a hook return value is used as `useMemo` or `useEffect` dependencies, or passed as props to a memoized component, unchanged search values will not cause extra dependency changes.
+
+Default comparison rules come from the field codec:
+
+- Single fields use `Object.is` by default.
+- Multi fields use order-sensitive shallow array comparison by default.
+- If the field codec provides a custom `eq`, Decurl uses that comparison.
+
+The demo below shows the difference: changing the watched key changes the `values` reference; changing an unrelated key may still re-render the component because React Router location changed, but the `values` reference returned by `useSearchValues` stays stable.
+
+```tsx file="<root>/src/examples/react-router/equality-stable-reference.tsx" preview
+```
+
+## App Integration
+
+```tsx
+import { BrowserRouter } from 'react-router';
+
+export const App = () => {
+  return (
+    <BrowserRouter>
+      <SearchPanel />
+    </BrowserRouter>
+  );
+};
+```
+
+As long as the component is inside a React Router environment, it can use the main-entry hooks directly.
+
+If you need to bind a store, configure flush strategy, or isolate multiple search states, see [Bound Store](./configured-store).
+
+## Relationship with the codec Entry
+
+React Router hooks do not redefine URL fields. Search Fields are defined with `@decurl/react-router/codec` and then reused by hooks:
+
+```ts
+import { defineFields, field } from '@decurl/react-router/codec';
+
+const searchFields = defineFields({
+  page: field({
+    decode: decodePage,
+    defaultValue: 1,
+  }),
+});
+```
+
+The same Search Fields can be used for:
+
+- URLSearchParams decode/encode.
+- React Router hooks.
+- Tests and fixtures.
+
+## Anti-pattern: Same Key, Different Rules
+
+If the same key uses different `defaultValue` values, different hooks may read different results when the key is missing from the URL. This is not recommended on the same page. Try to keep the same field codec rules for the same search param key.
+
+```tsx file="<root>/src/examples/react-router/shared-key-defaults.tsx" preview
+```

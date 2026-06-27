@@ -1,0 +1,19 @@
+---
+description: Use useSearchPagination with custom SearchPaginationFields to manage pagination state.
+pageType: doc-wide
+outline: false
+---
+
+# Custom Fields
+
+This example passes custom Fields to `useSearchPagination(fields)`, uses `p` and `size` as URL keys, and limits page size to `6`, `12`, and `24`.
+
+In custom Fields scenarios, the codec and selector should consume the same local `pageSizeOptions`. `useSearchPagination.pageSizeOptions` only belongs to the default pagination model and should not be used here.
+
+```tsx file="./_demos/custom-fields.tsx" preview
+```
+
+## Related Docs
+
+- [Pagination State: Custom Fields](/guide/react-router/pagination#custom-fields)
+- [@decurl/react-router/pagination](/api/pagination)

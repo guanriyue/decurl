@@ -1,0 +1,19 @@
+---
+description: React Router batch update example showing how multiple setValues calls merge URL search params.
+pageType: doc-wide
+outline: false
+---
+
+# Batch Updates
+
+This example calls `setValues` multiple times in a row. Each patch is applied on top of the intermediate search params after the previous update, so it does not overwrite other fields.
+
+```tsx file="./_demos/batch-updates.tsx" preview
+```
+
+## Related APIs
+
+- [useSearchValues](/api/react-router#usesearchvalues)
+- [field](/api/codec#field)
+- [defineFields](/api/codec#definefields)
+- [mapItems](/api/decode#mapitems)

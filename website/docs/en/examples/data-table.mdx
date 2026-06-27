@@ -1,0 +1,29 @@
+---
+description: React Router data table example showing filter, sort, and pagination synchronized with URL search params.
+pageType: doc-wide
+outline: false
+---
+
+# Data Table
+
+This example puts common table state into the URL: keyword, status filter, sort field, sort direction, current page, and page size. It does not depend on a table logic library; the focus is how URL search params drive a composed list view.
+
+The example data is prepared as a local mock based on the Character schema from the [Rick and Morty API](https://rickandmortyapi.com/documentation). It does not request the API at runtime.
+
+Pagination state is managed by the built-in `useSearchPagination()`. After SWR returns a result matching the current query, the example passes its `total` to `preventOverflow` to correct `page` values beyond the max page.
+
+Click **Page 999**, or manually change `page` in the URL to a very large number, to observe page correction after the request finishes. This button is only for demonstration: in real applications, when a pagination component knows `pageCount`, it should clamp the target page before calling `setPage` instead of actively writing a known overflow value.
+
+When `page=999` is set repeatedly in a short time, SWR may dedupe the same request and the success callback will not fire again, so that run cannot automatically correct the page. This also shows that `preventOverflow` is a one-time recovery after receiving a trustworthy `total`; it does not coordinate request cache. See [Understanding Pagination Overflow](/guide/react-router/pagination/overflow) for more background.
+
+```tsx file="./_demos/data-table.tsx" preview
+```
+
+## Related APIs
+
+- [useSearchValues](/api/react-router#usesearchvalues)
+- [useSearchPagination](/api/pagination#usesearchpagination)
+- [field](/api/codec#field)
+- [defineFields](/api/codec#definefields)
+- [elementOf](/api/decode#elementof)
+- [mapItems](/api/decode#mapitems)

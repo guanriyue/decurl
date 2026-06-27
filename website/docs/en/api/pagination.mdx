@@ -1,0 +1,364 @@
+---
+description: 'API reference for @decurl/react-router/pagination.'
+---
+
+# @decurl/react-router/pagination
+
+`@decurl/react-router/pagination` provides a Search Fields based pagination state hook. It reads and updates `page` and `pageSize`, and handles common pagination coupling behavior.
+
+```tsx
+import { useSearchPagination } from '@decurl/react-router/pagination';
+```
+
+## useSearchPagination
+
+### Call Signatures
+
+```ts
+useSearchPagination(): UseSearchPaginationResult
+useSearchPagination(options?): UseSearchPaginationResult
+useSearchPagination(fields, options?): UseSearchPaginationResult
+```
+
+| Call | Description |
+| --- | --- |
+| `useSearchPagination()` | Uses built-in pagination Fields and default behavior. |
+| `useSearchPagination(options?)` | Uses built-in pagination Fields and configures pagination behavior. |
+| `useSearchPagination(fields, options?)` | Uses custom pagination Fields and optionally configures pagination behavior. |
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `fields` | `SearchPaginationFields` | No | Custom `page` and `pageSize` Fields. |
+| `options` | `UseSearchPaginationOptions` | No | Pagination behavior when page size changes. |
+
+When a single object is passed, Decurl treats it as `SearchPaginationFields` if it contains both `page` and `pageSize`; otherwise it treats it as `UseSearchPaginationOptions`.
+
+### Default Model
+
+Without custom Fields, the hook uses the `page` and `pageSize` URL search params:
+
+| Field | Default | Decode Rule |
+| --- | --- | --- |
+| `page` | `1` | After trim, it must be a decimal positive safe integer starting at `1`. |
+| `pageSize` | `10` | Must satisfy the same positive integer rule and be included in the default page size options. |
+
+`01`, `1.5`, `1e2`, negative numbers, and values beyond the safe integer range all fail to decode and fall back to the corresponding default value.
+
+`useSearchPagination.fields` exposes the Fields used by the default pagination model:
+
+```ts
+useSearchPagination.fields
+// { page, pageSize }
+```
+
+When pagination Fields need to be used together with filter, sort, or other fields in `useSearchValues`, you can reuse them:
+
+```tsx
+const listFields = {
+  ...useSearchPagination.fields,
+  keyword: keywordField,
+  order: orderField,
+};
+```
+
+`useSearchPagination.pageSizeOptions` contains the page size options for the default model:
+
+```ts
+useSearchPagination.pageSizeOptions
+// [10, 20, 50, 100]
+```
+
+It participates in the default `pageSize` Field decode and can also be used to render a page size selector for the default pagination model.
+
+### Custom Fields
+
+Pass `SearchPaginationFields` to customize URL keys, defaults, and codec rules:
+
+```tsx
+import { field } from '@decurl/react-router/codec';
+import {
+  elementOf,
+  min,
+  pipe,
+  shape,
+  toNumber,
+  trim,
+} from '@decurl/react-router/decode';
+import type { SearchPaginationFields } from '@decurl/react-router/pagination';
+import { useSearchPagination } from '@decurl/react-router/pagination';
+
+const pageSizeOptions = [25, 50, 100];
+
+const paginationFields = {
+  page: field({
+    name: 'p',
+    decode: pipe(trim, shape.integer, toNumber, min(1)),
+    defaultValue: 1,
+  }),
+  pageSize: field({
+    name: 'size',
+    decode: pipe(
+      trim,
+      shape.integer,
+      toNumber,
+      elementOf(pageSizeOptions),
+    ),
+    defaultValue: 25,
+  }),
+} satisfies SearchPaginationFields;
+
+const pagination = useSearchPagination(paginationFields);
+```
+
+Custom Fields must satisfy Pagination algorithm invariants after every decode:
+
+- `page` is a positive safe integer starting at `1`, and its default should be `1`.
+- `pageSize` is a positive safe integer greater than `0` and has a deterministic valid default.
+- Fixed page sizes must be greater than `0`.
+- 0-based pages are not supported.
+
+These constraints are guaranteed by FieldCodec. Pagination setters do not create validation rules independent of the codec.
+
+Custom Fields do not consume `useSearchPagination.pageSizeOptions`, and Decurl does not infer page size options back from the codec. When a page renders a selector, use static data that corresponds to the custom codec, such as the `pageSizeOptions` above.
+
+### Options
+
+`pageSizeChangeStrategy` decides how `setPageSize` updates the page at the same time:
+
+| Value | Default | Description |
+| --- | --- | --- |
+| `'reset'` | Yes | Sets `page` to `1`. |
+| `'preserve-offset'` | No | Tries to keep the first item of the original page inside the new page range. |
+
+```tsx
+const pagination = useSearchPagination({
+  pageSizeChangeStrategy: 'preserve-offset',
+});
+```
+
+`preserve-offset` uses this calculation:
+
+```ts
+Math.floor(((page - 1) * pageSize) / nextPageSize) + 1
+```
+
+`nextPageSize` is the raw value passed to `setPageSize`. After the calculation, the `page` and `pageSize` patches are still passed to their corresponding FieldCodec.
+
+### Return Value
+
+```ts
+type UseSearchPaginationResult = {
+  page: number
+  pageSize: number
+  setPage: (page: number, options?: SearchNavigateOptions) => void
+  resetPage: () => void
+  setPageSize: (
+    pageSize: number,
+    options?: SearchNavigateOptions,
+  ) => void
+  setPagination: (
+    patch: {
+      page?: number | null | undefined
+      pageSize?: number | null | undefined
+    },
+    options?: SearchNavigateOptions,
+  ) => void
+  preventOverflow: (
+    totalSource:
+      | number
+      | null
+      | undefined
+      | { total?: number | null | undefined },
+  ) => void
+}
+```
+
+#### Pagination State
+
+| Return value | Type | Description |
+| --- | --- | --- |
+| `page` | `number` | Current decoded page. |
+| `pageSize` | `number` | Current decoded page size. |
+
+#### State Updates
+
+| Method | Signature | Description |
+| --- | --- | --- |
+| `setPage` | `(page, options?) => void` | Commits a new semantic page. |
+| `resetPage` | `() => void` | Commits `page: 1`. |
+| `setPageSize` | `(pageSize, options?) => void` | Commits page size and synchronizes page according to the strategy. |
+| `setPagination` | `(patch, options?) => void` | Commits a `page` and/or `pageSize` patch in one entry. |
+
+How the value committed by `setPage` is encoded, whether it is omitted from the URL, and what value is obtained after re-decode are all determined by the `page` FieldCodec.
+
+`resetPage` always commits `page: 1` and does not accept Navigate Options. The final URL representation is still determined by the `page` FieldCodec.
+
+`setPageSize` calculates a page patch according to `pageSizeChangeStrategy` at the same time. When the passed value equals the currently decoded `pageSize`, it does not commit an update.
+
+`setPagination` is essentially `setSearchValues` for pagination Fields, but with a more semantic name. It keeps the same patch encoding behavior, but its public type only accepts a direct patch and does not provide an updater:
+
+```tsx
+pagination.setPagination({
+  page: 3,
+  pageSize: 20,
+});
+```
+
+`setPagination` does not apply `pageSizeChangeStrategy`. When both fields are provided, their raw values are passed to the corresponding FieldCodec separately. Use `setPageSize` if page size coupling is needed.
+
+Omitting a property means the corresponding Field does not participate in this patch. Explicitly passing `null` or `undefined` passes that value to FieldCodec, usually to delete the corresponding URL key:
+
+```tsx
+pagination.setPagination({});
+pagination.setPagination({ page: undefined });
+```
+
+Navigate Options for `setPage`, `setPageSize`, and `setPagination` are exactly the same as `setSearchValues`.
+
+#### Overflow Recovery
+
+`preventOverflow(totalSource)` calculates the max page from the current decoded `pageSize`, then commits the max page if the current `page` is larger:
+
+```ts
+const maxPage = Math.max(1, Math.ceil(total / pageSize));
+```
+
+You can pass a number or an API result object containing `total`:
+
+```tsx
+pagination.preventOverflow(result.total);
+pagination.preventOverflow(result);
+```
+
+A valid `total` must be a safe integer greater than or equal to `0`. `null`, `undefined`, negative numbers, decimals, `NaN`, `Infinity`, and invalid `total` values inside objects all mean there is no available boundary, so no correction is committed. When `total=0`, the max page is still `1`.
+
+`preventOverflow` does not decide whether the data source is trustworthy. The caller should only call it after confirming that `total` belongs to the current query conditions and the result can be accepted by the current page.
+
+It is a one-time recovery action, not a guard that continuously maintains pagination invariants. It does not guarantee another run after a request library reuses cache or dedupes requests, and it does not replace pagination UI boundary limits for previous page, next page, or page input.
+
+For trade-offs between request cache, old data, and correction timing, see [Understanding Pagination Overflow](/guide/react-router/pagination/overflow).
+
+#### Stable References
+
+`setPage`, `resetPage`, `setPageSize`, `setPagination`, and `preventOverflow` keep stable references across component re-renders.
+
+## createUseSearchPagination
+
+```ts
+createUseSearchPagination(options: {
+  useSearchValues: <TDefinition extends RecordCodec>(
+    fields: TDefinition,
+  ) => UseSearchValuesResult<TDefinition>
+}): UseSearchPagination
+```
+
+`createUseSearchPagination` creates a pagination hook with the specified `useSearchValues`.
+
+It can explicitly compose Pagination with a configured search store:
+
+```tsx
+import { createReactRouterSearch } from '@decurl/react-router/configured';
+import { createUseSearchPagination } from '@decurl/react-router/pagination';
+
+const search = createReactRouterSearch();
+
+const useSearchPagination = createUseSearchPagination({
+  useSearchValues: search.useSearchValues,
+});
+```
+
+The return value is `UseSearchPagination`. It has the same call signatures, return value, and static `fields` and `pageSizeOptions` properties as the default hook.
+
+## Types
+
+### SearchPaginationFields
+
+```ts
+type SearchPaginationFields = {
+  page: SingleRequiredFieldCodec<number>
+  pageSize: SingleRequiredFieldCodec<number>
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `page` | `SingleRequiredFieldCodec<number>` | Provides a deterministic numeric page after decode. Pagination requires it to be a positive safe integer starting at `1`. |
+| `pageSize` | `SingleRequiredFieldCodec<number>` | Provides a deterministic page size after decode. Pagination requires it to be a positive safe integer greater than `0`. |
+
+### SearchPaginationPageSizeChangeStrategy
+
+```ts
+type SearchPaginationPageSizeChangeStrategy =
+  | 'reset'
+  | 'preserve-offset'
+```
+
+| Value | Description |
+| --- | --- |
+| `'reset'` | Resets page to `1` when page size changes. |
+| `'preserve-offset'` | Recalculates page from current page, pageSize, and the new pageSize. |
+
+### UseSearchPaginationOptions
+
+```ts
+type UseSearchPaginationOptions = {
+  pageSizeChangeStrategy?: SearchPaginationPageSizeChangeStrategy
+}
+```
+
+| Field | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `pageSizeChangeStrategy` | `SearchPaginationPageSizeChangeStrategy` | No | `'reset'` | How `setPageSize` synchronizes page. |
+
+### UseSearchPaginationResult
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `page` | `number` | Current decoded page. |
+| `pageSize` | `number` | Current decoded page size. |
+| `setPage` | `(page: number, options?: SearchNavigateOptions) => void` | Commits a new page. |
+| `resetPage` | `() => void` | Commits `page: 1`. |
+| `setPageSize` | `(pageSize: number, options?: SearchNavigateOptions) => void` | Commits page size and applies page coupling strategy. |
+| `setPagination` | `(patch, options?: SearchNavigateOptions) => void` | Commits a direct pagination patch and does not provide an updater. |
+| `preventOverflow` | `(totalSource) => void` | Performs one overflow recovery based on a trustworthy total. |
+
+The `setPagination` patch is:
+
+```ts
+{
+  page?: number | null | undefined
+  pageSize?: number | null | undefined
+}
+```
+
+The `preventOverflow` `totalSource` is:
+
+```ts
+number
+  | null
+  | undefined
+  | { total?: number | null | undefined }
+```
+
+### UseSearchPagination
+
+```ts
+type UseSearchPagination = {
+  (): UseSearchPaginationResult
+  (options?: UseSearchPaginationOptions): UseSearchPaginationResult
+  (
+    fields: SearchPaginationFields,
+    options?: UseSearchPaginationOptions,
+  ): UseSearchPaginationResult
+  fields: SearchPaginationFields
+  pageSizeOptions: readonly number[]
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| Call signatures | overload | Creates pagination state with default or custom Fields. |
+| `fields` | `SearchPaginationFields` | Fields used by the default pagination model. |
+| `pageSizeOptions` | `readonly number[]` | Page size options used by the default pagination model. |

@@ -1,0 +1,238 @@
+---
+description: createURLSearchParamsCodec compiles Search Fields into type-safe URLSearchParams encode/decode tools.
+---
+
+# URLSearchParams
+
+`createURLSearchParamsCodec` turns Search Fields into a directly usable URLSearchParams codec.
+
+```ts
+import { createURLSearchParamsCodec } from '@decurl/react-router/codec';
+
+const codec = createURLSearchParamsCodec(searchFields);
+```
+
+It provides two methods:
+
+```ts
+codec.decode(searchParams);
+codec.encode(values, options);
+```
+
+In most cases, developers do not need to call `decode` manually. Daily business code usually obtains values through higher-level state reading APIs.
+
+But `encode` is still important. When you need to build links, navigation targets, shareable URLs, test fixtures, or search strings outside React Router, `encode` reuses the same Search Fields and avoids hand-written query strings.
+
+## Encode
+
+### Type-safe Search
+
+The input of `encode` comes from Search Fields. Both field names and field values are checked by TypeScript.
+
+```ts twoslash
+import { createURLSearchParamsCodec, defineFields, field } from '@decurl/react-router/codec';
+import { elementOf, min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+
+const searchFields = defineFields({
+  keyword: field({
+    name: 'q',
+    decode: trim,
+  }),
+  page: field({
+    decode: pipe(trim, shape.integer, toNumber, min(1)),
+    defaultValue: 1,
+  }),
+  sort: field({
+    decode: elementOf(['relevance', 'latest']),
+    defaultValue: 'relevance',
+  }),
+});
+
+const codec = createURLSearchParamsCodec(searchFields);
+
+const search = codec.encode({
+  keyword: 'router',
+  page: 2,
+  sort: 'latest',
+});
+
+search.toString();
+// q=router&page=2&sort=latest
+```
+
+This is more maintainable than hand-written query strings:
+
+```ts
+`?q=${keyword}&page=${page}&sort=${sort}`;
+```
+
+Hand-written strings bypass Search Fields: whether the key is correct, whether the value needs encoding, and whether the default value should be omitted all become things the caller must remember.
+
+Type errors surface at the call site:
+
+```ts twoslash
+// @noErrorValidation
+import { createURLSearchParamsCodec, defineFields, field } from '@decurl/react-router/codec';
+import { elementOf, trim } from '@decurl/react-router/decode';
+
+const searchFields = defineFields({
+  keyword: field({
+    name: 'q',
+    decode: trim,
+  }),
+  sort: field({
+    decode: elementOf(['relevance', 'latest']),
+    defaultValue: 'relevance',
+  }),
+});
+
+const codec = createURLSearchParamsCodec(searchFields);
+
+codec.encode({
+  keyword: 'router',
+  sort: 'oldest',
+});
+
+codec.encode({
+  typo: 'router',
+});
+```
+
+### Patch Encode
+
+`encode` uses patch semantics by default.
+
+```ts
+const nextSearch = codec.encode(
+  { page: 3 },
+  { base: '?q=router&page=2&sort=latest' },
+);
+
+nextSearch.toString();
+// q=router&sort=latest&page=3
+```
+
+Patch encode rules:
+
+- Only Search Fields fields included in the patch are handled.
+- Fields not present in the patch are not modified.
+- Keys in the patch that are not part of Search Fields are ignored.
+- `null` or `undefined` deletes the corresponding URL key.
+
+```ts
+codec.encode(
+  { keyword: undefined },
+  { base: '?q=router&page=2' },
+).toString();
+// page=2
+```
+
+This is not a full update. URL search params are often shared by multiple components or features, so patch encode fits local updates better.
+
+### Base Search
+
+`base` represents the current URLSearchParams. When `base` is provided, `encode` starts from a copy of it and then applies the patch.
+
+```ts
+codec.encode(
+  { page: 2 },
+  { base: new URLSearchParams('?q=router&debug=true&utm_source=docs') },
+).toString();
+// q=router&debug=true&utm_source=docs&page=2
+```
+
+This matters on real pages because the URL may contain params that the current component does not own. Search Fields only update fields they know about, and other params are preserved.
+
+## Write-back Rules
+
+### Canonical Key
+
+When a field has multiple `name` values, the first one is the canonical key and the rest are legacy aliases.
+
+```ts
+const searchFields = defineFields({
+  page: field({
+    name: ['page', 'p'],
+    decode: pipe(shape.integer, toNumber, min(1)),
+    defaultValue: 1,
+  }),
+});
+```
+
+Write-back always uses the canonical key.
+
+```ts
+const codec = createURLSearchParamsCodec(searchFields);
+
+codec.encode(
+  { page: 3 },
+  { base: '?p=2' },
+).toString();
+// page=3
+```
+
+As long as the patch touches the field, encode cleans up legacy aliases so old and new keys do not remain in the URL together.
+
+```txt
+Old link: ?p=2
+New write-back: ?page=3
+```
+
+### Default Value
+
+When writing a value equal to `defaultValue`, Decurl deletes the corresponding URL key by default, keeping the URL concise.
+
+```ts
+const searchFields = defineFields({
+  page: field({
+    decode: pipe(shape.integer, toNumber, min(1)),
+    defaultValue: 1,
+  }),
+});
+
+const codec = createURLSearchParamsCodec(searchFields);
+
+codec.encode({ page: 1 }).toString();
+// ''
+```
+
+If you want default values to appear in the URL, pass `preserveDefault: true`.
+
+```ts
+codec.encode({ page: 1 }, { preserveDefault: true }).toString();
+// page=1
+```
+
+`preserveDefault` is an encode option, not a FieldCodec property.
+
+### Multi Field
+
+Multi fields write multiple keys with the same name in array order.
+
+```ts
+import { mapItems, pipe, unique } from '@decurl/react-router/decode';
+
+const searchFields = defineFields({
+  tag: field({
+    mode: 'multi',
+    decode: pipe(mapItems(trim), unique),
+  }),
+});
+
+const codec = createURLSearchParamsCodec(searchFields);
+
+codec.encode({ tag: ['react', 'router'] }).toString();
+// tag=react&tag=router
+```
+
+If a multi field has aliases, the write-back rule is the same: use the canonical key and clean up legacy aliases when that field is patched.
+
+## Decode
+
+`decode` restores URLSearchParams into complete values.
+
+```ts
+const values = codec.decode(new URLSearchParams('?q=router&page=2'));
+```
+
+Calling `decode` directly is more suitable for tests, fixtures, server-side logic, or utility code that needs to create typed values from existing URLSearchParams.

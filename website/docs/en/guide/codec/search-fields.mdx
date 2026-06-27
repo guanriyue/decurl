@@ -1,0 +1,232 @@
+---
+description: Search Fields freeze a group of field codecs into a stable URL search params field mapping.
+---
+
+# Search Fields
+
+Search Fields are a group of field codecs with fixed URL keys. They describe which URL search params a page or feature area cares about, and how those params are read, written, and inferred.
+
+`defineFields` is not responsible for running decode or encode. Its job is to establish determinism at definition time:
+
+- Freeze URL keys for fields without `name`.
+- Preserve canonical keys and legacy aliases.
+- Let a single field be used directly by hooks.
+- Preserve type inference for the whole search values object.
+
+See [FieldCodec](./field-codec) for FieldCodec properties, and [Decode pipeline](./decode-pipeline) for decode helper composition.
+
+## defineFields
+
+`defineFields` accepts a group of field codecs and returns a group of named field codecs.
+
+```ts
+import { defineFields, field } from '@decurl/react-router/codec';
+import { elementOf, min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+
+const searchFields = defineFields({
+  keyword: field({
+    name: 'q',
+    decode: pipe(trim, shape(/.+/)),
+  }),
+  page: field({
+    name: ['page', 'p'],
+    decode: pipe(trim, shape.integer, toNumber, min(1)),
+    defaultValue: 1,
+  }),
+  sort: field({
+    decode: elementOf(['relevance', 'latest']),
+    defaultValue: 'relevance',
+  }),
+});
+```
+
+In this definition:
+
+- `keyword` explicitly uses the URL key `q`.
+- `page` uses `page` as the canonical key and supports the old key `p`.
+- `sort` does not provide `name`, so it uses the field property key, which is `sort`.
+
+## Freezing Names
+
+`defineFields` freezes each field's URL key into a non-empty name:
+
+- If `name` is not provided, the field property key is used.
+- If `name` is a string, it is used directly as the URL key.
+- If `name` is a non-empty array, the first item is the canonical key and the rest are legacy aliases.
+- If `name` is an empty array, Decurl falls back to the field property key.
+
+The first frozen item is the canonical key. Later items are legacy aliases, mainly for compatibility with old URLs.
+
+If a developer has already provided an explicit `name`, `defineFields` is not required. A single named field codec can be passed directly to `useSearchValue`.
+
+`defineFields` is better suited for defining page-level Search Fields: it freezes missing `name` values in bulk and checks duplicate URL keys in development. For page search params maintained by multiple people, it is still recommended to define fields in one place with `defineFields`.
+
+## Named Field
+
+Search Fields let a single field codec carry its URL key, so upper-level APIs do not need another magic string.
+
+```tsx
+import { useSearchValue } from '@decurl/react-router';
+
+const SearchInput = () => {
+  const [keyword, setKeyword] = useSearchValue(searchFields.keyword);
+
+  return (
+    <input
+      value={keyword ?? ''}
+      onChange={(event) => {
+        setKeyword(event.currentTarget.value);
+      }}
+    />
+  );
+};
+```
+
+This is easier to maintain than this API shape:
+
+```ts
+useSearchValue('q', keywordCodec);
+```
+
+String keys are hard to debug once mistyped, while `searchFields.keyword` carries both the decode rule and the URL key.
+
+## Alias Migration
+
+Aliases are used to support old links.
+
+```ts
+const searchFields = defineFields({
+  page: field({
+    name: ['page', 'p'],
+    decode: pipe(shape.integer, toNumber, min(1)),
+    defaultValue: 1,
+  }),
+});
+```
+
+When reading, Decurl tries `page` first, then `p`.
+
+When writing, it only uses the first name, the canonical key `page`.
+
+This gives the following behavior:
+
+```txt
+Old link: ?p=2
+New write-back: ?page=3
+```
+
+## TypeScript
+
+A field codec with an explicit `name` can be passed directly to `useSearchValue`:
+
+```ts twoslash
+import { useSearchValue } from '@decurl/react-router';
+import { trim } from '@decurl/react-router/decode';
+
+const keywordField = {
+  name: 'q',
+  decode: trim,
+};
+
+const SearchInput = () => {
+  const [keyword, setKeyword] = useSearchValue(keywordField);
+
+  keyword;
+  setKeyword;
+
+  return null;
+};
+```
+
+If a field codec does not contain `name`, a single-field hook cannot know which URL key to read or write, and TypeScript prevents that usage:
+
+```ts twoslash
+import { useSearchValue } from '@decurl/react-router';
+import { trim } from '@decurl/react-router/decode';
+
+// @noErrorValidation
+useSearchValue({
+  decode: x => Number(x)
+});
+```
+
+A group of Search Fields can continue to infer the full values type through `InferFieldValues`:
+
+```ts twoslash
+import type { InferFieldValues } from '@decurl/react-router/codec';
+import { defineFields, field } from '@decurl/react-router/codec';
+import { elementOf, min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+
+const searchFields = defineFields({
+  keyword: field({
+    name: 'q',
+    decode: pipe(trim, shape(/.+/)),
+  }),
+  page: field({
+    name: ['page', 'p'],
+    decode: pipe(trim, shape.integer, toNumber, min(1)),
+    defaultValue: 1,
+  }),
+  sort: field({
+    decode: elementOf(['relevance', 'latest']),
+    defaultValue: 'relevance',
+  }),
+});
+
+type SearchValues = InferFieldValues<typeof searchFields>;
+```
+
+Business code does not need to manually write another search values type. Search Fields are the shared source for URL field mapping and TypeScript values.
+
+## Name Conflicts
+
+Multiple fields in the same Search Fields group should not share the same URL key.
+
+```ts
+defineFields({
+  page: field({ name: ['page', 'p'], decode: decodePage }),
+  currentPage: field({ name: 'p', decode: decodePage }),
+});
+```
+
+This makes decode and encode ambiguous. Decurl warns about duplicate names in development to help catch field definition problems early.
+
+## Why Not Dynamic Keys
+
+Decurl does not support passing the URL key and field codec separately:
+
+```ts
+useSearchValue('test', searchFields.keyword);
+```
+
+This looks more flexible, but typos are hard to debug. Similar words such as `test` and `text` are not something the type system can analyze; without assistance from intelligent analysis tools such as AI, they are usually hard to notice during review. URL search params are fundamentally string parsing and serialization. For a page or feature area, writing rules as explicit static Search Fields is easier to maintain than assembling them dynamically at call sites.
+
+Freezing `name` also means the same field codec object is not suitable for reuse across multiple URL keys. This is an intentional trade-off: Decurl values explicit field definitions and clear boundaries more than saving a few lines with the same codec object. Reusing codec objects may cause different pages or fields to share URL semantics that should not be shared, and those problems are usually harder to debug.
+
+If you need reuse, prefer reusing smaller functions, such as decode primitives or custom business decode helpers:
+
+```ts
+const decodeKeyword = pipe(trim, shape(/.+/));
+
+const searchFields = defineFields({
+  keyword: field({
+    name: 'q',
+    decode: decodeKeyword,
+  }),
+  fallbackKeyword: field({
+    name: 'keyword',
+    decode: decodeKeyword,
+  }),
+});
+```
+
+This reuses parsing logic while keeping ownership of each URL key clear.
+
+## Boundaries
+
+Search Fields only freeze field mappings. They do not explain a single field's `defaultValue`, `encode`, or `eq`, and they do not actually read or write URLSearchParams.
+
+Those topics are covered by:
+
+- [FieldCodec](./field-codec): how a single field decodes, encodes, sets default values, and compares values.
+- [URLSearchParams](./url-search-params): how Search Fields are compiled into a `{ decode, encode }` codec.

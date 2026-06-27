@@ -1,0 +1,110 @@
+---
+description: 'API reference for @decurl/react-router/codec.'
+---
+
+# @decurl/react-router/codec
+
+`@decurl/react-router/codec` defines field rules for URL search params. It focuses on how URL keys map to business values, and how business values are serialized back to URLSearchParams.
+
+Decode logic can be a plain function, or it can use primitives from [`@decurl/react-router/decode`](./decode).
+
+```ts
+import { createURLSearchParamsCodec, defineFields, field } from '@decurl/react-router/codec';
+```
+
+## field
+
+`field(definition)` freezes the type of a single FieldCodec. The smallest codec can be a plain object, but `field` is recommended because it helps TypeScript preserve information such as `mode`, `defaultValue`, `decode`, and `encode` more reliably.
+
+```ts
+import { field } from '@decurl/react-router/codec';
+
+const keyword = field({
+  decode: (value: string) => {
+    const nextValue = value.trim();
+    return nextValue.length > 0 ? nextValue : undefined;
+  },
+});
+```
+
+Common properties:
+
+| Property | Required | Type | Description |
+| --- | --- | --- | --- |
+| `decode` | Yes | `(value: string \| string[]) => TValue \| null \| undefined` | Parses a business value from the raw URL value; the actual input depends on `mode`. |
+| `mode` | No | `'single' \| 'multi'` | Defaults to `single`; `multi` reads multiple values with `URLSearchParams.getAll(name)`. |
+| `name` | No | `string \| readonly string[]` | URL key. The first array item is the canonical key, and later items are legacy aliases. |
+| `encode` | No | `(value: NonNullable<TValue>) => string \| string[] \| null \| undefined` | Customizes how a business value is written back to the URL; the return type depends on `mode`. |
+| `defaultValue` | No | `NonNullable<TValue>` | Used when the key is missing, decode fails, or decode returns an empty value. |
+| `eq` | No | `(left: NonNullable<TValue>, right: NonNullable<TValue>) => boolean` | Checks whether the previous and next values are equal. |
+
+For more design details, see [FieldCodec](/guide/codec/field-codec).
+
+## defineFields
+
+`defineFields(fields, options?)` defines a set of Search Fields. For fields without an explicit `name`, it uses the object key as the URL key.
+
+```ts
+import { defineFields, field } from '@decurl/react-router/codec';
+
+const searchFields = defineFields({
+  keyword: field({
+    name: ['keyword', 'q'],
+    decode: (value: string) => value.trim() || undefined,
+  }),
+  view: field({
+    decode: (value: string) => {
+      return value === 'list' || value === 'grid' ? value : undefined;
+    },
+    defaultValue: 'list',
+  }),
+});
+```
+
+When a field has multiple `name` values, the first one is the canonical key and the rest are legacy aliases. See [Search Fields](/guide/codec/search-fields) for details.
+
+## createURLSearchParamsCodec
+
+`createURLSearchParamsCodec(fields)` creates `{ decode, encode }`.
+
+| Method | Description |
+| --- | --- |
+| `decode(searchParams)` | Parses `URLSearchParams` into a business object. |
+| `encode(values, options?)` | Serializes a business object into a new `URLSearchParams`. |
+
+```ts
+import { createURLSearchParamsCodec, defineFields, field } from '@decurl/react-router/codec';
+
+const fields = defineFields({
+  page: field({
+    name: ['page', 'p'],
+    decode: (value: string) => {
+      const page = Number(value);
+      return Number.isInteger(page) && page >= 1 ? page : undefined;
+    },
+    defaultValue: 1,
+  }),
+});
+
+const codec = createURLSearchParamsCodec(fields);
+
+const values = codec.decode(new URLSearchParams('?p=2'));
+const nextSearch = codec.encode({ page: 3 }, { base: '?p=2&keyword=router' });
+```
+
+Common options for `encode(values, options?)`:
+
+| Option | Type | Description |
+| --- | --- | --- |
+| `base` | `URLSearchParams \| string` | Applies the patch on top of existing search params; untouched fields are preserved. |
+| `preserveDefault` | `boolean` | Whether to keep the canonical key when writing a default value. By default, the key is deleted. |
+
+## Types
+
+| Type | Description |
+| --- | --- |
+| `FieldCodec<TValue>` | Codec union for a single field. |
+| `NamedFieldCodec<TValue>` | Field codec with a fixed `name`. |
+| `RecordCodec` | Base record type for Search Fields. |
+| `InferFieldValue<TCodec>` | Infers the value type from a single field codec. |
+| `InferFieldValues<TFields>` | Infers the values object type from Search Fields. |

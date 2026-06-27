@@ -1,0 +1,390 @@
+---
+description: Use useSearchPagination to manage page, pageSize, and overflow recovery in the URL.
+---
+
+# Pagination State
+
+`useSearchPagination` is an optional capability provided by `@decurl/react-router`. You can manage `page` and `pageSize` yourself with `useSearchValues`, or use this hook in pagination scenarios to centralize common pagination state and coupling behavior.
+
+Pagination state has its own Guide page because it is a typical kind of URL search params state: it is usually described by `page` and `pageSize` together, while also being affected by the asynchronous `total` returned by data requests. `page` and `pageSize` can be decoded synchronously, but "whether the current page exceeds the max page" can only be checked after a trustworthy `total` is available.
+
+`useSearchPagination` provides this state and behavior on top of Search Fields:
+
+```tsx
+import { useSearchPagination } from '@decurl/react-router/pagination';
+
+const PaginationBar = () => {
+  const pagination = useSearchPagination();
+
+  return null;
+};
+```
+
+## Responsibilities
+
+`useSearchPagination` is responsible for:
+
+- Reading `page` and `pageSize` from URL search params.
+- Updating, resetting, or committing pagination state together.
+- Resetting page or preserving the current item offset when page size changes.
+- Performing one overflow recovery after a trustworthy `total` is available.
+
+Data requests, cache, Pagination UI, filters, and sorting still belong to their corresponding business modules. The hook also does not decide for the page whether a request result is trustworthy enough to modify the URL.
+
+## Default Model
+
+Without arguments, the hook uses the default pagination model:
+
+```tsx
+const PaginationBar = () => {
+  const {
+    page,
+    pageSize,
+    setPage,
+    resetPage,
+    setPageSize,
+    setPagination,
+    preventOverflow,
+  } = useSearchPagination();
+
+  return null;
+};
+```
+
+The default `page` is `1`, and the default `pageSize` is `10`. Available page size options are:
+
+```ts
+useSearchPagination.pageSizeOptions
+// [10, 20, 50, 100]
+```
+
+The default codec only accepts strict decimal positive integers and requires `pageSize` to be one of these options. `page=01`, `page=1.5`, or `pageSize=30` in the URL all fail to decode and fall back to defaults.
+
+Pages can render selectors from the static options directly:
+
+```tsx
+<PageSizeSelect
+  value={pageSize}
+  options={useSearchPagination.pageSizeOptions}
+  onChange={setPageSize}
+/>
+```
+
+## Updating Pagination State
+
+### Page
+
+Pagination components should clamp interaction by the currently known `pageCount`, then pass a valid page to `setPage`:
+
+```tsx
+const updatePage = (nextPage: number) => {
+  const page = Math.min(Math.max(nextPage, 1), pageCount);
+  pagination.setPage(page);
+};
+```
+
+Previous should be disabled on the first page, and next should be disabled on the last page. Normal UI interaction boundaries do not need to wait until the request finishes.
+
+### Filter Changes
+
+When filters, search, or sorting change, the page usually needs to reset to the first page:
+
+```tsx
+const updateKeyword = (keyword: string) => {
+  setFilters({ keyword });
+  pagination.resetPage();
+};
+```
+
+`resetPage()` commits the semantic value `1`. The default codec omits URL keys equal to their default values, so the final URL may not keep `page=1`.
+
+### Page Size
+
+`setPageSize` resets page to `1` by default:
+
+```tsx
+pagination.setPageSize(20);
+```
+
+If the product wants to keep the current data position as much as possible, use `preserve-offset`:
+
+```tsx
+const PaginationBar = () => {
+  const pagination = useSearchPagination({
+    pageSizeChangeStrategy: 'preserve-offset',
+  });
+
+  return null;
+};
+```
+
+For example, when the current state is `page=3&pageSize=10`, the first item offset on page 3 is `20`. After switching to `pageSize=20`, the new page is `2`.
+
+### Updating Together
+
+When restoring a group of pagination state, commit a patch directly:
+
+```tsx
+pagination.setPagination({
+  page: 3,
+  pageSize: 20,
+});
+```
+
+`setPagination` is `setSearchValues` for pagination Fields, but with a pagination-oriented name. It does not apply `pageSizeChangeStrategy` and does not provide an updater; both values are passed to their corresponding FieldCodec separately.
+
+## Custom Fields
+
+If a page needs different URL keys, default page size, or page size options, define its own Fields explicitly:
+
+```tsx
+import { field } from '@decurl/react-router/codec';
+import {
+  elementOf,
+  min,
+  pipe,
+  shape,
+  toNumber,
+  trim,
+} from '@decurl/react-router/decode';
+import type { SearchPaginationFields } from '@decurl/react-router/pagination';
+import { useSearchPagination } from '@decurl/react-router/pagination';
+
+const pageSizeOptions = [25, 50, 100];
+
+const tablePaginationFields = {
+  page: field({
+    name: 'p',
+    decode: pipe(trim, shape.integer, toNumber, min(1)),
+    defaultValue: 1,
+  }),
+  pageSize: field({
+    name: 'size',
+    decode: pipe(
+      trim,
+      shape.integer,
+      toNumber,
+      elementOf(pageSizeOptions),
+    ),
+    defaultValue: 25,
+  }),
+} satisfies SearchPaginationFields;
+
+const PaginationBar = () => {
+  const pagination = useSearchPagination(tablePaginationFields);
+
+  return null;
+};
+```
+
+In this case, the page size selector must use the page's own `pageSizeOptions`. `useSearchPagination.pageSizeOptions` only describes the default model and does not participate in custom `pageSize` Field decode.
+
+### Why Pagination Can Reuse Fields
+
+Search Fields should usually be statically defined for a concrete page, avoiding hidden URL param rules caused by codec reuse. Pagination is a relatively special domain: most paginated pages use the same `page` / `pageSize` structure, pages start at `1`, and the related math rules are stable. That gives the default Fields a clear reuse premise.
+
+If a page has a different default page, default page size, available page sizes, URL keys, or decode rules, it no longer satisfies that premise. Define and pass the page's own Fields instead of continuing to reuse the default model.
+
+## Overflow Recovery
+
+### Request Flow
+
+Synchronous decode can decide whether `page` is a valid positive integer, but it cannot know whether it exceeds the max page. The max page depends on `total`, and `total` usually comes from an asynchronous request.
+
+In an ideal flow, you could request total first, correct the page, and then request current page data:
+
+```txt
+decode page -> request total -> validate and fix page -> request data
+```
+
+This avoids requesting a page that has already overflowed, but it requires an extra total request just for page validation.
+
+Real APIs usually return current page data and total together, so the common flow is:
+
+```txt
+decode page -> request data + total -> validate page -> maybe fix -> maybe request again
+```
+
+Page overflow is not a state that normal pagination controls frequently create. It more often comes from manually editing the URL, old links, shared links whose data has changed, or another user deleting data. Usually there is no need to request total separately just to validate the page ahead of time.
+
+### UI Limits and Recovery
+
+Pagination components with known `pageCount` should restrict normal interactions first. `preventOverflow` handles the remaining cases that cannot be fully confirmed before the request:
+
+```tsx
+pagination.preventOverflow(result.total);
+```
+
+It calculates the max page from the current `pageSize` and corrects the URL only when the current page is larger. The corrected pagination state may trigger the next data request.
+
+`preventOverflow` is a one-time recovery operation, not a guard that continuously maintains pagination invariants. It does not decide whether data belongs to the current query, and it cannot guarantee another run when a request library reuses cache.
+
+These limits come from application data request and cache coordination, not URL state itself. See [Understanding Pagination Overflow](./overflow) for complete cases.
+
+### Why It Only Accepts Total
+
+`preventOverflow(total)` does not ask for `page` and `pageSize` again because the current pagination hook already holds them. Passing them again would create two copies of pagination state. When an async response returns, if the parameters differ from the current URL, it becomes hard to decide whether to correct the page at request time or the current page.
+
+`page` and `pageSize` are frontend-controlled input. Legality such as positive integers and page size options should be guaranteed by FieldCodec; when `pageCount` is known, Pagination UI should also clamp the target page before calling setters instead of relying on effects to correct later.
+
+`total` usually comes from an async request and is the external boundary that the pagination hook lacks. Only relational legality such as `page > Math.ceil(total / pageSize)` cannot be fully determined before the request. Therefore `preventOverflow` only accepts trustworthy `total` and limits request-after recovery to this one concern.
+
+### Trustworthy Total
+
+Call `preventOverflow` only after confirming that the result belongs to the current filters and pagination request. Correcting the URL with mismatched previous data or stale cache may incorrectly reduce a page that was actually valid.
+
+There is a trade-off between two risks:
+
+- Not using a trustworthy total may temporarily miss one correction.
+- Using an untrustworthy total actively modifies the URL and triggers later requests.
+
+The latter is harder to recover from, so the default should be to avoid incorrect corrections first.
+
+### SWR
+
+SWR can recover after an actual request succeeds:
+
+The `<Table />` below represents a controlled table component already owned by the project. It consumes request state and data, and hands pagination interactions back to the pagination hook.
+
+```tsx
+import useSWR from 'swr';
+import { useSearchPagination } from '@decurl/react-router/pagination';
+
+const UserTable = () => {
+  const pagination = useSearchPagination();
+
+  const {
+    data: result,
+    error,
+    isLoading,
+    isValidating,
+    mutate,
+  } = useSWR(
+    ['users', pagination.page, pagination.pageSize],
+    () => {
+      return fetchUsers({
+        page: pagination.page,
+        pageSize: pagination.pageSize,
+      });
+    },
+    {
+      onSuccess: (result) => {
+        pagination.preventOverflow(result.total);
+      },
+    },
+  );
+
+  return (
+    <Table
+      columns={columns}
+      data={result?.rows ?? []}
+      loading={isLoading || isValidating}
+      error={error}
+      refetch={mutate}
+      pagination={{
+        page: pagination.page,
+        pageSize: pagination.pageSize,
+        total: result?.total,
+        onPageChange: pagination.setPage,
+        onPageSizeChange: pagination.setPageSize,
+      }}
+    />
+  );
+};
+```
+
+This only handles success callbacks that actually fire. When the same pagination key is entered again within a short time, SWR dedupe may reuse an existing result and not trigger `onSuccess` again, so one correction may be missed.
+
+Listening to `data` directly is not necessarily safer. `keepPreviousData`, fallback, or old cache may make `data` temporarily belong to a different query. If you immediately use its total, you may modify the URL incorrectly.
+
+SWR dedupe and stale cache can cause missed corrections and incorrect corrections respectively. See [Understanding Pagination Overflow](./overflow).
+
+### React Query
+
+React Query can combine observer state and choose a conservative call timing:
+
+```tsx
+import { useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useSearchPagination } from '@decurl/react-router/pagination';
+
+const UserTable = () => {
+  const pagination = useSearchPagination();
+
+  const query = useQuery({
+    queryKey: ['users', pagination.page, pagination.pageSize],
+    queryFn: () => {
+      return fetchUsers({
+        page: pagination.page,
+        pageSize: pagination.pageSize,
+      });
+    },
+  });
+
+  const total = query.data?.total;
+  const canCorrectPage =
+    query.isSuccess &&
+    query.isFetchedAfterMount &&
+    !query.isFetching &&
+    !query.isPlaceholderData &&
+    total !== undefined;
+
+  useEffect(() => {
+    if (!canCorrectPage || total === undefined) {
+      return;
+    }
+
+    pagination.preventOverflow(total);
+  }, [canCorrectPage, total, pagination.preventOverflow]);
+
+  return (
+    <Table
+      columns={columns}
+      data={query.data?.rows ?? []}
+      loading={query.isPending || query.isFetching}
+      error={query.error}
+      refetch={query.refetch}
+      pagination={{
+        page: pagination.page,
+        pageSize: pagination.pageSize,
+        total: query.data?.total,
+        onPageChange: pagination.setPage,
+        onPageSizeChange: pagination.setPageSize,
+      }}
+    />
+  );
+};
+```
+
+These conditions reject placeholder data and cache from before mount, but this also means fresh cache that does not refetch after mount will not participate in correction. Whether to trust preloaded data, SSR hydration, `initialData`, or fresh cache should still be decided by the application based on its own data strategy.
+
+See [Understanding Pagination Overflow](./overflow) for how different cache sources affect URL correction.
+
+## Bound Store
+
+When using a configured search store, explicitly create a bound pagination hook:
+
+```tsx
+import { createReactRouterSearch } from '@decurl/react-router/configured';
+import { createUseSearchPagination } from '@decurl/react-router/pagination';
+
+const search = createReactRouterSearch();
+
+const useSearchPagination = createUseSearchPagination({
+  useSearchValues: search.useSearchValues,
+});
+
+const PaginationBar = () => {
+  const pagination = useSearchPagination();
+
+  return null;
+};
+```
+
+This lets the pagination hook consume the same store as `search.useSearchValue` and `search.useSearchValues`. See [Bound Store](../configured-store) for full wiring.
+
+## Related API
+
+- [@decurl/react-router/pagination](/api/pagination)
+- [@decurl/react-router](/api/react-router)
+- [@decurl/react-router/configured](/api/configured)

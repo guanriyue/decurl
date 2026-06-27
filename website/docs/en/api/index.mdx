@@ -1,7 +1,39 @@
 ---
 title: API Overview
-description: Overview page for the Rspress starter API section and available reference pages.
+description: Decurl uses @decurl/react-router as the main entry and exposes codec, decode, routeSpec, pagination, and configured APIs through conditional exports.
 overview: true
 ---
 
-This is an API Overview page which outlines all the available APIs.
+# API Overview
+
+The application-facing Decurl API uses `@decurl/react-router` as the main entry.
+
+Besides the default entry, `@decurl/react-router` exposes `configured`, `codec`, `decode`, `routeSpec`, and `pagination` sub-entries through conditional exports.
+
+## Entries
+
+| Package | Entry | Purpose |
+| --- | --- | --- |
+| `@decurl/react-router` | `@decurl/react-router` | Ready-to-use React Router hooks |
+| `@decurl/react-router` | `@decurl/react-router/configured` | Create store-bound hooks and Provider |
+| `@decurl/react-router` | `@decurl/react-router/codec` | FieldCodec, Search Fields, URLSearchParams codec |
+| `@decurl/react-router` | `@decurl/react-router/decode` | Decode primitives and composition helpers |
+| `@decurl/react-router` | `@decurl/react-router/routeSpec` | Define path and search contracts, then generate type-safe hrefs |
+| `@decurl/react-router` | `@decurl/react-router/pagination` | Page, pageSize, and pagination behavior |
+
+## Recommended Reading Order
+
+1. Start with [Getting Started](/guide/start/getting-started).
+2. Read [FieldCodec](/guide/codec/field-codec).
+3. Continue with [Decode pipeline](/guide/codec/decode-pipeline).
+4. Then read [Search Fields](/guide/codec/search-fields).
+5. React Router users can continue with [Integration Overview](/guide/react-router/overview).
+
+## Reference
+
+- [@decurl/react-router/codec](./codec)
+- [@decurl/react-router/decode](./decode)
+- [@decurl/react-router](./react-router)
+- [@decurl/react-router/routeSpec](./route-spec)
+- [@decurl/react-router/pagination](./pagination)
+- [@decurl/react-router/configured](./configured)

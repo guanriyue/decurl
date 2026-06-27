@@ -1,0 +1,191 @@
+---
+description: FieldCodec describes how a single URL field is decoded, encoded, given a default value, and compared.
+---
+
+# FieldCodec
+
+FieldCodec describes how a single URL field maps to a business value. It is the smallest unit in Decurl's codec layer: Search Fields, URLSearchParams codecs, and React Router hooks all reuse the same field codec.
+
+The core field of FieldCodec is `decode`. It decides how raw URL strings become business values, and it also determines the value type TypeScript can infer. The other fields are not another parsing system; they add URL key, write-back, default value, and equality semantics at specific moments.
+
+## Minimal Definition
+
+```ts
+const keyword = {
+  decode: (value) => {
+    const nextValue = value.trim();
+
+    return nextValue === '' ? undefined : nextValue;
+  },
+};
+```
+
+`decode` is the only required field, and it can be a plain function. The smallest definition does not even need `field(...)`: as long as the object satisfies the FieldCodec shape, it can be used by Search Fields and hooks.
+
+In real code, `field(...)` is still recommended to freeze the codec type. It lets TypeScript check earlier whether `mode`, `decode` input, `defaultValue`, and `encode` match, and it avoids unnecessary widening when object literals are composed later.
+
+Without `defaultValue`, the decoded field may be `undefined`; with `defaultValue`, the decoded field always has a value.
+
+`@decurl/react-router/decode` provides composable helpers. Using them is not required by FieldCodec. They only reduce repeated code and make common parsing rules easier to read.
+
+```ts
+import { field } from '@decurl/react-router/codec';
+import { min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+
+const page = field({
+  decode: pipe(trim, shape.integer, toNumber, min(1)),
+  defaultValue: 1,
+});
+```
+
+## Property Overview
+
+Conceptually, a field codec can be understood as:
+
+```ts
+type FieldCodec<TValue, TRaw extends string | string[] = string> = {
+  mode?: 'single' | 'multi';
+  name?: string | readonly string[];
+  decode: (raw: TRaw) => TValue | null | undefined;
+  encode?: (value: NonNullable<TValue>) => TRaw | null | undefined;
+  defaultValue?: NonNullable<TValue>;
+  eq?: (left: NonNullable<TValue>, right: NonNullable<TValue>) => boolean;
+};
+```
+
+The real type is a more precise union based on `mode`, whether `defaultValue` exists, and the `decode` output type, which gives better type inference.
+
+| Property | Required | Type | Description |
+| --- | --- | --- | --- |
+| `decode` | Yes | `(raw: TRaw) => TValue \| null \| undefined` | Used when reading the URL.<br/>Converts a raw URL value into a business value. Returning `null` or `undefined` means the raw value is invalid; aliases continue to be tried, then Decurl falls back to `defaultValue` or `undefined`. |
+| `mode` | No | `'single' \| 'multi'` | Used when reading and writing the URL.<br/>Defaults to `'single'`. `single` reads one value. `multi` reads all values for the same key and writes multiple keys with the same name. |
+| `name` | No | `string \| readonly string[]` | Used when Search Fields are fixed, read, and written.<br/>Overrides the URL key. The first array item is the canonical key, and later items are legacy aliases. If omitted, the field property key is used. |
+| `defaultValue` | No | `NonNullable<TValue>` | Used when decode fails or the key is missing, and also affects behavior when writing default values.<br/>When present, the field always has a decoded value and type inference reflects that. Writing a value equal to the default omits the key from the URL by default. |
+| `encode` | No | `(value: NonNullable<TValue>) => TRaw \| null \| undefined` | Used when writing the URL.<br/>By default, values are serialized with `String(value)`. Provide it only when the business value needs a special serialization format. Returning `null` or `undefined` means the key is not written. |
+| `eq` | No | `(left: NonNullable<TValue>, right: NonNullable<TValue>) => boolean` | Used when comparing previous and next decoded values.<br/>It determines whether values are equal and affects stable references returned by hooks, default value omission checks, and similar behavior. If omitted, `single` uses `Object.is`, and `multi` uses order-sensitive shallow array equality. |
+
+## Read Timing
+
+The difference between `single` and `multi` is the shape of the raw input passed to `decode`. A `single` field reads one URL value and `decode` receives `string`; a `multi` field reads all values with the same key and `decode` receives `string[]`.
+
+`defaultValue` is the fallback when a field cannot obtain a valid business value from the URL. When URLSearchParams does not contain the key, Decurl directly applies `defaultValue` and does not execute `decode`. When the key exists but `decode` returns `null` / `undefined`, Decurl also uses `defaultValue`. If `decode` throws, the expected behavior is also to fall back to `defaultValue`.
+
+Most fields do not need custom `encode` or `eq`. Use `encode` only when values such as Date, objects, compressed strings, or special array formats need a custom write-back format. Use `eq` only when values such as objects, Date, or unordered arrays need business-level equality.
+
+## TypeScript
+
+### Type Inference
+
+```ts twoslash
+import type { InferFieldValue } from '@decurl/react-router/codec';
+import { field } from '@decurl/react-router/codec';
+import { min, pipe, shape, toNumber, trim } from '@decurl/react-router/decode';
+
+const keyword = field({
+  decode: trim,
+});
+
+type Keyword = InferFieldValue<typeof keyword>;
+//   ^?
+
+
+const page = field({
+  decode: pipe(trim, shape.integer, toNumber, min(1)),
+  defaultValue: 1,
+});
+
+type Page = InferFieldValue<typeof page>;
+//   ^?
+```
+
+`defaultValue` cannot be `null` or `undefined`. This restriction guarantees the type promise that "a field with a default value always has a business value".
+
+Literal objects can also be inferred, but `field(...)` is recommended to freeze the codec type. That lets TypeScript check each field's mode, default value, and decode input shape earlier, and avoids unnecessary type widening during later composition.
+
+```ts twoslash
+import type { InferFieldValue } from '@decurl/react-router/codec';
+import { field } from '@decurl/react-router/codec';
+import { trim } from '@decurl/react-router/decode';
+
+const literalCodec = {
+  decode: trim,
+};
+
+type LiteralValue = InferFieldValue<typeof literalCodec>;
+//   ^?
+
+
+const stableCodec = field({
+  decode: trim,
+});
+
+type StableValue = InferFieldValue<typeof stableCodec>;
+//   ^?
+```
+
+### Hook Inference
+
+`useSearchValue` reads a single named field codec. Usually it comes from the return value of `defineFields`.
+
+```ts twoslash
+import { useSearchValue } from '@decurl/react-router';
+import { defineFields, field } from '@decurl/react-router/codec';
+import { trim } from '@decurl/react-router/decode';
+
+const fields = defineFields({
+  keyword: field({
+    name: 'q',
+    decode: trim,
+  }),
+});
+
+const SearchInput = () => {
+  const [keyword, setKeyword] = useSearchValue(fields.keyword);
+
+  keyword;
+// ^?
+
+
+  setKeyword;
+// ^?
+
+  return null;
+};
+```
+
+`useSearchValues` reads a group of field codecs. The Search Fields below cover single optional, multi optional, single required, and multi required fields.
+
+```ts twoslash
+import { useSearchValues } from '@decurl/react-router';
+import { defineFields, field } from '@decurl/react-router/codec';
+import { elementOf, mapItems, min, pipe, shape, toNumber, trim, unique } from '@decurl/react-router/decode';
+
+const fields = defineFields({
+  keyword: field({
+    decode: trim,
+  }),
+  tags: field({
+    mode: 'multi',
+    decode: pipe(mapItems(elementOf(['react', 'router', 'docs'])), unique),
+  }),
+  page: field({
+    decode: pipe(trim, shape.integer, toNumber, min(1)),
+    defaultValue: 1,
+  }),
+  views: field({
+    mode: 'multi',
+    decode: pipe(mapItems(elementOf(['list', 'grid'])), unique),
+    defaultValue: ['list'],
+  }),
+});
+
+const SearchPanel = () => {
+  const [values, setValues] = useSearchValues(fields);
+
+  values;
+
+  setValues;
+
+  return null;
+};
+```
