@@ -1,6 +1,6 @@
 {
   "name": "decurl",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "React Router hooks and runtime helpers for typed Decurl URL Search Params state.",
   "type": "module",
   "sideEffects": false,
