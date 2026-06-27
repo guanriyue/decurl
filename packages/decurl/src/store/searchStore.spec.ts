@@ -24,9 +24,7 @@ describe('createSearchStore', () => {
   it('throws when snapshot is read before runtime is configured', () => {
     const store = createSearchStore();
 
-    expect(() => store.getSnapshot()).toThrow(
-      'decurl store runtime is not configured.',
-    );
+    expect(() => store.getSnapshot()).toThrow('decurl store runtime is not configured.');
   });
 
   it('allows snapshot reads when explicit initial location is provided', () => {
