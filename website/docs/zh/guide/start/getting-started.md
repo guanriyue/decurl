@@ -98,7 +98,7 @@ const SearchPanel = () => {
 };
 ```
 
-只读取单个字段时可以使用 [`useSearchValue`](/zh/api/react-router#usesearchvalue)。如果需要绑定 store、隔离多个 React Router runtime，或者减少组件对 React Router `useLocation` 的直接依赖，可以继续看 [`@guanriyue/decurl/configured`](/zh/api/configured)。
+只读取单个字段时可以使用 [`useSearchValue`](/zh/api/react-router#usesearchvalue)。如果需要显式提供 store、配置 flush 策略，或者减少组件对 React Router `useLocation` 的直接依赖，可以继续看 [Provided Runtime](../react-router/provided-runtime)。
 
 继续阅读：
 

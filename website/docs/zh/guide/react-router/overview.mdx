@@ -39,7 +39,7 @@ const SearchInput = () => {
 
 这种方式适合单个应用只需要一份默认 search store 的场景。
 
-默认 hooks 不要求你手动创建 Provider。`useSearchValue` 和 `useSearchValues` 会使用默认 search store，并自动把当前 React Router runtime 接上。
+默认 hooks 不要求你手动创建 Provider。`useSearchValue` 和 `useSearchValues` 会使用默认 search store，并在 hook 内部读取当前 React Router 的 `location` / `navigate`。
 
 ## 一次操作一个字段
 
@@ -95,7 +95,7 @@ export const App = () => {
 
 只要组件位于 React Router 环境中，就可以直接使用默认 hooks。
 
-如果需要绑定 store、配置 flush 策略或隔离多套 search state，可以阅读 [绑定 Store](./configured-store)。
+如果需要显式提供 store、配置 flush 策略，或把 React Router `location` / `navigate` 的读取集中到独立组件，可以阅读 [Provided Runtime](./provided-runtime)。
 
 ## 和 codec 子入口的关系
 

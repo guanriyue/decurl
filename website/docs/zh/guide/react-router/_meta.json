@@ -11,8 +11,8 @@
   },
   {
     "type": "file",
-    "name": "configured-store",
-    "label": "绑定 Store"
+    "name": "provided-runtime",
+    "label": "Provided Runtime"
   },
   {
     "type": "custom-link",

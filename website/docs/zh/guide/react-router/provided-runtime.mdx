@@ -1,0 +1,126 @@
+---
+description: 使用 SearchProvider、SearchRuntimeConnector 和 provided hooks 集中获取 React Router location 与 navigate。
+---
+
+# Provided Runtime
+
+默认入口的 `useSearchValue` 和 `useSearchValues` 可以直接使用。它们会从最近的 `SearchProvider` 读取 store；如果没有 `SearchProvider`，则使用默认 global store。
+
+默认 hooks 也会在 hook consumer 内部读取 React Router 的 `location` 和 `navigate`。这个零配置行为适合大多数页面，但也意味着消费 search state 的组件会直接订阅 React Router `location`。
+
+`@guanriyue/decurl/provided` 是一种可选优化入口。它把 store 提供和 React Router 能力获取拆开：
+
+- `SearchProvider` 提供 store，并配置 `flushDelay`、`flushMode` 等 store 行为。
+- `SearchRuntimeConnector` 负责读取 React Router 的 `location`、`navigate` 或 router instance，并交给当前 store。
+- `useProvidedSearchValue` 和 `useProvidedSearchValues` 只读取最近的 `SearchProvider` store，不会自己读取 React Router runtime。
+
+## 基础用法
+
+`SearchProvider` 不要求位于 Router 内部。使用组件式 Router 时，`SearchRuntimeConnector` 必须在 Router 内部，并且先于任何 provided hooks consumer 渲染：
+
+```tsx
+import { SearchProvider } from '@guanriyue/decurl';
+import {
+  SearchRuntimeConnector,
+  useProvidedSearchValues,
+} from '@guanriyue/decurl/provided';
+import { BrowserRouter } from 'react-router';
+
+export const App = () => {
+  return (
+    <SearchProvider>
+      <BrowserRouter>
+        <SearchRuntimeConnector />
+        <SearchPanel />
+      </BrowserRouter>
+    </SearchProvider>
+  );
+};
+
+const SearchPanel = () => {
+  const [values, setValues] = useProvidedSearchValues(searchFields);
+
+  return null;
+};
+```
+
+如果缺少 `SearchProvider`，provided hooks 会直接抛错。如果缺少 `SearchRuntimeConnector`，store 还没有获得 React Router 的 location 和 navigate 能力，读取 search state 时也会失败。
+
+## Store 配置
+
+`SearchProvider` 负责创建并提供 store。需要配置 flush 策略时，把配置传给 `SearchProvider`：
+
+```tsx
+<SearchProvider flushDelay={80} flushMode="debounce">
+  <BrowserRouter>
+    <SearchRuntimeConnector />
+    <SearchPanel />
+  </BrowserRouter>
+</SearchProvider>
+```
+
+业务中一般不需要很长的 `flushDelay`。它通常用于降低输入、筛选器等高频交互触发 router navigation 的频率。
+
+常见取值可以从几十毫秒开始，按交互类型调整。输入类交互更适合 `debounce`；点击类交互通常可以使用默认策略或较短 delay。
+
+## Data Router
+
+使用 `RouterProvider` / Data Router 时，可以把 router instance 传给 `SearchRuntimeConnector`：
+
+```tsx
+import { SearchProvider } from '@guanriyue/decurl';
+import { SearchRuntimeConnector } from '@guanriyue/decurl/provided';
+import { RouterProvider, createBrowserRouter } from 'react-router';
+
+const router = createBrowserRouter(routes);
+
+export const App = () => {
+  return (
+    <SearchProvider>
+      <SearchRuntimeConnector router={router} />
+      <RouterProvider router={router} />
+    </SearchProvider>
+  );
+};
+```
+
+这种写法使用 router instance 提供的 `state.location`、`navigate` 和 `subscribe` 同步 store 与 React Router。
+
+## 长延时观测 demo
+
+下面的 demo 故意把 `flushDelay` 设置得比较长。它不是业务推荐配置，而是为了让你清楚观察两个阶段：
+
+- 点击后，监听对应 key 的消费者立即响应。
+- URL 确认后，父级 route tree 可能重渲染；未 memo 的子组件会被父级带着渲染，memo 子组件可以挡住这层传导。
+
+```tsx file="<root>/src/examples/react-router/provided-runtime-delay.tsx" preview
+```
+
+## 额外渲染来源 demo
+
+下面的 demo 有两个组件，分别监听 `demo_bound_a` 和 `demo_bound_b`。
+
+点击“更新 A”时，`countA` 会先通过 optimistic state 立即更新；React Router location 会在观测用 `flushDelay` 后才确认 URL 变化。这个 demo 用来强调额外渲染的来源：
+
+- Decurl store 自身触发的 optimistic 更新。
+- React Router 监听到 location 变化后带来的页面树更新。
+
+```tsx file="<root>/src/examples/react-router/provided-runtime-renders.tsx" preview
+```
+
+这个 demo 里的优化点很窄：
+
+- provided hooks 消费的是 `SearchProvider` store 的 snapshot，不会像默认 hooks 那样在 hook 内部直接调用 React Router 的 `useLocation`。
+- React Router location 确认时，provided hooks 不会因为自身订阅了 `useLocation` 而重新执行。
+
+这不等于页面渲染次数一定减少。React Router location 确认后仍可能让 route tree 重新渲染，并把渲染传导给子组件；如果没有配合 `React.memo`、`useMemo` 等优化，实际效果可能并不明显，甚至看不到变化。
+
+## 什么时候使用
+
+推荐按下面顺序决策：
+
+1. 默认使用主入口 `useSearchValue` / `useSearchValues`。
+2. 需要配置 store 行为或隔离 store 时，增加可选的 `SearchProvider`。
+3. 只有当页面对 render 次数敏感，并且确认默认 hooks 对 React Router `location` 的订阅带来额外成本时，再切换到 provided 入口。
+
+provided runtime 只是把 React Router 能力获取集中到 `SearchRuntimeConnector` 的一种写法，不是基础 hooks 的使用前提，也不保证每个页面都能减少渲染。

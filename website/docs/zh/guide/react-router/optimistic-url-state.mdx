@@ -43,13 +43,12 @@ setValues((values) => ({ page: values.page + 1 }));
 
 ## Flush 策略
 
-`createReactRouterSearch` 可以接收 store 配置。
+需要配置 flush 策略时，可以在 `SearchProvider` 上设置 store options。
 
-```ts
-const search = createReactRouterSearch({
-  flushDelay: 80,
-  flushMode: 'debounce',
-});
+```tsx
+<SearchProvider flushDelay={80} flushMode="debounce">
+  <App />
+</SearchProvider>
 ```
 
 常见策略：

@@ -4,7 +4,7 @@ description: '@guanriyue/decurl 默认 hooks 入口的 API reference。'
 
 # @guanriyue/decurl
 
-`@guanriyue/decurl` 默认入口提供开箱即用的 React Router hooks。它们会在 hook 内部接线当前 React Router runtime，不需要手动放置 Provider。
+`@guanriyue/decurl` 默认入口提供开箱即用的 React Router hooks。它们会在 hook 内部读取当前 React Router 的 `location` 和 `navigate`，不需要手动放置 Provider。
 
 ```tsx
 import { useSearchValue, useSearchValues } from '@guanriyue/decurl';
@@ -14,7 +14,7 @@ import { useSearchValue, useSearchValues } from '@guanriyue/decurl';
 
 这些 hooks 需要运行在 React Router 上下文内，例如 `BrowserRouter`、`RouterProvider` 或其他 React Router runtime 内部。
 
-如果需要绑定 store、多 React Router runtime 隔离，或者减少组件对 React Router `useLocation` 的直接依赖，见 [@guanriyue/decurl/configured](./configured)。
+如果需要显式提供 store、配置 store 行为，或者减少组件对 React Router `useLocation` 的直接依赖，见 [@guanriyue/decurl/provided](./provided)。
 
 ## useSearchValues
 
@@ -126,7 +126,7 @@ setPage((previousPage) => previousPage + 1);
 
 ## Render behavior
 
-默认 hooks 会直接接线当前 React Router runtime。某些路由更新可能让组件跟随 React Router 重新渲染；如果你需要绑定 store 或观察渲染次数优化，可以阅读 [@guanriyue/decurl/configured](./configured) 和 [绑定 Store](/zh/guide/react-router/configured-store)。
+默认 hooks 会在 hook 内部读取 React Router `location`。某些路由更新可能让组件跟随 React Router 重新渲染；如果你需要把 React Router 能力获取集中到独立组件，或观察相关渲染边界，可以阅读 [@guanriyue/decurl/provided](./provided) 和 [Provided Runtime](/zh/guide/react-router/provided-runtime)。
 
 ## Navigate options
 
@@ -143,6 +143,25 @@ setPage(1, { replace: true, preventScrollReset: true });
 
 如果同一次 flush 前发生多次 setter 调用，会使用最后一次调用传入的 navigate options 覆盖默认值。
 
+## SearchProvider
+
+`SearchProvider` 提供一份独立的 search store，并可以配置 store options。默认 hooks 会优先读取最近的 `SearchProvider` store；如果没有 Provider，则使用默认 global store。
+
+```tsx
+import { SearchProvider } from '@guanriyue/decurl';
+
+<SearchProvider flushDelay={80} flushMode="debounce">
+  <App />
+</SearchProvider>
+```
+
+| Prop | 类型 | 说明 |
+| --- | --- | --- |
+| `flushDelay` | `number` | search 写入 URL 前的延迟毫秒数。 |
+| `flushMode` | `'throttle' \| 'debounce'` | flush 调度模式。 |
+
+`SearchProvider` 只负责提供 store，不负责读取 React Router `location` 或 `navigate`。默认 hooks 会自己读取 React Router 能力；provided hooks 则需要配合 `SearchRuntimeConnector` 使用。
+
 ## Types
 
 | 类型 | 说明 |
@@ -156,6 +175,6 @@ setPage(1, { replace: true, preventScrollReset: true });
 
 ## Related
 
-- [@guanriyue/decurl/configured](./configured)
+- [@guanriyue/decurl/provided](./provided)
 - [@guanriyue/decurl/codec](./codec)
 - [React Router 集成概览](/zh/guide/react-router/overview)

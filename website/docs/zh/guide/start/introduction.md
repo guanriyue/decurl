@@ -30,7 +30,7 @@ string | string[] | null -> typed value
 | `@guanriyue/decurl/decode` | decode pipeline 与基础解析工具 |
 | `@guanriyue/decurl/routeSpec` | 定义 path 与 search contract，并生成类型安全的 href |
 | `@guanriyue/decurl/pagination` | page、pageSize 与分页联动行为 |
-| `@guanriyue/decurl/configured` | 创建绑定 store 的 hooks、Provider 和 React Router runtime 接线 |
+| `@guanriyue/decurl/provided` | 使用 Provider store 的 hooks，并集中读取 React Router location / navigate |
 
 使用者只需要安装 `@guanriyue/decurl`。这些入口由同一个包提供，并共享同一套 Search Fields 规则。
 

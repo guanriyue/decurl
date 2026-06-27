@@ -256,16 +256,14 @@ createUseSearchPagination(options: {
 
 `createUseSearchPagination` 使用指定的 `useSearchValues` 创建分页 hook。
 
-它可以把 Pagination 与 configured search store 显式组合：
+它可以让 Pagination 消费指定的 `useSearchValues` 实现。例如和 provided hooks 组合：
 
 ```tsx
-import { createReactRouterSearch } from '@guanriyue/decurl/configured';
 import { createUseSearchPagination } from '@guanriyue/decurl/pagination';
-
-const search = createReactRouterSearch();
+import { useProvidedSearchValues } from '@guanriyue/decurl/provided';
 
 const useSearchPagination = createUseSearchPagination({
-  useSearchValues: search.useSearchValues,
+  useSearchValues: useProvidedSearchValues,
 });
 ```
 

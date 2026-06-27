@@ -67,7 +67,7 @@ const SearchInput = () => {
 
 默认入口的 `useSearchValue` 和 `useSearchValues` 可以直接在 React Router 环境中使用。对于大多数应用，不需要手动创建 Provider 或 store。
 
-如果需要隔离多套 search state、绑定自定义 store，或减少组件对 React Router `useLocation` 的直接依赖，可以再阅读 [绑定 Store](../react-router/configured-store)。
+如果需要显式提供 store、配置 flush 策略，或减少组件对 React Router `useLocation` 的直接依赖，可以再阅读 [Provided Runtime](../react-router/provided-runtime)。
 
 ## 下一步
 

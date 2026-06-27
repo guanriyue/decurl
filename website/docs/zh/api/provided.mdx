@@ -1,0 +1,163 @@
+---
+description: '@guanriyue/decurl/provided 的 API reference。'
+---
+
+# @guanriyue/decurl/provided
+
+`@guanriyue/decurl/provided` 提供一组基于 `SearchProvider` store 的 hooks，以及负责集中获取 React Router `location` / `navigate` 的组件。
+
+```tsx
+import { SearchProvider } from '@guanriyue/decurl';
+import {
+  SearchRuntimeConnector,
+  useProvidedSearchValue,
+  useProvidedSearchValues,
+} from '@guanriyue/decurl/provided';
+```
+
+provided hooks 不会自己读取 React Router 的 `location` 或 `navigate`。使用它们时，需要同时渲染主入口的 `SearchProvider` 和 provided 入口的 `SearchRuntimeConnector`。
+
+## SearchRuntimeConnector
+
+`SearchRuntimeConnector` 读取 React Router 的 location / navigate 能力，并交给最近的 `SearchProvider` store。
+
+### Props
+
+| Prop | 类型 | 说明 |
+| --- | --- | --- |
+| `router` | `ReactRouterInstance` | 可选。传入 Data Router instance 时，connector 会使用 router instance 的 `state.location`、`navigate` 和 `subscribe`。 |
+
+不传 `router` 时，`SearchRuntimeConnector` 会使用 React Router hooks runtime，因此它必须渲染在 `BrowserRouter` 等组件式 Router 内部。
+
+```tsx
+<SearchProvider>
+  <BrowserRouter>
+    <SearchRuntimeConnector />
+    <SearchPanel />
+  </BrowserRouter>
+</SearchProvider>
+```
+
+使用 `RouterProvider` / Data Router 时，可以把 router instance 传入：
+
+```tsx
+<SearchProvider>
+  <SearchRuntimeConnector router={router} />
+  <RouterProvider router={router} />
+</SearchProvider>
+```
+
+`SearchRuntimeConnector` 必须先于任何 provided hooks consumer 渲染。否则 store 尚未获得 React Router 能力，读取 search state 时会失败。
+
+## useProvidedSearchValues
+
+`useProvidedSearchValues(searchFields)` 读取和更新多个 search values。
+
+```ts
+useProvidedSearchValues(searchFields): [values, setValues]
+```
+
+它和默认入口的 `useSearchValues` 使用同样的 Search Fields、patch、updater 和 navigate options 语义。区别在于：
+
+- `useProvidedSearchValues` 必须位于 `SearchProvider` 内。
+- 它不会自己读取 React Router `location`。
+- React Router 能力必须由 `SearchRuntimeConnector` 提供。
+
+```tsx
+const SearchPanel = () => {
+  const [values, setValues] = useProvidedSearchValues(searchFields);
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        setValues({ page: values.page + 1 });
+      }}
+    >
+      Next page
+    </button>
+  );
+};
+```
+
+## useProvidedSearchValue
+
+`useProvidedSearchValue(codec)` 读取和更新单个 search value。`codec` 必须已经拥有固定 `name`，通常来自 `defineFields` 的返回值。
+
+```ts
+useProvidedSearchValue(codec): [value, setValue]
+```
+
+它和默认入口的 `useSearchValue` 使用同样的单字段读取、写入、updater 和 navigate options 语义。
+
+```tsx
+const PageButton = () => {
+  const [page, setPage] = useProvidedSearchValue(searchFields.page);
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        setPage(page + 1);
+      }}
+    >
+      Next page
+    </button>
+  );
+};
+```
+
+## 与 SearchProvider 的关系
+
+`SearchProvider` 从 `@guanriyue/decurl` 主入口导出，不从 `@guanriyue/decurl/provided` 导出。
+
+`SearchProvider` 负责提供 store，也可以配置 store options：
+
+```tsx
+<SearchProvider flushDelay={80} flushMode="debounce">
+  <BrowserRouter>
+    <SearchRuntimeConnector />
+    <SearchPanel />
+  </BrowserRouter>
+</SearchProvider>
+```
+
+默认入口 hooks 也可以读取最近的 `SearchProvider` store；provided hooks 则要求必须存在 `SearchProvider`，并且不会回退到 global store。
+
+## 组合 Pagination
+
+需要让 pagination hook 消费同一份 Provider store 时，可以用 `createUseSearchPagination` 显式组合：
+
+```tsx
+import { createUseSearchPagination } from '@guanriyue/decurl/pagination';
+import { useProvidedSearchValues } from '@guanriyue/decurl/provided';
+
+const useSearchPagination = createUseSearchPagination({
+  useSearchValues: useProvidedSearchValues,
+});
+```
+
+组合后的 pagination hook 与默认 `useSearchPagination` 具有相同的分页语义。
+
+## Render behavior
+
+provided hooks 不直接调用 React Router `useLocation`。它们只订阅 `SearchProvider` store，因此可以避免 hook consumer 因自己订阅 `useLocation` 而重新执行。
+
+这不保证页面渲染次数一定减少。React Router location 变化仍可能让 route tree 重新渲染，并把渲染传导给子组件。
+
+更完整的使用边界和观测示例见 [Provided Runtime](/zh/guide/react-router/provided-runtime)。
+
+## Types
+
+| 类型 | 说明 |
+| --- | --- |
+| `SearchRuntimeConnectorProps` | `SearchRuntimeConnector` 的 props 类型。 |
+| `UseSearchValuesResult<TFields>` | `useProvidedSearchValues` 返回元组类型。 |
+| `UseSearchValueResult<TCodec>` | `useProvidedSearchValue` 返回元组类型。 |
+
+## Related
+
+- [@guanriyue/decurl](./react-router)
+- [@guanriyue/decurl/pagination](./pagination)
+- [@guanriyue/decurl/codec](./codec)
+- [Provided Runtime](/zh/guide/react-router/provided-runtime)

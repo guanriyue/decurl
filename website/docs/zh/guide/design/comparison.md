@@ -104,7 +104,7 @@ Decurl 更强调 URL codec 与 router hook 的边界：
 
 - `@guanriyue/decurl/codec` 负责 Search Fields 语义。
 - `@guanriyue/decurl/decode` 负责原始字符串的显式解析。
-- `@guanriyue/decurl` 默认入口和 `@guanriyue/decurl/configured` 负责 React Router runtime 和 hooks。
+- `@guanriyue/decurl` 默认入口提供直接可用的 React Router hooks，`@guanriyue/decurl/provided` 则把 React Router 的 `location` / `navigate` 获取集中到独立组件中，并提供读取同一份 Provider store 的 hooks。
 - decode pipeline 保持显式组合，方便 review 和测试。
 - alias、default、patch encode 是 URLSearchParams 层的一等语义。
 

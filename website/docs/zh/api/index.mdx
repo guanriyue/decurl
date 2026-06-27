@@ -1,6 +1,6 @@
 ---
 title: API 概览
-description: Decurl API 集中在 @guanriyue/decurl 单包中，并通过 conditional exports 暴露 codec、decode、routeSpec、pagination 和 configured API。
+description: Decurl API reference，包含默认 hooks、codec、decode、routeSpec、pagination 和 provided API。
 overview: true
 ---
 
@@ -8,7 +8,7 @@ overview: true
 
 Decurl 面向应用开发者只提供 `@guanriyue/decurl` 这个包。
 
-默认入口提供 React Router hooks；除此之外，`@guanriyue/decurl` 还通过 conditional exports 暴露 `codec`、`decode`、`routeSpec`、`pagination` 和 `configured` 子入口。
+默认入口提供 React Router hooks；除此之外，还可以使用 `codec`、`decode`、`routeSpec`、`pagination` 和 `provided` 等 API 入口。
 
 ## 入口
 
@@ -19,7 +19,7 @@ Decurl 面向应用开发者只提供 `@guanriyue/decurl` 这个包。
 | `@guanriyue/decurl/decode` | decode primitive 与组合工具 |
 | `@guanriyue/decurl/routeSpec` | 定义 path 与 search contract，并生成类型安全的 href |
 | `@guanriyue/decurl/pagination` | page、pageSize 与分页联动行为 |
-| `@guanriyue/decurl/configured` | 创建绑定 store 的 hooks 与 Provider |
+| `@guanriyue/decurl/provided` | 使用 Provider store 的 hooks，并集中获取 React Router location / navigate |
 
 ## 推荐阅读顺序
 
@@ -36,4 +36,4 @@ Decurl 面向应用开发者只提供 `@guanriyue/decurl` 这个包。
 - [@guanriyue/decurl](./react-router)
 - [@guanriyue/decurl/routeSpec](./route-spec)
 - [@guanriyue/decurl/pagination](./pagination)
-- [@guanriyue/decurl/configured](./configured)
+- [@guanriyue/decurl/provided](./provided)

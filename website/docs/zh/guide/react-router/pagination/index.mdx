@@ -360,18 +360,16 @@ const UserTable = () => {
 
 不同缓存来源如何影响 URL 修正，见 [理解分页越界](./overflow)。
 
-## 绑定 Store
+## Provided Runtime
 
-使用 configured search store 时，可以显式创建绑定的 pagination hook：
+使用 provided hooks 时，可以显式创建消费同一份 Provider store 的 pagination hook：
 
 ```tsx
-import { createReactRouterSearch } from '@guanriyue/decurl/configured';
 import { createUseSearchPagination } from '@guanriyue/decurl/pagination';
-
-const search = createReactRouterSearch();
+import { useProvidedSearchValues } from '@guanriyue/decurl/provided';
 
 const useSearchPagination = createUseSearchPagination({
-  useSearchValues: search.useSearchValues,
+  useSearchValues: useProvidedSearchValues,
 });
 
 const PaginationBar = () => {
@@ -381,10 +379,10 @@ const PaginationBar = () => {
 };
 ```
 
-这让 pagination hook 和 `search.useSearchValue`、`search.useSearchValues` 消费同一份 store。完整接线方式见 [绑定 Store](../configured-store)。
+这让 pagination hook 和 `useProvidedSearchValue`、`useProvidedSearchValues` 消费同一份 `SearchProvider` store。完整使用方式见 [Provided Runtime](../provided-runtime)。
 
 ## 相关 API
 
 - [@guanriyue/decurl/pagination](/zh/api/pagination)
 - [@guanriyue/decurl](/zh/api/react-router)
-- [@guanriyue/decurl/configured](/zh/api/configured)
+- [Provided Runtime](/zh/guide/react-router/provided-runtime)

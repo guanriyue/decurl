@@ -91,11 +91,11 @@
     "en": "Values reference changes",
     "zh": "values 引用变化次数"
   },
-  "demo.configured.updateA": {
+  "demo.provided.updateA": {
     "en": "Update A",
     "zh": "更新 A"
   },
-  "demo.configured.updateB": {
+  "demo.provided.updateB": {
     "en": "Update B",
     "zh": "更新 B"
   },

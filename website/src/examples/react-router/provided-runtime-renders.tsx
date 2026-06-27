@@ -1,5 +1,9 @@
+import { SearchProvider } from '@guanriyue/decurl';
+import {
+  SearchRuntimeConnector,
+  useProvidedSearchValue,
+} from '@guanriyue/decurl/provided';
 import { defineFields, field } from '@guanriyue/decurl/codec';
-import { createReactRouterSearch } from '@guanriyue/decurl/configured';
 import { min, pipe, shape, toNumber } from '@guanriyue/decurl/decode';
 import { useRef } from 'react';
 import { useLocation } from 'react-router';
@@ -20,14 +24,10 @@ const fields = defineFields({
 
 const observationDelay = 2000;
 
-const search = createReactRouterSearch({
-  flushDelay: observationDelay,
-  flushMode: 'debounce',
-});
-
-const ConfiguredStoreRendersDemo = () => {
+const ProvidedRuntimeRendersDemo = () => {
   return (
-    <search.Provider>
+    <SearchProvider flushDelay={observationDelay} flushMode="debounce">
+      <SearchRuntimeConnector />
       <div className="decurl-demo">
         <div className="decurl-demo__state">
           <span>observation flushDelay</span>
@@ -39,7 +39,7 @@ const ConfiguredStoreRendersDemo = () => {
         </div>
         <LocationSearch />
       </div>
-    </search.Provider>
+    </SearchProvider>
   );
 };
 
@@ -62,7 +62,7 @@ const LocationSearch = () => {
 const CountA = () => {
   const t = useDemoI18n();
   const renderCountRef = useRef(0);
-  const [count, setCount] = search.useSearchValue(fields.countA);
+  const [count, setCount] = useProvidedSearchValue(fields.countA);
 
   renderCountRef.current += 1;
 
@@ -78,7 +78,7 @@ const CountA = () => {
             setCount((value) => value + 1);
           }}
         >
-          {t('demo.configured.updateA')}
+          {t('demo.provided.updateA')}
         </button>
       </div>
     </section>
@@ -88,7 +88,7 @@ const CountA = () => {
 const CountB = () => {
   const t = useDemoI18n();
   const renderCountRef = useRef(0);
-  const [count, setCount] = search.useSearchValue(fields.countB);
+  const [count, setCount] = useProvidedSearchValue(fields.countB);
 
   renderCountRef.current += 1;
 
@@ -104,11 +104,11 @@ const CountB = () => {
             setCount((value) => value + 1);
           }}
         >
-          {t('demo.configured.updateB')}
+          {t('demo.provided.updateB')}
         </button>
       </div>
     </section>
   );
 };
 
-export default ConfiguredStoreRendersDemo;
+export default ProvidedRuntimeRendersDemo;

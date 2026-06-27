@@ -1,5 +1,9 @@
+import { SearchProvider } from '@guanriyue/decurl';
+import {
+  SearchRuntimeConnector,
+  useProvidedSearchValue,
+} from '@guanriyue/decurl/provided';
 import { defineFields, field } from '@guanriyue/decurl/codec';
-import { createReactRouterSearch } from '@guanriyue/decurl/configured';
 import { min, pipe, shape, toNumber } from '@guanriyue/decurl/decode';
 import { memo, useRef } from 'react';
 import { useLocation } from 'react-router';
@@ -20,16 +24,12 @@ const fields = defineFields({
 
 const observationDelay = 2000;
 
-const search = createReactRouterSearch({
-  flushDelay: observationDelay,
-  flushMode: 'debounce',
-});
-
-const ConfiguredStoreDelayDemo = () => {
+const ProvidedRuntimeDelayDemo = () => {
   return (
-    <search.Provider>
+    <SearchProvider flushDelay={observationDelay} flushMode="debounce">
+      <SearchRuntimeConnector />
       <DemoShell />
-    </search.Provider>
+    </SearchProvider>
   );
 };
 
@@ -52,24 +52,24 @@ const DemoShell = () => {
         <CountPanel
           fieldKey="countA"
           title="plain countA"
-          buttonText={t('demo.configured.updateA')}
+          buttonText={t('demo.provided.updateA')}
         />
         <CountPanel
           fieldKey="countB"
           title="plain countB"
-          buttonText={t('demo.configured.updateB')}
+          buttonText={t('demo.provided.updateB')}
         />
       </div>
       <div className="decurl-demo__grid">
         <MemoCountPanel
           fieldKey="countA"
           title="memo countA"
-          buttonText={t('demo.configured.updateA')}
+          buttonText={t('demo.provided.updateA')}
         />
         <MemoCountPanel
           fieldKey="countB"
           title="memo countB"
-          buttonText={t('demo.configured.updateB')}
+          buttonText={t('demo.provided.updateB')}
         />
       </div>
     </div>
@@ -84,7 +84,7 @@ type CountPanelProps = {
 
 const CountPanel = ({ fieldKey, title, buttonText }: CountPanelProps) => {
   const renderCountRef = useRef(0);
-  const [count, setCount] = search.useSearchValue(fields[fieldKey]);
+  const [count, setCount] = useProvidedSearchValue(fields[fieldKey]);
 
   renderCountRef.current += 1;
 
@@ -109,4 +109,4 @@ const CountPanel = ({ fieldKey, title, buttonText }: CountPanelProps) => {
 
 const MemoCountPanel = memo(CountPanel);
 
-export default ConfiguredStoreDelayDemo;
+export default ProvidedRuntimeDelayDemo;
