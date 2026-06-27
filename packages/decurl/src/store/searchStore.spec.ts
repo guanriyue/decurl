@@ -25,7 +25,7 @@ describe('createSearchStore', () => {
     const store = createSearchStore();
 
     expect(() => store.getSnapshot()).toThrow(
-      '@decurl/react-router store runtime is not configured.',
+      'decurl store runtime is not configured.',
     );
   });
 

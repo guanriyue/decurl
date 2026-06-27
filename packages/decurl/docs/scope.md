@@ -1,6 +1,6 @@
 # React Router 职责范围
 
-`@decurl/react-router` 负责将 Decurl 的 URLSearchParams codec 能力接入 React 和 React Router。
+`decurl` 负责将 Decurl 的 URLSearchParams codec 能力接入 React 和 React Router。
 
 这个包的核心目标是提供 schema-first 的 search params state，以及基于 React Router path pattern 的类型安全 URL contract。业务开发者优先面对 decoded data 和业务值，而不是手写 `URLSearchParams` 或 URL 字符串。
 

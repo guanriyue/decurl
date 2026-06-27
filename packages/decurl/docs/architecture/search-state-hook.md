@@ -1,6 +1,6 @@
 # Search State Hook 目标
 
-本文记录 `@decurl/react-router` 第一阶段实现目标，避免实现过程中偏离主线。
+本文记录 `decurl` 第一阶段实现目标，避免实现过程中偏离主线。
 
 ## Public API
 

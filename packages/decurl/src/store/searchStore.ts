@@ -12,7 +12,7 @@ const initialLocation: SearchLocation = {
 const defaultFlushDelay = 100;
 const defaultFlushMode: FlushSchedulerMode = 'throttle';
 const unconfiguredRuntimeMessage =
-  '@decurl/react-router store runtime is not configured. Call useConfigureRuntime() before reading search state.';
+  'decurl store runtime is not configured. Call useConfigureRuntime() before reading search state.';
 
 export type CreateSearchStoreOptions = {
   initialLocation?: SearchLocation;

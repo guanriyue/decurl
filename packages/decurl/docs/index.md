@@ -1,6 +1,6 @@
-# @decurl/react-router 维护文档
+# decurl 维护文档
 
-这里是 `@decurl/react-router` 的维护者文档。
+这里是 `decurl` 的维护者文档。
 
 维护文档回答：
 

@@ -30,7 +30,7 @@
 `useSearchPagination` 从 pagination 子路径导入：
 
 ```ts
-import { useSearchPagination } from '@decurl/react-router/pagination'
+import { useSearchPagination } from 'decurl/pagination'
 ```
 
 Hook 支持以下调用形式：

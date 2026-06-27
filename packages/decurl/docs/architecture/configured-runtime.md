@@ -1,13 +1,13 @@
 # 配置化 Runtime 优化入口
 
-本文档记录 `@decurl/react-router/configured` 的设计边界。
+本文档记录 `decurl/configured` 的设计边界。
 
 ## 背景
 
 默认入口要求开发者可以直接使用：
 
 ```ts
-import { useSearchValue, useSearchValues } from '@decurl/react-router'
+import { useSearchValue, useSearchValues } from 'decurl'
 ```
 
 为了完成零配置接线，默认 hooks 内部会调用 React Router 的 `useLocation` 和 `useNavigate`，再把 runtime capability 配置给 singleton store。
@@ -18,10 +18,10 @@ import { useSearchValue, useSearchValues } from '@decurl/react-router'
 
 ## 优化入口
 
-`@decurl/react-router/configured` 提供 factory：
+`decurl/configured` 提供 factory：
 
 ```ts
-import { createReactRouterSearch } from '@decurl/react-router/configured'
+import { createReactRouterSearch } from 'decurl/configured'
 
 const search = createReactRouterSearch()
 ```
@@ -39,8 +39,8 @@ factory 会创建独立 store，并返回绑定该 store 的：
 pagination 是建立在基础 search hooks 之上的领域模块，不由 configured factory 自动创建。需要绑定 pagination 时，通过 pagination 子路径显式组合：
 
 ```ts
-import { createReactRouterSearch } from '@decurl/react-router/configured'
-import { createUseSearchPagination } from '@decurl/react-router/pagination'
+import { createReactRouterSearch } from 'decurl/configured'
+import { createUseSearchPagination } from 'decurl/pagination'
 
 const search = createReactRouterSearch()
 const useSearchPagination = createUseSearchPagination({
@@ -131,7 +131,7 @@ Provider 会使用：
 默认入口保留零配置能力：
 
 ```ts
-import { useSearchValue, useSearchValues } from '@decurl/react-router'
+import { useSearchValue, useSearchValues } from 'decurl'
 ```
 
 配置化入口用于开发者愿意显式选择多实例 store 或显式 runtime 接线，以减少页面组件对 React Router location 的额外订阅。
