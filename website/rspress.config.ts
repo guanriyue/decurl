@@ -4,6 +4,7 @@ import { pluginPreview } from '@rspress/plugin-preview';
 import { pluginTwoslash } from '@rspress/plugin-twoslash';
 
 const base = normalizeBase(process.env.RSPRESS_BASE);
+const logo = `${base}decurl_logo_64.svg`;
 
 function normalizeBase(value = '/') {
   if (value === '/') {
@@ -20,7 +21,7 @@ export default defineConfig({
   description: 'Type-safe URL Search Params for decode-first applications.',
   lang: 'en',
   icon: '/decurl_logo_64.svg',
-  logo: '/decurl_logo_64.svg',
+  logo,
   logoText: 'Decurl',
   plugins: [pluginTwoslash(), pluginPreview()],
   locales: [
