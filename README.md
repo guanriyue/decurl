@@ -4,12 +4,12 @@ Typed URL Search Params state for React Router applications.
 
 Decurl lets you describe URL search params as typed fields, decode raw URL
 values into application values, and update the URL through React hooks. The
-published package is `decurl`.
+published package is `@guanriyue/decurl`.
 
 ## Installation
 
 ```bash
-pnpm add decurl
+pnpm add @guanriyue/decurl
 ```
 
 React and React Router are peer dependencies:
@@ -27,12 +27,12 @@ https://guanriyue.github.io/decurl/
 The source for the published package lives in [`packages/decurl`](packages/decurl).
 
 ```ts
-import { useSearchValue, useSearchValues } from 'decurl';
-import { defineFields, field } from 'decurl/codec';
-import { pipe, shape, toNumber } from 'decurl/decode';
-import { createReactRouterSearch } from 'decurl/configured';
-import { useSearchPagination } from 'decurl/pagination';
-import { routeSpec } from 'decurl/routeSpec';
+import { useSearchValue, useSearchValues } from '@guanriyue/decurl';
+import { defineFields, field } from '@guanriyue/decurl/codec';
+import { pipe, shape, toNumber } from '@guanriyue/decurl/decode';
+import { createReactRouterSearch } from '@guanriyue/decurl/configured';
+import { useSearchPagination } from '@guanriyue/decurl/pagination';
+import { routeSpec } from '@guanriyue/decurl/routeSpec';
 ```
 
 ## Development
@@ -49,7 +49,7 @@ This repository uses Changesets.
 
 ```bash
 pnpm changeset
-pnpm version
+pnpm run version
 pnpm release
 ```
 
