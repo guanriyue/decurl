@@ -63,7 +63,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/guanriyue/decurl.git",
-    "directory": "packages/react-router"
+    "directory": "packages/decurl"
   },
   "bugs": {
     "url": "https://github.com/guanriyue/decurl/issues"
@@ -82,11 +82,11 @@
         "import": "./dist/configured.js"
       },
       "./codec": {
-        "types": "./dist/codec.d.ts",
+        "types": "./dist/codec/index.d.ts",
         "import": "./dist/codec.js"
       },
       "./decode": {
-        "types": "./dist/decode.d.ts",
+        "types": "./dist/decode/index.d.ts",
         "import": "./dist/decode.js"
       },
       "./pagination": {

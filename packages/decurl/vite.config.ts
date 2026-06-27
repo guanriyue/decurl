@@ -25,8 +25,8 @@ export default defineConfig({
       entry: {
         index: resolve(root, 'src/index.ts'),
         configured: resolve(root, 'src/configured.tsx'),
-        codec: resolve(root, 'src/codec.ts'),
-        decode: resolve(root, 'src/decode.ts'),
+        codec: resolve(root, 'src/codec/index.ts'),
+        decode: resolve(root, 'src/decode/index.ts'),
         pagination: resolve(root, 'src/pagination/index.ts'),
         routeSpec: resolve(root, 'src/routeSpec/index.ts'),
       },
