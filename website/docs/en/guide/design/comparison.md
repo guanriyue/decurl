@@ -104,7 +104,7 @@ Decurl puts more emphasis on the boundary between URL codecs and router hooks:
 
 - `decurl/codec` is responsible for Search Fields semantics.
 - `decurl/decode` is responsible for explicit raw string parsing.
-- `decurl/configured` is responsible for React Router runtime and hooks.
+- The default `decurl` entry and `decurl/configured` are responsible for React Router runtime and hooks.
 - Decode pipelines stay explicitly composed for review and testing.
 - Alias, default, and patch encode are first-class URLSearchParams semantics.
 

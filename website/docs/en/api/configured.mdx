@@ -78,15 +78,13 @@ If you use a data router instance, pass `router` to `Provider`:
 
 ### RuntimeConfigurer
 
-`RuntimeConfigurer` only wires the runtime and does not wrap children. It is useful when `search.ContextProvider` is already placed elsewhere, or when you want more explicit control over the provider structure.
+`RuntimeConfigurer` only wires the runtime and does not wrap children. It is useful when you do not use `Provider`, but still want to wire the runtime explicitly.
 
 ```tsx
-<search.ContextProvider>
-  <BrowserRouter>
-    <search.RuntimeConfigurer />
-    <SearchPanel />
-  </BrowserRouter>
-</search.ContextProvider>
+<BrowserRouter>
+  <search.RuntimeConfigurer />
+  <SearchPanel />
+</BrowserRouter>
 ```
 
 ### RouterRuntimeConfigurer
@@ -94,10 +92,8 @@ If you use a data router instance, pass `router` to `Provider`:
 `RouterRuntimeConfigurer` accepts a data router instance and connects it to the current search store.
 
 ```tsx
-<search.ContextProvider>
-  <search.RouterRuntimeConfigurer router={router} />
-  <RouterProvider router={router} />
-</search.ContextProvider>
+<search.RouterRuntimeConfigurer router={router} />
+<RouterProvider router={router} />
 ```
 
 ## Hooks

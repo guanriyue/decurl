@@ -78,15 +78,13 @@ export const App = () => {
 
 ### RuntimeConfigurer
 
-`RuntimeConfigurer` 只负责接线 runtime，不额外包裹 children。它适合你已经在别处放置 `search.ContextProvider`，或者需要更明确地控制 provider 结构时使用。
+`RuntimeConfigurer` 只负责接线 runtime，不额外包裹 children。它适合不使用 `Provider`、但仍希望显式完成 runtime 接线的场景。
 
 ```tsx
-<search.ContextProvider>
-  <BrowserRouter>
-    <search.RuntimeConfigurer />
-    <SearchPanel />
-  </BrowserRouter>
-</search.ContextProvider>
+<BrowserRouter>
+  <search.RuntimeConfigurer />
+  <SearchPanel />
+</BrowserRouter>
 ```
 
 ### RouterRuntimeConfigurer
@@ -94,10 +92,8 @@ export const App = () => {
 `RouterRuntimeConfigurer` 接收 data router instance，并把它接到当前 search store。
 
 ```tsx
-<search.ContextProvider>
-  <search.RouterRuntimeConfigurer router={router} />
-  <RouterProvider router={router} />
-</search.ContextProvider>
+<search.RouterRuntimeConfigurer router={router} />
+<RouterProvider router={router} />
 ```
 
 ## Hooks

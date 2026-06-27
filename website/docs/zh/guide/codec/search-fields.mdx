@@ -142,9 +142,8 @@ const SearchInput = () => {
 
 ```ts twoslash
 import { useSearchValue } from 'decurl';
-import { trim } from 'decurl/decode';
 
-// @noErrorValidation
+// @errors: 2345
 useSearchValue({
   decode: x => Number(x)
 });
