@@ -24,7 +24,7 @@ export default defineConfig({
     lib: {
       entry: {
         index: resolve(root, 'src/index.ts'),
-        configured: resolve(root, 'src/configured.tsx'),
+        provided: resolve(root, 'src/provided.tsx'),
         codec: resolve(root, 'src/codec/index.ts'),
         decode: resolve(root, 'src/decode/index.ts'),
         pagination: resolve(root, 'src/pagination/index.ts'),

@@ -1,6 +1,6 @@
-# 配置化 Runtime 优化入口
+# Provided Runtime 优化入口
 
-本文档记录 `@guanriyue/decurl/configured` 的设计边界。
+本文档记录 `@guanriyue/decurl/provided` 的设计边界。
 
 ## 背景
 
@@ -18,14 +18,14 @@ import { useSearchValue, useSearchValues } from '@guanriyue/decurl'
 
 ## 优化入口
 
-`@guanriyue/decurl/configured` 提供 context-only hooks 和 runtime configurer：
+`@guanriyue/decurl/provided` 提供 context-only hooks 和 runtime connector：
 
 ```ts
 import {
   SearchRuntimeConnector,
   useProvidedSearchValue,
   useProvidedSearchValues,
-} from '@guanriyue/decurl/configured'
+} from '@guanriyue/decurl/provided'
 ```
 
 store 由主入口的 `SearchProvider` 提供：
@@ -34,13 +34,13 @@ store 由主入口的 `SearchProvider` 提供：
 import { SearchProvider } from '@guanriyue/decurl'
 ```
 
-configured hooks 不会自动调用 `useConfigureRuntime`，并且不会闭包绑定 store。
+provided hooks 不会自动调用 `useConfigureRuntime`，并且不会闭包绑定 store。
 hooks 始终从当前 React context 读取 store。如果没有主入口 `SearchProvider`，
 provided hooks 会直接抛错。
 
-这意味着 configured 的核心差异不是“绑定某个 store 的 hook”，而是“hook 是否
+这意味着 provided 入口的核心差异不是“绑定某个 store 的 hook”，而是“hook 是否
 自带 runtime 配置”。默认入口的 hooks 自带 React Router hooks runtime，适合渲染
-次数不敏感、普通 SPA、希望零配置使用的场景。configured 入口的 hooks 不自带
+次数不敏感、普通 SPA、希望零配置使用的场景。provided 入口的 hooks 不自带
 runtime，适合把 runtime 接线集中放在 `SearchRuntimeConnector` 中，从而减少页面
 消费组件对 React Router location 的额外订阅。
 
@@ -56,7 +56,7 @@ pagination 是建立在基础 search hooks 之上的领域模块。需要绑定 
 通过 pagination 子路径显式组合：
 
 ```ts
-import { useProvidedSearchValues } from '@guanriyue/decurl/configured'
+import { useProvidedSearchValues } from '@guanriyue/decurl/provided'
 import { createUseSearchPagination } from '@guanriyue/decurl/pagination'
 
 const useSearchPagination = createUseSearchPagination({
@@ -136,9 +136,9 @@ import { useSearchValue, useSearchValues } from '@guanriyue/decurl'
 默认 global store。它们会在 hook consumer 内部自动配置 React Router hooks
 runtime。
 
-configured 入口用于开发者愿意显式 runtime 接线，以减少页面组件对 React Router
-location 的额外订阅。使用 configured 入口时，应搭配主入口 `SearchProvider` 和
-configured `SearchRuntimeConnector`。
+provided 入口用于开发者愿意显式 runtime 接线，以减少页面组件对 React Router
+location 的额外订阅。使用 provided 入口时，应搭配主入口 `SearchProvider` 和
+provided `SearchRuntimeConnector`。
 
 ## Provider 边界
 

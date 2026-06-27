@@ -6,12 +6,12 @@ import { act, cleanup, render, screen } from '@testing-library/react';
 import { createMemoryRouter, MemoryRouter, RouterProvider, useLocation } from 'react-router';
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import type { SingleRequiredFieldCodec, WithDefinedFieldName } from './codec';
+import { SearchProvider } from './index';
 import {
   SearchRuntimeConnector,
   useProvidedSearchValue,
   useProvidedSearchValues,
-} from './configured';
-import { SearchProvider } from './index';
+} from './provided';
 import type { SetSearchValue } from './react/useSearchValue';
 
 const pageCodec = {

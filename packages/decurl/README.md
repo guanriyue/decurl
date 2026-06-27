@@ -26,7 +26,7 @@ https://guanriyue.github.io/decurl/
 
 ```ts
 import { SearchProvider, useSearchValue, useSearchValues } from '@guanriyue/decurl';
-import { SearchRuntimeConnector, useProvidedSearchValue } from '@guanriyue/decurl/configured';
+import { SearchRuntimeConnector, useProvidedSearchValue } from '@guanriyue/decurl/provided';
 import { defineFields, field } from '@guanriyue/decurl/codec';
 import { pipe, shape, toNumber } from '@guanriyue/decurl/decode';
 import { useSearchPagination } from '@guanriyue/decurl/pagination';
