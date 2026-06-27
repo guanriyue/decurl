@@ -30,12 +30,14 @@ setValues({ q: 'router', page: 1 });
 
 当多个更新连续发生时，Decurl 会按顺序重放 patch。
 
+每一次 `setSearchValue` 或 `setSearchValues` 调用，都会在本地 store 中形成一个待处理的 update entry。entry 记录这次更新的 patch 和 navigate options；在 flush 之前，这些 entry 会先作用在本地 search snapshot 上，让组件立即读到新值。
+
 ```tsx
 setValues({ q: 'router', page: 1 });
 setValues((values) => ({ page: values.page + 1 }));
 ```
 
-第二个 updater 会基于第一个 patch 后的中间值计算，而不是基于旧 URL。
+重放时，Decurl 会按 entry 创建顺序依次应用 patch。第二个 updater 会基于第一个 patch 后的中间值计算，而不是基于旧 URL。
 
 这对分页、筛选器联动和批量更新很重要。
 
@@ -65,6 +67,20 @@ const search = createReactRouterSearch({
 Decurl 会把外部 location 视为新的事实来源，并丢弃不再适用的 pending patch。
 
 这保证了 URL 的最终语义仍然由 router location 决定，而不是由本地 store 单方面决定。
+
+## 与其他 search params 管理方式共存
+
+Decurl 可以和其他基于 React Router 的 search params 管理方式共存，例如 React Router 自带的 `useSearchParams`。
+
+Decurl 把 React Router 的 `location` 作为唯一可信输入。只要其他工具也是通过 React Router 更新 URL，Decurl 就会在 location 变化后重新读取当前 URL，并按 Search Fields 重新 decode。
+
+这个特性对已有项目的渐进迁移比较友好。你可以先让新页面或部分字段使用 Decurl，其他历史代码继续使用原有的 search params 管理方式。如果 `flushDelay` 较短，Decurl 的 pending entry 通常会很快写入 URL，和其他管理器发生竞争的时间窗口也会比较小。
+
+需要注意的是，Decurl 不会理解其他 search params 管理器内部的状态。如果 Decurl 还有尚未 flush 到 URL 的 pending entry，而另一个管理器先更新了 React Router location，Decurl 会以新的 location 为准，并清理这些尚未提交的 entry。
+
+因此，迁移期可以让不同工具共存；但在同一个页面里，仍然建议让同一组 search params 由一种方式负责，避免多个管理器同时更新同一个 key。
+
+这个行为保证了 URL 始终是最终状态来源：一旦 React Router location 被确认，Decurl 会放弃本地尚未提交的中间状态。
 
 ## 默认 navigate 行为
 

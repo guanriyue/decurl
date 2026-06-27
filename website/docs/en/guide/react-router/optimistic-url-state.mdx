@@ -30,12 +30,14 @@ The values read by components change immediately without waiting for the browser
 
 When multiple updates happen continuously, Decurl replays patches in order.
 
+Each `setSearchValue` or `setSearchValues` call creates a pending update entry in the local store. The entry records the patch and navigate options for that update. Before flush, these entries are applied to the local search snapshot first, so components can read the next values immediately.
+
 ```tsx
 setValues({ q: 'router', page: 1 });
 setValues((values) => ({ page: values.page + 1 }));
 ```
 
-The second updater calculates from the intermediate value after the first patch, not from the old URL.
+During replay, Decurl applies patches in entry creation order. The second updater calculates from the intermediate value after the first patch, not from the old URL.
 
 This matters for pagination, filter coupling, and batch updates.
 
@@ -65,6 +67,20 @@ When browser back/forward or another component triggers navigation, React Router
 Decurl treats external location as the new source of truth and discards pending patches that no longer apply.
 
 This guarantees that the final URL semantics are still determined by router location, not solely by the local store.
+
+## Coexisting with Other Search Params Managers
+
+Decurl can coexist with other React Router based search params management approaches, such as React Router's built-in `useSearchParams`.
+
+Decurl treats React Router `location` as the only trusted input. As long as another tool also updates the URL through React Router, Decurl will read the current URL again after the location changes and decode it with Search Fields.
+
+This behavior is helpful for gradual migration in existing projects. New pages or selected fields can use Decurl while legacy code keeps using its existing search params management approach. When `flushDelay` is short, Decurl pending entries usually flush to the URL quickly, so the competition window with another manager is smaller.
+
+The tradeoff is that Decurl does not understand the internal state of other search params managers. If Decurl still has pending entries that have not been flushed to the URL, and another manager updates React Router location first, Decurl uses the new location as the source of truth and clears those pending entries.
+
+During migration, different tools can coexist. Within the same page, it is still recommended that the same group of search params is owned by one approach, so multiple managers do not update the same key at the same time.
+
+This behavior keeps the URL as the final source of truth: once React Router location is confirmed, Decurl gives up local intermediate state that has not been committed.
 
 ## Default navigate Behavior
 
