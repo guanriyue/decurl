@@ -6,8 +6,12 @@ import { act, cleanup, render, screen } from '@testing-library/react';
 import { createMemoryRouter, MemoryRouter, RouterProvider, useLocation } from 'react-router';
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import type { SingleRequiredFieldCodec, WithDefinedFieldName } from './codec';
-import type { ReactRouterSearch } from './configured';
-import { createReactRouterSearch } from './configured';
+import {
+  SearchRuntimeConnector,
+  useProvidedSearchValue,
+  useProvidedSearchValues,
+} from './configured';
+import { SearchProvider } from './index';
 import type { SetSearchValue } from './react/useSearchValue';
 
 const pageCodec = {
@@ -16,34 +20,57 @@ const pageCodec = {
   defaultValue: 1,
 } satisfies WithDefinedFieldName<SingleRequiredFieldCodec<number>>;
 
-describe('createReactRouterSearch', () => {
+describe('SearchProvider', () => {
   afterEach(() => {
     cleanup();
     vi.clearAllTimers();
     vi.useRealTimers();
   });
 
-  it('uses the bound Provider to connect hooks with React Router', () => {
-    const search = createReactRouterSearch();
-
-    renderWithRouter(search, <PageView search={search} />, {
+  it('connects provided hooks with React Router', () => {
+    renderWithRouter(<PageView />, {
       initialEntry: '/users?page=2',
     });
 
     expect(screen.getByTestId('page').textContent).toBe('2');
   });
 
-  it('does not rerender bound hook consumers when React Router confirms flush', () => {
+  it('throws when useProvidedSearchValue is rendered without SearchProvider', () => {
+    expectMissingSearchProvider(<MissingSearchValueProviderView />, 'useProvidedSearchValue');
+  });
+
+  it('throws when useProvidedSearchValues is rendered without SearchProvider', () => {
+    expectMissingSearchProvider(<MissingSearchValuesProviderView />, 'useProvidedSearchValues');
+  });
+
+  it('throws when useProvidedSearchValue is rendered without SearchRuntimeConnector', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    try {
+      expect(() => {
+        render(
+          <MemoryRouter initialEntries={['/users?page=2']}>
+            <SearchProvider>
+              <PageView />
+            </SearchProvider>
+          </MemoryRouter>,
+        );
+      }).toThrow(
+        'decurl store runtime is not configured. Call useConfigureRuntime() before reading search state.',
+      );
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
+  it('does not rerender provided hook consumers when React Router confirms flush', () => {
     vi.useFakeTimers();
-    const search = createReactRouterSearch();
     let setPage: SetSearchValue<typeof pageCodec> | undefined;
     let pageRenderCount = 0;
 
     renderWithRouter(
-      search,
       <App>
         <PageView
-          search={search}
           onReady={(nextSetPage) => {
             setPage = nextSetPage;
           }}
@@ -76,9 +103,8 @@ describe('createReactRouterSearch', () => {
     expect(pageRenderCount).toBe(0);
   });
 
-  it('uses a router instance Provider to connect hooks with React Router', async () => {
+  it('uses a router instance to connect provided hooks with React Router', () => {
     vi.useFakeTimers();
-    const search = createReactRouterSearch();
     let setPage: SetSearchValue<typeof pageCodec> | undefined;
 
     const router = createMemoryRouter(
@@ -87,7 +113,6 @@ describe('createReactRouterSearch', () => {
           path: '/users',
           element: (
             <PageView
-              search={search}
               onReady={(nextSetPage) => {
                 setPage = nextSetPage;
               }}
@@ -101,9 +126,10 @@ describe('createReactRouterSearch', () => {
     );
 
     render(
-      <search.Provider router={router}>
+      <SearchProvider>
+        <SearchRuntimeConnector router={router} />
         <RouterProvider router={router} />
-      </search.Provider>,
+      </SearchProvider>,
     );
 
     expect(screen.getByTestId('page').textContent).toBe('5');
@@ -120,21 +146,71 @@ describe('createReactRouterSearch', () => {
 
     expect(router.state.location.search).toBe('?page=6');
   });
+
+  it('uses the configured flush delay', () => {
+    vi.useFakeTimers();
+    let setPage: SetSearchValue<typeof pageCodec> | undefined;
+
+    renderWithRouter(
+      <App>
+        <PageView
+          onReady={(nextSetPage) => {
+            setPage = nextSetPage;
+          }}
+        />
+        <LocationView />
+      </App>,
+      {
+        initialEntry: '/users?page=1',
+        flushDelay: 200,
+      },
+    );
+
+    act(() => {
+      setPage?.(2);
+    });
+
+    expect(screen.getByTestId('page').textContent).toBe('2');
+    expect(screen.getByTestId('location').textContent).toBe('/users?page=1');
+
+    act(() => {
+      vi.advanceTimersByTime(199);
+    });
+
+    expect(screen.getByTestId('location').textContent).toBe('/users?page=1');
+
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+
+    expect(screen.getByTestId('location').textContent).toBe('/users?page=2');
+  });
 });
 
 type PageViewProps = {
-  search: ReactRouterSearch;
   onReady?: (setValue: SetSearchValue<typeof pageCodec>) => void;
   onRender?: () => void;
 };
 
-const PageView = ({ search, onReady, onRender }: PageViewProps): React.ReactElement => {
-  const [page, setPage] = search.useSearchValue(pageCodec);
+const PageView = ({ onReady, onRender }: PageViewProps): React.ReactElement => {
+  const [page, setPage] = useProvidedSearchValue(pageCodec);
   expectTypeOf(page).toEqualTypeOf<number>();
   onReady?.(setPage);
   onRender?.();
 
   return <div data-testid="page">{page}</div>;
+};
+
+const MissingSearchValueProviderView = (): React.ReactElement => {
+  useProvidedSearchValue(pageCodec);
+
+  return <div />;
+};
+
+const MissingSearchValuesProviderView = (): React.ReactElement => {
+  useProvidedSearchValues({ page: pageCodec });
+
+  return <div />;
 };
 
 const LocationView = (): React.ReactElement => {
@@ -154,16 +230,31 @@ const App = ({ children }: React.PropsWithChildren): React.ReactElement => {
 
 type RenderWithRouterOptions = {
   initialEntry: string;
+  flushDelay?: number;
 };
 
 const renderWithRouter = (
-  search: ReactRouterSearch,
   children: React.ReactElement,
-  { initialEntry }: RenderWithRouterOptions,
+  { initialEntry, flushDelay }: RenderWithRouterOptions,
 ) => {
   return render(
     <MemoryRouter initialEntries={[initialEntry]}>
-      <search.Provider>{children}</search.Provider>
+      <SearchProvider flushDelay={flushDelay}>
+        <SearchRuntimeConnector />
+        {children}
+      </SearchProvider>
     </MemoryRouter>,
   );
+};
+
+const expectMissingSearchProvider = (element: React.ReactElement, consumerName: string): void => {
+  const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+  try {
+    expect(() => {
+      render(<MemoryRouter initialEntries={['/users?page=2']}>{element}</MemoryRouter>);
+    }).toThrow(`${consumerName} must be used within <SearchProvider>.`);
+  } finally {
+    consoleError.mockRestore();
+  }
 };

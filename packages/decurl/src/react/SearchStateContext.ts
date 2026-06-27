@@ -6,18 +6,30 @@ export type SearchStateContextValue = {
   store: SearchStore;
 };
 
-export const defaultSearchStateContextValue: SearchStateContextValue = {
-  store: createSearchStore(),
-};
+const globalStore = createSearchStore();
 
-export const SearchStateContext = createContext<SearchStateContextValue>(
-  defaultSearchStateContextValue,
-);
+export const SearchStateContext = createContext<SearchStateContextValue | null>(null);
+SearchStateContext.displayName = 'SearchStateContext';
 
-export const useSearchStateContext = (): SearchStateContextValue => {
-  return useContext(SearchStateContext);
+export const useRequiredContextStore = (
+  consumerName: string,
+  providerName = SearchStateContext.displayName ?? 'SearchStateContext',
+): SearchStore => {
+  const context = useContext(SearchStateContext);
+
+  if (!context) {
+    throw new Error(`${consumerName} must be used within ${providerName}.`);
+  }
+
+  return context.store;
 };
 
 export const useContextStore = (): SearchStore => {
-  return useSearchStateContext().store;
+  const context = useContext(SearchStateContext);
+
+  if (!context) {
+    return globalStore;
+  }
+
+  return context.store;
 };

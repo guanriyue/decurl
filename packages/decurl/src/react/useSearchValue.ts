@@ -6,7 +6,7 @@ import type { SearchNavigateOptions } from '../runtime/types';
 import type { SearchStore } from '../store/types';
 import { useContextStore } from './SearchStateContext';
 import { useEqualityCheckedSelector } from './selector';
-import { useConfigureRuntime } from './useConfigureRuntime';
+import { useConfigureRuntimeStore } from './useConfigureRuntime';
 
 export type SearchValuePatch<TCodec extends FieldCodec> =
   | InferFieldValue<TCodec>
@@ -27,8 +27,15 @@ export type UseSearchValueResult<TCodec extends FieldCodec> = [
 export const useSearchValue = <TCodec extends NamedFieldCodec>(
   codec: TCodec,
 ): UseSearchValueResult<TCodec> => {
-  useConfigureRuntime();
+  const store = useContextStore();
+  useConfigureRuntimeStore(store);
 
+  return useSearchValueStore(store, codec);
+};
+
+export const useSearchValueContext = <TCodec extends NamedFieldCodec>(
+  codec: TCodec,
+): UseSearchValueResult<TCodec> => {
   const store = useContextStore();
 
   return useSearchValueStore(store, codec);

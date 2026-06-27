@@ -1,3 +1,4 @@
+export { SearchProvider, type SearchProviderProps } from './react/SearchProvider';
 export {
   type SearchValuePatch,
   type SetSearchValue,

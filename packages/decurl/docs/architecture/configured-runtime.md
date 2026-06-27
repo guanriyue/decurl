@@ -18,33 +18,49 @@ import { useSearchValue, useSearchValues } from '@guanriyue/decurl'
 
 ## 优化入口
 
-`@guanriyue/decurl/configured` 提供 factory：
+`@guanriyue/decurl/configured` 提供 context-only hooks 和 runtime configurer：
 
 ```ts
-import { createReactRouterSearch } from '@guanriyue/decurl/configured'
-
-const search = createReactRouterSearch()
+import {
+  SearchRuntimeConnector,
+  useProvidedSearchValue,
+  useProvidedSearchValues,
+} from '@guanriyue/decurl/configured'
 ```
 
-factory 会创建独立 store，并返回绑定该 store 的：
-
-- `RuntimeConfigurer`
-- `RouterRuntimeConfigurer`
-- `Provider`
-- `useSearchValues`
-- `useSearchValue`
-
-绑定 hooks 不会自动调用 `useConfigureRuntime`。
-
-pagination 是建立在基础 search hooks 之上的领域模块，不由 configured factory 自动创建。需要绑定 pagination 时，通过 pagination 子路径显式组合：
+store 由主入口的 `SearchProvider` 提供：
 
 ```ts
-import { createReactRouterSearch } from '@guanriyue/decurl/configured'
+import { SearchProvider } from '@guanriyue/decurl'
+```
+
+configured hooks 不会自动调用 `useConfigureRuntime`，并且不会闭包绑定 store。
+hooks 始终从当前 React context 读取 store。如果没有主入口 `SearchProvider`，
+provided hooks 会直接抛错。
+
+这意味着 configured 的核心差异不是“绑定某个 store 的 hook”，而是“hook 是否
+自带 runtime 配置”。默认入口的 hooks 自带 React Router hooks runtime，适合渲染
+次数不敏感、普通 SPA、希望零配置使用的场景。configured 入口的 hooks 不自带
+runtime，适合把 runtime 接线集中放在 `SearchRuntimeConnector` 中，从而减少页面
+消费组件对 React Router location 的额外订阅。
+
+主入口也可以显式提供 store 配置：
+
+```tsx
+<SearchProvider flushDelay={200} flushMode="debounce">
+  <App />
+</SearchProvider>
+```
+
+pagination 是建立在基础 search hooks 之上的领域模块。需要绑定 pagination 时，
+通过 pagination 子路径显式组合：
+
+```ts
+import { useProvidedSearchValues } from '@guanriyue/decurl/configured'
 import { createUseSearchPagination } from '@guanriyue/decurl/pagination'
 
-const search = createReactRouterSearch()
 const useSearchPagination = createUseSearchPagination({
-  useSearchValues: search.useSearchValues,
+  useSearchValues: useProvidedSearchValues,
 })
 ```
 
@@ -57,50 +73,40 @@ useSearchPagination.pageSizeOptions
 
 调用 Hook 时可以通过 `UseSearchPaginationOptions` 配置 `pageSizeChangeStrategy`。调用 `setPage`、`setPageSize` 或 `setPagination` 时，可以单独传入 `SearchNavigateOptions`。完整使用边界见 [useSearchPagination Guide](../guide/use-search-pagination.md)。
 
-如果使用 `Provider`，Provider 会自动完成 runtime 接线。
-
-`RuntimeConfigurer` 只用于不使用 Provider、但仍希望显式完成接线的场景。
-
-如果 Provider 收到 `router` prop，则使用 router instance runtime 接线。
+`SearchRuntimeConnector` 只负责 runtime 接线，不提供 store。
 
 ## BrowserRouter 使用约束
 
-使用 `BrowserRouter` 等组件式 Router 时，`Provider` 必须位于 Router 内部，并包裹所有消费绑定 hooks 的组件。
+使用 `BrowserRouter` 等组件式 Router 时，`SearchProvider` 必须位于 Router 内部，
+并包裹 `SearchRuntimeConnector` 和所有消费 provided hooks 的组件。
 
 推荐结构：
 
 ```tsx
 <BrowserRouter>
-  <search.Provider>
+  <SearchProvider>
+    <SearchRuntimeConnector />
     <App />
-  </search.Provider>
+  </SearchProvider>
 </BrowserRouter>
 ```
 
-如果不使用 Provider，也可以只放置配置器：
-
-```tsx
-<BrowserRouter>
-  <search.RuntimeConfigurer />
-  <App />
-</BrowserRouter>
-```
-
-此时 `RuntimeConfigurer` 必须先于任何消费绑定 hooks 的组件渲染。
-
-如果 Route 页面先于 Provider 或 `RuntimeConfigurer` 完成接线，并且页面调用了绑定的 `useSearchValues` 或 `useSearchValue`，store 会因为 runtime 尚未配置而抛出初始化错误。
+`SearchRuntimeConnector` 必须先于任何消费 provided hooks 的组件渲染。如果页面
+先于 configurer 完成接线，并且页面调用了 `useProvidedSearchValues` 或
+`useProvidedSearchValue`，store 会因为 runtime 尚未配置而抛出初始化错误。
 
 ## RouterProvider 使用约束
 
-`RouterProvider` / Data Router 场景可以把 router instance 直接传给 Provider：
+`RouterProvider` / Data Router 场景可以把 router instance 传给
+`SearchRuntimeConnector`：
 
 ```tsx
 const router = createBrowserRouter(routes)
-const search = createReactRouterSearch()
 
-<search.Provider router={router}>
+<SearchProvider>
+  <SearchRuntimeConnector router={router} />
   <RouterProvider router={router} />
-</search.Provider>
+</SearchProvider>
 ```
 
 `router` 类型使用 React Router 的 `DataRouter` 能力边界：
@@ -112,19 +118,11 @@ type ReactRouterInstance = Pick<
 >
 ```
 
-Provider 会使用：
+Router instance runtime 会使用：
 
 - `router.state.location` 读取当前 location。
 - `router.navigate('?search', options)` 持久化 search。
 - `router.subscribe` 接收 location change。
-
-如果不需要 Provider，也可以只使用 router instance 配置器：
-
-```tsx
-<search.RouterRuntimeConfigurer router={router} />
-```
-
-此配置器只负责接线，不提供 context。
 
 ## 与默认入口的关系
 
@@ -134,18 +132,20 @@ Provider 会使用：
 import { useSearchValue, useSearchValues } from '@guanriyue/decurl'
 ```
 
-配置化入口用于开发者愿意显式选择多实例 store 或显式 runtime 接线，以减少页面组件对 React Router location 的额外订阅。
+主入口的 hooks 会从当前 `SearchProvider` 读取 store；如果没有 Provider，则读取
+默认 global store。它们会在 hook consumer 内部自动配置 React Router hooks
+runtime。
 
-两种入口不应混用同一个 store。
+configured 入口用于开发者愿意显式 runtime 接线，以减少页面组件对 React Router
+location 的额外订阅。使用 configured 入口时，应搭配主入口 `SearchProvider` 和
+configured `SearchRuntimeConnector`。
 
 ## Provider 边界
 
-`Provider` 提供 factory 绑定的 store，并自动完成 runtime 接线。
+`SearchProvider` 只负责提供 store 和 store options，如 `flushDelay`、`flushMode`。
 
-未传入 `router` 时，Provider 通过内部 `RuntimeConfigurer` 使用 React Router hooks runtime 接线。
+`SearchRuntimeConnector` 只负责 runtime 接线。
 
-传入 `router` 时，Provider 使用 router instance runtime 接线。
+provided hooks 只负责读取最近的 `SearchProvider` store，并订阅 decurl store。
 
-Provider 不负责自动寻找 Router。
-
-开发者必须显式传入 router instance。
+三者边界不应混合。

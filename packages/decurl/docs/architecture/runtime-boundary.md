@@ -86,7 +86,7 @@ Store 不应直接调用：
 
 ## 默认 React Router Runtime
 
-无 configured factory 时，默认 `useSearchValues` / `useSearchValue` 使用默认 React Router runtime。
+默认 `useSearchValues` / `useSearchValue` 使用 React Router hooks runtime。
 
 默认 runtime 由 hook 内部通过 React Router hooks 组装：
 

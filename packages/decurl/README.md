@@ -25,8 +25,8 @@ https://guanriyue.github.io/decurl/
 ## Entry Points
 
 ```ts
-import { useSearchValue, useSearchValues } from '@guanriyue/decurl';
-import { createReactRouterSearch } from '@guanriyue/decurl/configured';
+import { SearchProvider, useSearchValue, useSearchValues } from '@guanriyue/decurl';
+import { SearchRuntimeConnector, useProvidedSearchValue } from '@guanriyue/decurl/configured';
 import { defineFields, field } from '@guanriyue/decurl/codec';
 import { pipe, shape, toNumber } from '@guanriyue/decurl/decode';
 import { useSearchPagination } from '@guanriyue/decurl/pagination';

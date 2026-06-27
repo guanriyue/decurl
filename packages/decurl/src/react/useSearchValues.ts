@@ -6,7 +6,7 @@ import type { SearchNavigateOptions } from '../runtime/types';
 import type { SearchStore } from '../store/types';
 import { useContextStore } from './SearchStateContext';
 import { useSearchStateSelector } from './selector';
-import { useConfigureRuntime } from './useConfigureRuntime';
+import { useConfigureRuntimeStore } from './useConfigureRuntime';
 
 export type SearchValuesPatch<TDefinition extends RecordCodec> =
   | EncodeFieldsValues<TDefinition>
@@ -28,8 +28,15 @@ export type UseSearchValuesResult<TDefinition extends RecordCodec> = [
 export const useSearchValues = <TDefinition extends RecordCodec>(
   schema: TDefinition,
 ): UseSearchValuesResult<TDefinition> => {
-  useConfigureRuntime();
+  const store = useContextStore();
+  useConfigureRuntimeStore(store);
 
+  return useSearchValuesStore(store, schema);
+};
+
+export const useSearchValuesContext = <TDefinition extends RecordCodec>(
+  schema: TDefinition,
+): UseSearchValuesResult<TDefinition> => {
   const store = useContextStore();
 
   return useSearchValuesStore(store, schema);
