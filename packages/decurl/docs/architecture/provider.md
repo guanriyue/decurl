@@ -4,7 +4,7 @@
 
 默认入口不提供 Provider。
 
-P0 默认使用 singleton store 和 React Router hooks runtime。
+默认入口使用 singleton store 和 React Router hooks runtime。
 
 配置化优化入口可以通过 `decurl/configured` 创建绑定 store 的
 `Provider`。该 Provider 负责提供 factory 创建的 store，并自动通过 React Router
@@ -26,11 +26,11 @@ RuntimeConfigurer 解决显式接线问题。
 - 多实例 store。
 - 微前端隔离。
 
-这些能力属于后续高级形态，或由 configured subpath 中的 factory 显式创建。
+这些能力由 configured subpath 中的 factory 显式创建。
 
-## 后续边界
+## 扩展边界
 
-后续 Provider 可以用于：
+Provider 可以用于：
 
 - 注入默认 navigate options。
 - 注入默认 flush 配置。

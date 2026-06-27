@@ -8,7 +8,7 @@ Decurl 内置 equality 判断默认以 `Object.is` 作为基准。
 
 ## 背景
 
-Decurl 需要在 field 层和 record 层判断值是否相等，以便上层运行时决定是否复用旧引用。
+Decurl 需要在 field 层和 record 层判断值是否相等，以便上层运行时决定是否复用 previous 引用。
 
 引用稳定对 React 等 UI runtime 很重要，但 codec 层不应该持有缓存或直接返回 previous 引用。Codec 层只提供 equality helper，由上层决定是否复用引用。
 

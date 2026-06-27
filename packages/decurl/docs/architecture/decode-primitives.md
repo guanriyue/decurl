@@ -102,6 +102,6 @@ pipe(
 
 ## Shape Predicate 暴露边界
 
-`isInteger`、`isNumber`、`isBoolish`、`isMonth`、`isDate` 这类函数可以作为内部实现细节存在，但暂不作为对外 API 暴露。
+`isInteger`、`isNumber`、`isBoolish`、`isMonth`、`isDate` 这类函数可以作为内部实现细节存在，不作为对外 API 暴露。
 
 使用者应优先通过 `shape.integer`、`shape.number`、`shape.boolish`、`shape.month`、`shape.date` 组合 pipeline。

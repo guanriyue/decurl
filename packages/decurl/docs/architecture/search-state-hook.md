@@ -1,10 +1,10 @@
 # Search State Hook 目标
 
-本文记录 `decurl` 第一阶段实现目标，避免实现过程中偏离主线。
+本文记录 `decurl` search state hooks 的行为边界。
 
 ## Public API
 
-P0 多字段 hook 形态：
+多字段 hook 形态：
 
 ```ts
 const [values, setValues] = useSearchValues(schema)
@@ -29,14 +29,14 @@ setValues({ page: 2 }, { replace: true, preventScrollReset: true })
 
 Navigate options 支持作为 `setValues` 的第二参数。
 
-支持的 P0 options：
+支持的 navigate options：
 
 - `replace`
 - `preventScrollReset`
 
-P0 默认采用 `replace: true`。
+默认采用 `replace: true`。
 
-P0 单字段 hook 形态：
+单字段 hook 形态：
 
 ```ts
 const [value, setValue] = useSearchValue(namedFieldCodec)
@@ -48,7 +48,7 @@ const [value, setValue] = useSearchValue(namedFieldCodec)
 
 `setValue(null)` 和 `setValue(undefined)` 表示删除该 field 对应的 search 参数。
 
-P0 常用分页 hook 形态：
+常用分页 hook 形态：
 
 ```ts
 const pagination = useSearchPagination()
@@ -139,11 +139,11 @@ URL 同步可以延迟。
 
 flush 到 URL 时，导航必须走 React Router 提供的 navigate 能力，确保 React Router 能正确感知导航行为。
 
-P0 可以采用短延迟 pending flush，例如 100ms。具体默认值可以在实现阶段确定。
+pending flush 使用短延迟窗口；默认延迟为 100ms。
 
 ## Runtime 边界
 
-P0 默认 runtime 基于 React Router。
+默认 runtime 基于 React Router。
 
 Hook 不直接操作 `window.history` 或 `window.navigation`。
 

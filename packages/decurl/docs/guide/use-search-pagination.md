@@ -328,7 +328,7 @@ React.useEffect(() => {
 
 ### 直接异步请求
 
-对于直接执行的异步请求，在结果通过当前业务状态校验后显式调用。下面通过 request version 排除已经失效的旧请求：
+对于直接执行的异步请求，在结果通过当前业务状态校验后显式调用。下面通过 request version 排除已经失效的 stale 请求：
 
 ```ts
 const requestVersion = ++latestRequestVersion.current
@@ -351,13 +351,13 @@ pagination.preventOverflow(result.total)
 - 在没有请求或其他数据更新时发现服务端变化
 - 判断 `total` 是否属于当前筛选条件和分页请求
 - 保证请求库复用缓存时仍然得到调用
-- 自动排除旧请求、已取消请求、retry 和 prefetch 的结果
+- 自动排除 stale 请求、已取消请求、retry 和 prefetch 的结果
 - 替代分页组件对上一页、下一页和页码输入的限制
 - 阻止用户手动输入无效 URL
 
-分页 UI 应优先限制普通用户交互产生的无效页码，例如对目标页码执行 clamp，并在第一页和最后一页禁用对应操作。`preventOverflow` 是这些 UI 约束之外的恢复措施，主要处理历史 URL、手动修改 URL、缺少 `total` 的独立状态更新和多人操作导致数据总量变化等请求前无法确认的情况。
+分页 UI 应优先限制普通用户交互产生的无效页码，例如对目标页码执行 clamp，并在第一页和最后一页禁用对应操作。`preventOverflow` 是这些 UI 约束之外的恢复措施，主要处理共享链接、手动修改 URL、缺少 `total` 的独立状态更新和多人操作导致数据总量变化等请求前无法确认的情况。
 
-响应式 guard 的数据正确性优势、请求状态判断难点和当前实现边界见 [Pagination Overflow Coordination](../architecture/pagination-overflow-coordination.md)。
+响应式 guard 的数据正确性优势、请求状态判断难点和实现边界见 [Pagination Overflow Coordination](../architecture/pagination-overflow-coordination.md)。
 
 ## API 边界
 

@@ -38,7 +38,7 @@ record 层负责把 schema key 和 `codec.name` 映射到最终 URLSearchParams 
 codec.name ?? recordKey
 ```
 
-这个策略属于 record 层，不属于 field 层。未来其他上层可以采用不同 key 解析策略，然后直接调用 field 层 API。
+这个策略属于 record 层，不属于 field 层。其他上层可以采用不同 key 解析策略，然后直接调用 field 层 API。
 
 ## 引用稳定边界
 
@@ -51,6 +51,6 @@ Codec 层提供 equality helper：
 
 内置 equality 默认以 `Object.is` 为基准。Multi mode 默认使用顺序敏感 shallow array equality，数组元素也使用 `Object.is` 比较。
 
-React 等上层运行时可以基于这些 helper 决定是否复用旧引用。
+React 等上层运行时可以基于这些 helper 决定是否复用 previous 引用。
 
 相关决策见 [ADR 0002: 使用 Object.is 作为默认相等性基准](../adr/0002-object-is-as-default-equality.md)。

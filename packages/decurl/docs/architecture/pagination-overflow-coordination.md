@@ -1,6 +1,6 @@
 # Pagination Overflow Coordination
 
-本文记录分页溢出修正的数据一致性目标、请求状态判断难点，以及当前 pagination API 的实现边界。
+本文记录分页溢出修正的数据一致性目标、请求状态判断难点，以及 pagination API 的实现边界。
 
 ## 问题背景
 
@@ -52,9 +52,9 @@ onSuccess(data) {
 
 它不能保证每次分页状态变化都会执行。SWR dedupe 等请求复用机制可能让相同结果不再触发成功回调。`preventOverflow` 因此是一次性的恢复操作，不是持续维护分页不变量的机制。具体场景见下文的 Dedupe 与 Stale Cache。
 
-## 响应式协调（概念设计，当前未实现）
+## 响应式协调
 
-pagination 模块当前没有导出或实现响应式 guard。以下内容只记录一种数据一致性更严格的概念设计，不属于公开 API。
+pagination 模块不导出响应式 guard。以下内容只记录一种数据一致性更严格的约束模型，不属于公开 API。
 
 其概念接口如下：
 
@@ -82,9 +82,9 @@ type PaginationGuardResult = {
 
 `ready` 表示当前请求状态已经允许执行页码修正。它不仅表示存在 `data`，还要求当前 `total` 可以作为当前查询条件和分页状态的可信边界。
 
-如果 guard 错误接受了 previous data 或旧缓存，它可能使用不属于当前查询或已经不符合服务端现状的 `total` 修改 URL。请求库随后即使丢弃旧响应或返回更新的数据，也无法撤回已经发生的导航副作用。
+如果 guard 错误接受了 previous data 或 stale cache，它可能使用不属于当前查询或已经不符合服务端现状的 `total` 修改 URL。请求库随后即使丢弃 stale 响应或返回更新的数据，也无法撤回已经发生的导航副作用。
 
-cache 与当前 query key 对应，只能说明这份数据曾经属于该查询，不能说明它仍然符合服务端当前状态。cache 可以用于暂时渲染旧内容，但不一定适合直接触发 URL 修正。
+cache 与当前 query key 对应，只能说明这份数据与该查询匹配过，不能说明它仍然符合服务端当前状态。cache 可以用于暂时渲染 stale 内容，但不一定适合直接触发 URL 修正。
 
 因此，ready 判断需要避免两类错误：
 
@@ -115,13 +115,13 @@ const ready =
 - dedupe 可能复用已有请求结果，不产生新的成功回调
 - 禁止 mount revalidation 或暂停请求时，fallback、previous data 和 cache 可能在没有验证过程的情况下保持稳定
 
-SWR result 没有与 React Query `isFetchedAfterMount` 完全等价的数据来源标记。仅根据公开 result 编写通用 helper，无法同时保证接受可信缓存并拒绝所有旧数据。
+SWR result 没有与 React Query `isFetchedAfterMount` 完全等价的数据来源标记。仅根据公开 result 编写通用 helper，无法同时保证接受可信缓存并拒绝所有 stale 数据。
 
 ## Dedupe 与 Stale Cache
 
 dedupe 和 stale cache 会产生方向不同的问题。
 
-dedupe 可能让可信的旧请求结果不再触发成功回调：
+dedupe 可能让可信的已有请求结果不再触发成功回调：
 
 ```text
 page=999
@@ -141,14 +141,14 @@ SWR cache 保存 page=20 对应的 { total: 100 }
 → 另一个组件新增 100 条数据，服务端 total 变成 200
 → page=20 现在已经是合法页码
 → 用户再次进入 page=20
-→ SWR 先返回旧 cache 中的 total=100
-→ guard 计算旧 pageCount=10
+→ SWR 先返回 stale cache 中的 total=100
+→ guard 计算 stale pageCount=10
 → guard 错误地把 page 从 20 修正为 10
 ```
 
 这里必须命中与当前分页参数对应的 cache key。如果 query key 包含 `page`，其他页码的 cache 不会自动成为 `page=20` 的结果。
 
-旧 `total` 偏大时，guard 可能漏掉本应发生的修正；旧 `total` 偏小时，guard 可能把合法页码错误地修小。后者会主动改变 URL 和后续请求，因此风险更高。
+stale `total` 偏大时，guard 可能漏掉本应发生的修正；stale `total` 偏小时，guard 可能把合法页码错误地修小。后者会主动改变 URL 和后续请求，因此风险更高。
 
 ## React Query
 
@@ -188,9 +188,9 @@ pageSize=10，total=101，pageCount=11
 
 A 的 pagination 组件没有违反 clamp 规则，它使用的是删除发生前最后一次可观测到的 `pageCount`。如果客户端没有重新请求，就没有新的服务端边界可供任何前端机制判断。重新聚焦、轮询、mutation 后重新验证或业务事件刷新仍然是发现外部变化的前提。
 
-## 当前实现边界
+## 实现边界
 
-pagination 模块当前采用以下边界：
+pagination 模块采用以下边界：
 
 - 提供 `preventOverflow(totalSource)` 作为显式恢复操作
 - 由开发者判断请求结果是否可信以及何时调用
@@ -201,14 +201,13 @@ pagination 模块当前采用以下边界：
 
 这个边界优先避免库根据不可信数据主动修改 URL，同时保留开发者在确定数据来源后修正页码的能力。
 
-## 重新评估条件
+## 非公开 API 边界
 
-出现以下条件时，可以重新评估响应式 guard：
+响应式 guard 不进入公开 API，原因包括：
 
-- 业务中大量重复相同的分页协调代码
-- 请求库提供稳定的数据来源或结果版本标记
-- 可以明确不同 cache 策略下的默认信任规则
-- 项目决定维护 SWR、React Query 等生态 adapter 和 optional peer dependency
-- False positive 的导航风险可以通过统一协议得到控制
+- 请求库缺少统一、稳定的数据来源或结果版本标记
+- 不同 cache 策略下的默认信任规则难以统一
+- SWR、React Query 等生态 adapter 会引入额外 optional peer dependency
+- False positive 的导航风险需要由应用根据数据策略控制
 
-在这些条件明确之前，响应式 guard 作为分页协调方案保留，不进入公开 API。
+调用方应在拥有请求上下文的位置显式调用 `preventOverflow`。

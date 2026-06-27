@@ -63,7 +63,7 @@ useSearchValue('text', schema.text)
 
 归一化后的第一项是 canonical key。
 
-后续项是 legacy alias，只用于兼容旧 URL。
+后续项是 legacy alias，只用于兼容 alias URL。
 
 ## Duplicate Names
 

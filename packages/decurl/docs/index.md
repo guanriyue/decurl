@@ -7,9 +7,9 @@
 - 这个包要解决什么问题。
 - 架构边界在哪里。
 - 实现时必须遵守哪些行为语义。
-- 哪些能力暂时不应该实现。
+- 哪些能力不属于 API 边界。
 
-当前阶段先沉淀实现目标和关键使用边界，避免开发过程中偏离主线。
+这些文档是实现和维护 `decurl` 的行为契约。
 
 ## API
 
@@ -26,7 +26,7 @@
 
 ## 架构
 
-- [React Router 职责范围](scope.md)
+- [Decurl 职责范围](scope.md)
 - [Decode Pipeline 架构](architecture/decode-pipeline.md)
 - [Decode Primitives](architecture/decode-primitives.md)
 - [Field Codec](architecture/field-codec.md)

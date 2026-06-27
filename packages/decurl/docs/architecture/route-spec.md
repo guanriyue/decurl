@@ -71,14 +71,14 @@ const routes = [
 | 通过 `useSearchValues` 读取 search | 已支持 |
 | flat input | 已支持 |
 | `hrefByParts` | 已支持 |
-| path param 类型覆盖 | TODO |
-| state contract | TODO |
-| hash contract | TODO |
+| path param 类型覆盖 | 不提供 |
+| state contract | 不提供 |
+| hash contract | 不提供 |
 | pathname 匹配和 path params 解析 | 不属于 routeSpec |
 | parent/child route composition | 不属于 routeSpec |
-| 完整 URL 和 React Router `To` 输出 | 暂不考虑 |
+| 完整 URL 和 React Router `To` 输出 | 不提供 |
 
-## 当前能力
+## 能力
 
 ### Path
 
@@ -99,7 +99,7 @@ routeSpec({ path: '/users?keyword=decurl' })
 routeSpec({ path: '/users#profile' })
 ```
 
-search 应通过 `search` definition 表达；hash 等待 hash contract 实现后再表达。
+search 应通过 `search` definition 表达；hash 不由 routeSpec 表达。
 
 path params 的生成规则与 React Router `generatePath` 保持一致，包括：
 
@@ -107,7 +107,7 @@ path params 的生成规则与 React Router `generatePath` 保持一致，包括
 - 可选动态参数，例如 `:lang?`。
 - splat 参数，例如 `*`。
 
-普通 path param 当前接受 `string | number | boolean`，非 nullish 值会在交给 `generatePath` 前转换为字符串。
+普通 path param 接受 `string | number | boolean`，非 nullish 值会在交给 `generatePath` 前转换为字符串。
 
 `basename` 不属于 routeSpec。无论 React Router 是否配置 basename，routeSpec 中仍定义应用内部 path：
 
@@ -183,7 +183,7 @@ type SearchValues = InferRouteSpecSearchValues<typeof to.users>
 - `SearchInput`：生成 href 时接受的 partial search 输入，可以包含 nullish 值。
 - `SearchValues`：从 URL 解码后的完整业务状态，反映 optional 和 defaultValue 语义。
 
-## 当前边界
+## 边界
 
 ### Path Params 读取
 
@@ -210,49 +210,6 @@ const to = {
 
 ### 输出形态
 
-当前只生成应用内部 href 字符串。完整 URL 和 React Router `To` 对象暂不考虑，需要在 hash contract 设计完成后重新评估。
+`routeSpec` 只生成应用内部 href 字符串，不生成完整 URL 或 React Router `To` 对象。
 
-`preserveDefault` 当前不开放 routeSpec 级配置，继续使用 codec 层的默认 canonical 序列化行为。
-
-## TODO
-
-### Path Param 类型覆盖
-
-支持为 path params 指定更精确的生成输入类型：
-
-```ts
-routeSpec({
-  path: '/users/:id/:tab',
-  params: {
-    id: pathParam<UserId>(),
-    tab: pathParam<'profile' | 'security'>(),
-  },
-})
-```
-
-第一阶段只约束生成输入，不暗示 routeSpec 已实现 path params runtime decode。
-
-### State Contract
-
-state contract 是待实现能力，当前不在 routeSpec 对外接口中暴露。
-
-### Hash Contract
-
-hash contract 是待实现能力，不是非目标。当前暂不进入实现，需要先确定：
-
-- flat input 是否固定使用 `hash` 作为 property key。
-- path/search property 也叫 `hash` 时如何处理冲突。
-- hash 输入是否允许包含 `#`，还是统一由 routeSpec 添加。
-- hash 是普通字符串、枚举值还是带 encode/decode 的单值 codec。
-
-预期基准 API 会把 hash 作为独立 URL 部件：
-
-```ts
-spec.hrefByParts({
-  params: { id },
-  search: { tab: 'profile' },
-  hash: 'permissions',
-})
-```
-
-hash contract 完成之前，不提供完整 URL 或 `To` 对象输出。
+`preserveDefault` 不开放 routeSpec 级配置，继续使用 codec 层的默认 canonical 序列化行为。

@@ -26,7 +26,7 @@ Schema 级 encoder 会忽略未知 field。
 
 Field name 可以是字符串或字符串数组。
 
-字符串数组用于历史兼容，第一项是 canonical key，后续项是 legacy alias。
+字符串数组用于 alias 兼容，第一项是 canonical key，后续项是 legacy alias。
 
 空 name 数组表示没有显式 name，应回退到 schema property key。
 

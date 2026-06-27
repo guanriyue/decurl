@@ -37,7 +37,7 @@ const values = useSyncExternalStore(
 
 `useSyncExternalStore` 的 snapshot 必须是 selector 结果，而不是全量 store snapshot。
 
-这样当 store 发生变化但当前 hook 关心的 decoded values 未变化时，selector 会返回旧引用，React 不会因为无关 search field 变化而更新该 hook。
+这样当 store 发生变化但当前 hook 关心的 decoded values 未变化时，selector 会返回 previous 引用，React 不会因为无关 search field 变化而更新该 hook。
 
 Runtime 配置变化不应触发 subscribe listener。
 
@@ -61,15 +61,13 @@ snapshot.location.search
 
 这是为了保证 `setValues` 后，在 URL flush 完成之前，业务已经能读取到 optimistic decoded data。
 
-## CSR First
+## CSR
 
-P0 优先支持 CSR。
+React Bridge 面向客户端渲染。
 
-SSR 不作为第一考量。
+SSR 阶段不写入 URL，也不承诺完整路由同步语义。
 
 如果需要传入 `useSyncExternalStore` 的第三个参数，应复用 selected snapshot getter。
-
-P0 不承诺 SSR 阶段的 URL 写入或完整路由同步语义。
 
 ## Runtime Binding
 
@@ -184,7 +182,7 @@ changed decoded data => new values reference
 
 `schema` 应被视为定义对象。
 
-如果业务在每次 render 都创建新的 schema，对应的 selector cache 也会失效。P0 不额外处理 schema 稳定性问题。
+如果业务在每次 render 都创建新的 schema，对应的 selector cache 也会失效。Hook 不额外处理 schema 稳定性问题。
 
 如果 `schema` 引用变化，selector 可以视为新的 selector 输入。
 
@@ -192,7 +190,7 @@ changed decoded data => new values reference
 
 这是最保守的策略。
 
-默认情况下，P0 不尝试迁移旧 pending entry 的 schema。
+默认情况下，Hook 不尝试复用 previous pending entry 的 schema。
 
 ## Setter
 
