@@ -10,6 +10,10 @@
 import { useSearchValue, useSearchValues } from '@guanriyue/decurl'
 ```
 
+`SearchProvider` 始终是可选的。没有 `SearchProvider` 时，默认入口 hooks 使用
+global store；有 `SearchProvider` 时，默认入口 hooks 使用最近的 Provider store。
+这两种情况下，默认入口的 `useSearchValue` 和 `useSearchValues` 都可以直接使用。
+
 为了完成零配置接线，默认 hooks 内部会调用 React Router 的 `useLocation` 和 `useNavigate`，再把 runtime capability 配置给 singleton store。
 
 这意味着消费 search state 的页面组件也会订阅 React Router location。
@@ -44,6 +48,12 @@ provided hooks 会直接抛错。
 runtime，适合把 runtime 接线集中放在 `SearchRuntimeConnector` 中，从而减少页面
 消费组件对 React Router location 的额外订阅。
 
+provided 能力强依赖 `SearchProvider` 和 `SearchRuntimeConnector`：
+
+- `SearchProvider` 必须提供 store。
+- `SearchRuntimeConnector` 必须先于任何调用 provided hooks 的组件渲染。
+- `useProvidedSearchValue` / `useProvidedSearchValues` 不会替开发者补齐 runtime。
+
 主入口也可以显式提供 store 配置：
 
 ```tsx
@@ -74,6 +84,37 @@ useSearchPagination.pageSizeOptions
 调用 Hook 时可以通过 `UseSearchPaginationOptions` 配置 `pageSizeChangeStrategy`。调用 `setPage`、`setPageSize` 或 `setPagination` 时，可以单独传入 `SearchNavigateOptions`。完整使用边界见 [useSearchPagination Guide](../guide/use-search-pagination.md)。
 
 `SearchRuntimeConnector` 只负责 runtime 接线，不提供 store。
+
+## 优化代价
+
+provided 入口是主入口 hooks 的优化写法。它通过把 React Router runtime 接线集中到
+`SearchRuntimeConnector`，让业务组件调用 `useProvidedSearchValue` 或
+`useProvidedSearchValues` 时不再直接订阅 React Router location。
+
+这个优化是有代价的：
+
+- 需要额外渲染 `SearchProvider`。
+- 需要额外渲染 `SearchRuntimeConnector`。
+- 组件层级必须保证 connector 先于 provided hooks 渲染。
+- 组合 hook 需要显式绑定 provided hooks，例如 pagination 需要通过
+  `createUseSearchPagination` 组合。
+
+并且，这个优化不保证业务页面的 render 次数一定减少。
+
+flush 完成后，URL search 变化本质上仍是一次 React Router location 变化。React
+Router 会把 location change 视为路由状态更新，并可能重新渲染它控制下的 route
+tree。即使 provided hooks 本身不直接连接 React Router，route 页面仍然由 React
+Router 控制渲染，因此页面组件可能仍会因为 React Router 的更新机制重新 render。
+
+如果业务页面仍受到 route tree 重渲染影响，需要在业务侧继续使用 React 的常规优化
+手段，例如：
+
+- 将昂贵子树拆到更小组件。
+- 对不直接依赖 route state、hook 的子组件使用 `React.memo`。
+- 保持传给 memo 组件的 props 引用稳定。
+
+这也是 provided 优化入口没有放到主入口的原因之一。主入口优先提供零配置、低心智
+成本、普遍适用的 hooks；provided 入口只面向确实需要控制渲染订阅边界的场景。
 
 ## BrowserRouter 使用约束
 
@@ -139,6 +180,13 @@ runtime。
 provided 入口用于开发者愿意显式 runtime 接线，以减少页面组件对 React Router
 location 的额外订阅。使用 provided 入口时，应搭配主入口 `SearchProvider` 和
 provided `SearchRuntimeConnector`。
+
+因此推荐决策顺序是：
+
+1. 默认使用主入口 `useSearchValue` / `useSearchValues`。
+2. 需要配置 store 行为时，在主入口加可选的 `SearchProvider`。
+3. 只有当页面对 render 次数敏感，并且确认默认 hooks 对 React Router location 的
+   订阅带来额外成本时，再切换到 provided 入口。
 
 ## Provider 边界
 

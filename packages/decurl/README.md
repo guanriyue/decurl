@@ -37,6 +37,10 @@ The default entry provides React Router hooks. The `codec` and `decode` entry
 points are framework-independent utilities for describing and decoding URL
 Search Params.
 
+`SearchProvider` is optional for the default hooks. Use the `provided` entry only
+when you want explicit runtime wiring through `SearchRuntimeConnector`; it is an
+optimization-oriented API and requires `SearchProvider`.
+
 ## Peer Dependencies
 
 ```json

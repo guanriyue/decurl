@@ -13,6 +13,20 @@ consumer 内部自动配置 React Router hooks runtime。
 `SearchProvider` 只负责提供 store 和 store options，例如 `flushDelay`、
 `flushMode`。它不负责 runtime 接线。
 
+因此主入口的两个 hooks 始终可以直接使用：
+
+```ts
+import { useSearchValue, useSearchValues } from '@guanriyue/decurl'
+```
+
+`SearchProvider` 只是在需要配置 store 或隔离 store 时才出现：
+
+```tsx
+<SearchProvider flushDelay={200}>
+  <App />
+</SearchProvider>
+```
+
 Provider 解决多实例 store 问题。
 
 `SearchRuntimeConnector` 解决显式接线问题。
@@ -20,6 +34,12 @@ Provider 解决多实例 store 问题。
 使用 provided hooks 时，需要同时渲染 `SearchProvider` 和
 `SearchRuntimeConnector`，并且 connector 必须先于任何调用 provided hooks 的组件
 渲染。
+
+provided hooks 与主入口 hooks 不同。它们不回退到 global store，也不自动配置
+runtime。缺少 `SearchProvider` 会直接抛错；缺少 `SearchRuntimeConnector` 会导致
+store runtime 未初始化。
+
+provided hooks 的优化代价和适用边界见 [Provided Runtime 优化入口](provided-runtime.md)。
 
 ## 非目标
 
