@@ -65,7 +65,7 @@ This example writes the input value to the `q` param in the URL. When the URL ch
 
 The default `useSearchValue` and `useSearchValues` hooks can be used directly in a React Router environment. Most applications do not need to manually create a Provider or store.
 
-If you need to isolate multiple search state instances, bind a custom store, or reduce direct dependency on React Router `useLocation`, continue with [Bound Store](../react-router/configured-store).
+If you need to isolate multiple search state instances, configure store behavior, or reduce direct dependency on React Router `useLocation`, continue with [Provided Runtime](../react-router/provided-runtime).
 
 ## Next Steps
 

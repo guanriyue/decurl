@@ -360,18 +360,16 @@ These conditions reject placeholder data and cache from before mount, but this a
 
 See [Understanding Pagination Overflow](./overflow) for how different cache sources affect URL correction.
 
-## Bound Store
+## Provided Runtime
 
-When using a configured search store, explicitly create a bound pagination hook:
+When pagination state should consume the same `SearchProvider` store as provided hooks, compose a pagination hook explicitly:
 
 ```tsx
-import { createReactRouterSearch } from '@guanriyue/decurl/configured';
 import { createUseSearchPagination } from '@guanriyue/decurl/pagination';
-
-const search = createReactRouterSearch();
+import { useProvidedSearchValues } from '@guanriyue/decurl/provided';
 
 const useSearchPagination = createUseSearchPagination({
-  useSearchValues: search.useSearchValues,
+  useSearchValues: useProvidedSearchValues,
 });
 
 const PaginationBar = () => {
@@ -381,10 +379,10 @@ const PaginationBar = () => {
 };
 ```
 
-This lets the pagination hook consume the same store as `search.useSearchValue` and `search.useSearchValues`. See [Bound Store](../configured-store) for full wiring.
+This lets the pagination hook consume the same Provider store as `useProvidedSearchValue` and `useProvidedSearchValues`. See [Provided Runtime](../provided-runtime) for full wiring.
 
 ## Related API
 
 - [@guanriyue/decurl/pagination](/api/pagination)
 - [@guanriyue/decurl](/api/react-router)
-- [@guanriyue/decurl/configured](/api/configured)
+- [@guanriyue/decurl/provided](/api/provided)

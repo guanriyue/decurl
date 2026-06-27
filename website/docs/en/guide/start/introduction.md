@@ -30,7 +30,7 @@ The current documentation covers these API entries:
 | `@guanriyue/decurl/decode` | Decode pipelines and primitive parsing helpers |
 | `@guanriyue/decurl/routeSpec` | Define path and search contracts, then generate type-safe hrefs |
 | `@guanriyue/decurl/pagination` | Page, pageSize, and pagination behavior |
-| `@guanriyue/decurl/configured` | Create store-bound hooks, Provider, and React Router runtime wiring |
+| `@guanriyue/decurl/provided` | Use hooks based on the Provider store and centralize React Router location / navigate access |
 
 ## Design Direction
 

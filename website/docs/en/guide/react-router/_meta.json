@@ -11,8 +11,8 @@
   },
   {
     "type": "file",
-    "name": "configured-store",
-    "label": "Bound Store"
+    "name": "provided-runtime",
+    "label": "Provided Runtime"
   },
   {
     "type": "custom-link",

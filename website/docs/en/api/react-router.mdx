@@ -4,17 +4,17 @@ description: 'API reference for the default hooks from decurl.'
 
 # @guanriyue/decurl
 
-The default `@guanriyue/decurl` entry provides ready-to-use React Router hooks. They wire the current React Router runtime inside the hook, so you do not need to place a Provider manually.
+The default `@guanriyue/decurl` entry provides ready-to-use React Router hooks. They read the current React Router `location` and `navigate` inside the hook, so you do not need to place a Provider manually.
 
 ```tsx
 import { useSearchValue, useSearchValues } from '@guanriyue/decurl';
 ```
 
-The default hooks use the default singleton search store and are the recommended starting point for applications with one React Router runtime.
+The default hooks use the default singleton search store. For applications with one React Router runtime, this is usually enough.
 
 These hooks must run inside a React Router context, such as `BrowserRouter`, `RouterProvider`, or another React Router runtime.
 
-If you need to bind a store, isolate multiple React Router runtimes, or reduce direct dependency on React Router `useLocation`, see [@guanriyue/decurl/configured](./configured).
+If you need to explicitly provide a store, configure store behavior, or reduce direct dependency on React Router `useLocation`, see [@guanriyue/decurl/provided](./provided).
 
 ## useSearchValues
 
@@ -126,7 +126,7 @@ setPage((previousPage) => previousPage + 1);
 
 ## Render Behavior
 
-The default hooks wire the current React Router runtime directly. Some route updates may cause components to re-render with React Router. If you need to bind a store or observe render-count optimization, see [@guanriyue/decurl/configured](./configured) and [Bound Store](/guide/react-router/configured-store).
+The default hooks read React Router `location` inside the hook. Some route updates may cause components to re-render with React Router. If you need to centralize React Router capability access in a separate component or observe the related render boundary, see [@guanriyue/decurl/provided](./provided) and [Provided Runtime](/guide/react-router/provided-runtime).
 
 ## Navigate Options
 
@@ -143,6 +143,25 @@ setPage(1, { replace: true, preventScrollReset: true });
 
 If multiple setter calls happen before the same flush, the navigate options from the last call override the defaults.
 
+## SearchProvider
+
+`SearchProvider` provides an independent search store and can configure store options. Default hooks first read the nearest `SearchProvider` store; without a Provider, they use the default global store.
+
+```tsx
+import { SearchProvider } from '@guanriyue/decurl';
+
+<SearchProvider flushDelay={80} flushMode="debounce">
+  <App />
+</SearchProvider>
+```
+
+| Prop | Type | Description |
+| --- | --- | --- |
+| `flushDelay` | `number` | Delay in milliseconds before search updates are written to the URL. |
+| `flushMode` | `'throttle' \| 'debounce'` | Flush scheduling mode. |
+
+`SearchProvider` only provides the store. It does not read React Router `location` or `navigate`. Default hooks read React Router capabilities by themselves; provided hooks need to be used with `SearchRuntimeConnector`.
+
 ## Types
 
 | Type | Description |
@@ -156,6 +175,6 @@ If multiple setter calls happen before the same flush, the navigate options from
 
 ## Related
 
-- [@guanriyue/decurl/configured](./configured)
+- [@guanriyue/decurl/provided](./provided)
 - [@guanriyue/decurl/codec](./codec)
 - [React Router Integration Overview](/guide/react-router/overview)

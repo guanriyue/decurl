@@ -31,7 +31,7 @@
   },
   {
     "type": "file",
-    "name": "configured",
-    "label": "@guanriyue/decurl/configured"
+    "name": "provided",
+    "label": "@guanriyue/decurl/provided"
   }
 ]

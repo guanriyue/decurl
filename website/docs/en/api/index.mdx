@@ -1,19 +1,19 @@
 ---
 title: API Overview
-description: Decurl API reference for hooks, codec, decode, routeSpec, pagination, and configured APIs.
+description: Decurl API reference for hooks, codec, decode, routeSpec, pagination, and provided APIs.
 overview: true
 ---
 
 # API Overview
 
-The default `@guanriyue/decurl` entry provides React Router hooks. Additional API entries cover `configured`, `codec`, `decode`, `routeSpec`, and `pagination`.
+The default `@guanriyue/decurl` entry provides React Router hooks. Additional API entries cover `provided`, `codec`, `decode`, `routeSpec`, and `pagination`.
 
 ## Entries
 
 | Entry | Purpose |
 | --- | --- |
 | `@guanriyue/decurl` | Ready-to-use React Router hooks |
-| `@guanriyue/decurl/configured` | Create store-bound hooks and Provider |
+| `@guanriyue/decurl/provided` | Use hooks based on the Provider store and centralize React Router location / navigate access |
 | `@guanriyue/decurl/codec` | FieldCodec, Search Fields, URLSearchParams codec |
 | `@guanriyue/decurl/decode` | Decode primitives and composition helpers |
 | `@guanriyue/decurl/routeSpec` | Define path and search contracts, then generate type-safe hrefs |
@@ -34,4 +34,4 @@ The default `@guanriyue/decurl` entry provides React Router hooks. Additional AP
 - [@guanriyue/decurl](./react-router)
 - [@guanriyue/decurl/routeSpec](./route-spec)
 - [@guanriyue/decurl/pagination](./pagination)
-- [@guanriyue/decurl/configured](./configured)
+- [@guanriyue/decurl/provided](./provided)

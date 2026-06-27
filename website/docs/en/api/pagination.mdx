@@ -256,16 +256,14 @@ createUseSearchPagination(options: {
 
 `createUseSearchPagination` creates a pagination hook with the specified `useSearchValues`.
 
-It can explicitly compose Pagination with a configured search store:
+It can explicitly compose Pagination with provided hooks:
 
 ```tsx
-import { createReactRouterSearch } from '@guanriyue/decurl/configured';
 import { createUseSearchPagination } from '@guanriyue/decurl/pagination';
-
-const search = createReactRouterSearch();
+import { useProvidedSearchValues } from '@guanriyue/decurl/provided';
 
 const useSearchPagination = createUseSearchPagination({
-  useSearchValues: search.useSearchValues,
+  useSearchValues: useProvidedSearchValues,
 });
 ```
 

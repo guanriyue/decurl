@@ -39,7 +39,7 @@ const SearchInput = () => {
 
 This style fits applications with one default search store.
 
-Default hooks do not require you to manually create a Provider. `useSearchValue` and `useSearchValues` use the default search store and automatically wire the current React Router runtime.
+Default hooks do not require you to manually create a Provider. `useSearchValue` and `useSearchValues` use the default search store and read the current React Router `location` / `navigate` inside the hook.
 
 ## Single Value
 
@@ -95,7 +95,7 @@ export const App = () => {
 
 As long as the component is inside a React Router environment, it can use the default hooks directly.
 
-If you need to bind a store, configure flush strategy, or isolate multiple search states, see [Bound Store](./configured-store).
+If you need to configure store behavior, provide an isolated store, or centralize React Router location access in a separate component, see [Provided Runtime](./provided-runtime).
 
 ## Relationship with the codec Entry
 

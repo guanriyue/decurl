@@ -43,13 +43,12 @@ This matters for pagination, filter coupling, and batch updates.
 
 ## Flush Strategy
 
-`createReactRouterSearch` accepts store configuration.
+`SearchProvider` accepts store configuration.
 
 ```ts
-const search = createReactRouterSearch({
-  flushDelay: 80,
-  flushMode: 'debounce',
-});
+<SearchProvider flushDelay={80} flushMode="debounce">
+  <App />
+</SearchProvider>
 ```
 
 Common strategies:

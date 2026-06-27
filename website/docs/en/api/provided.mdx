@@ -1,0 +1,163 @@
+---
+description: 'API reference for @guanriyue/decurl/provided.'
+---
+
+# @guanriyue/decurl/provided
+
+`@guanriyue/decurl/provided` provides hooks based on the `SearchProvider` store, plus a component that centralizes React Router `location` / `navigate` access.
+
+```tsx
+import { SearchProvider } from '@guanriyue/decurl';
+import {
+  SearchRuntimeConnector,
+  useProvidedSearchValue,
+  useProvidedSearchValues,
+} from '@guanriyue/decurl/provided';
+```
+
+provided hooks do not read React Router `location` or `navigate` by themselves. When using them, render both the main-entry `SearchProvider` and the provided-entry `SearchRuntimeConnector`.
+
+## SearchRuntimeConnector
+
+`SearchRuntimeConnector` reads React Router location / navigate capabilities and gives them to the nearest `SearchProvider` store.
+
+### Props
+
+| Prop | Type | Description |
+| --- | --- | --- |
+| `router` | `ReactRouterInstance` | Optional. When a Data Router instance is provided, the connector uses the router instance's `state.location`, `navigate`, and `subscribe`. |
+
+Without `router`, `SearchRuntimeConnector` uses the React Router hooks runtime, so it must render inside a component router such as `BrowserRouter`.
+
+```tsx
+<SearchProvider>
+  <BrowserRouter>
+    <SearchRuntimeConnector />
+    <SearchPanel />
+  </BrowserRouter>
+</SearchProvider>
+```
+
+When using `RouterProvider` / Data Router, pass the router instance:
+
+```tsx
+<SearchProvider>
+  <SearchRuntimeConnector router={router} />
+  <RouterProvider router={router} />
+</SearchProvider>
+```
+
+`SearchRuntimeConnector` must render before any provided-hook consumer. Otherwise the store has not received React Router capabilities, and reading search state fails.
+
+## useProvidedSearchValues
+
+`useProvidedSearchValues(searchFields)` reads and updates multiple search values.
+
+```ts
+useProvidedSearchValues(searchFields): [values, setValues]
+```
+
+It uses the same Search Fields, patch, updater, and navigate options semantics as the default `useSearchValues` hook. The differences are:
+
+- `useProvidedSearchValues` must be inside `SearchProvider`.
+- It does not read React Router `location` by itself.
+- React Router capabilities must be provided by `SearchRuntimeConnector`.
+
+```tsx
+const SearchPanel = () => {
+  const [values, setValues] = useProvidedSearchValues(searchFields);
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        setValues({ page: values.page + 1 });
+      }}
+    >
+      Next page
+    </button>
+  );
+};
+```
+
+## useProvidedSearchValue
+
+`useProvidedSearchValue(codec)` reads and updates a single search value. `codec` must already have a fixed `name`, usually from the return value of `defineFields`.
+
+```ts
+useProvidedSearchValue(codec): [value, setValue]
+```
+
+It uses the same single-field read, write, updater, and navigate options semantics as the default `useSearchValue` hook.
+
+```tsx
+const PageButton = () => {
+  const [page, setPage] = useProvidedSearchValue(searchFields.page);
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        setPage(page + 1);
+      }}
+    >
+      Next page
+    </button>
+  );
+};
+```
+
+## Relationship with SearchProvider
+
+`SearchProvider` is exported from the main `@guanriyue/decurl` entry, not from `@guanriyue/decurl/provided`.
+
+`SearchProvider` provides the store and can configure store options:
+
+```tsx
+<SearchProvider flushDelay={80} flushMode="debounce">
+  <BrowserRouter>
+    <SearchRuntimeConnector />
+    <SearchPanel />
+  </BrowserRouter>
+</SearchProvider>
+```
+
+Default-entry hooks can also read the nearest `SearchProvider` store. provided hooks require `SearchProvider` and do not fall back to the global store.
+
+## Composing Pagination
+
+When the pagination hook should consume the same Provider store, compose it explicitly with `createUseSearchPagination`:
+
+```tsx
+import { createUseSearchPagination } from '@guanriyue/decurl/pagination';
+import { useProvidedSearchValues } from '@guanriyue/decurl/provided';
+
+const useSearchPagination = createUseSearchPagination({
+  useSearchValues: useProvidedSearchValues,
+});
+```
+
+The composed pagination hook has the same pagination semantics as the default `useSearchPagination`.
+
+## Render Behavior
+
+provided hooks do not directly call React Router `useLocation`. They only subscribe to the `SearchProvider` store, so hook consumers do not re-run merely because they subscribed to `useLocation` themselves.
+
+This does not guarantee fewer page renders. React Router location changes may still re-render the route tree and propagate rendering to children.
+
+For more usage boundaries and observation demos, see [Provided Runtime](/guide/react-router/provided-runtime).
+
+## Types
+
+| Type | Description |
+| --- | --- |
+| `SearchRuntimeConnectorProps` | Props type of `SearchRuntimeConnector`. |
+| `UseSearchValuesResult<TFields>` | Return tuple type of `useProvidedSearchValues`. |
+| `UseSearchValueResult<TCodec>` | Return tuple type of `useProvidedSearchValue`. |
+
+## Related
+
+- [@guanriyue/decurl](./react-router)
+- [@guanriyue/decurl/pagination](./pagination)
+- [@guanriyue/decurl/codec](./codec)
+- [Provided Runtime](/guide/react-router/provided-runtime)

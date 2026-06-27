@@ -1,0 +1,126 @@
+---
+description: Use SearchProvider, SearchRuntimeConnector, and provided hooks to centralize React Router location and navigate access.
+---
+
+# Provided Runtime
+
+The default `useSearchValue` and `useSearchValues` hooks can be used directly. They read the nearest `SearchProvider` store; without a `SearchProvider`, they use the default global store.
+
+Default hooks also read React Router `location` and `navigate` inside the hook consumer. This zero-config behavior fits most pages, but it also means components that consume search state directly subscribe to React Router `location`.
+
+`@guanriyue/decurl/provided` is an optional optimization entry. It separates store provision from React Router capability access:
+
+- `SearchProvider` provides the store and configures store behavior such as `flushDelay` and `flushMode`.
+- `SearchRuntimeConnector` reads React Router `location`, `navigate`, or a router instance, then gives those capabilities to the current store.
+- `useProvidedSearchValue` and `useProvidedSearchValues` only read the nearest `SearchProvider` store. They do not read React Router runtime by themselves.
+
+## Basic Usage
+
+`SearchProvider` does not need to be inside the Router. When using component routers, `SearchRuntimeConnector` must be inside the Router and render before any provided-hook consumer:
+
+```tsx
+import { SearchProvider } from '@guanriyue/decurl';
+import {
+  SearchRuntimeConnector,
+  useProvidedSearchValues,
+} from '@guanriyue/decurl/provided';
+import { BrowserRouter } from 'react-router';
+
+export const App = () => {
+  return (
+    <SearchProvider>
+      <BrowserRouter>
+        <SearchRuntimeConnector />
+        <SearchPanel />
+      </BrowserRouter>
+    </SearchProvider>
+  );
+};
+
+const SearchPanel = () => {
+  const [values, setValues] = useProvidedSearchValues(searchFields);
+
+  return null;
+};
+```
+
+If `SearchProvider` is missing, provided hooks throw immediately. If `SearchRuntimeConnector` is missing, the store has not received React Router location and navigate capabilities, so reading search state also fails.
+
+## Store Configuration
+
+`SearchProvider` creates and provides the store. Pass flush options to `SearchProvider` when you need to configure the flush strategy:
+
+```tsx
+<SearchProvider flushDelay={80} flushMode="debounce">
+  <BrowserRouter>
+    <SearchRuntimeConnector />
+    <SearchPanel />
+  </BrowserRouter>
+</SearchProvider>
+```
+
+Business code usually does not need a long `flushDelay`. It is mainly useful for reducing router navigation frequency caused by high-frequency interactions such as inputs and filters.
+
+Start from tens of milliseconds and adjust by interaction type. Input interactions often fit `debounce`; click interactions usually work with the default strategy or a shorter delay.
+
+## Data Router
+
+When using `RouterProvider` / Data Router, pass the router instance to `SearchRuntimeConnector`:
+
+```tsx
+import { SearchProvider } from '@guanriyue/decurl';
+import { SearchRuntimeConnector } from '@guanriyue/decurl/provided';
+import { RouterProvider, createBrowserRouter } from 'react-router';
+
+const router = createBrowserRouter(routes);
+
+export const App = () => {
+  return (
+    <SearchProvider>
+      <SearchRuntimeConnector router={router} />
+      <RouterProvider router={router} />
+    </SearchProvider>
+  );
+};
+```
+
+This form uses the router instance's `state.location`, `navigate`, and `subscribe` to keep the store aligned with React Router.
+
+## Long Delay Observation Demo
+
+The demo below intentionally uses a long `flushDelay`. It is not a recommended business configuration; it only makes two phases easier to observe:
+
+- After clicking, consumers that listen to the corresponding key respond immediately.
+- After URL confirmation, the parent route tree may re-render. Non-memoized child components are rendered with the parent, while memoized children can block this propagation.
+
+```tsx file="<root>/src/examples/react-router/provided-runtime-delay.tsx" preview
+```
+
+## Extra Render Source Demo
+
+The demo below has two components listening to `demo_bound_a` and `demo_bound_b`.
+
+When clicking "Update A", `countA` updates immediately through optimistic state. React Router location confirms the URL change only after the observation `flushDelay`. This demo highlights two sources of extra renders:
+
+- Optimistic updates triggered by the Decurl store itself.
+- Page tree updates caused by React Router after it observes a location change.
+
+```tsx file="<root>/src/examples/react-router/provided-runtime-renders.tsx" preview
+```
+
+The optimization shown by this demo is narrow:
+
+- provided hooks consume the `SearchProvider` store snapshot. Unlike default hooks, they do not call React Router `useLocation` inside the hook consumer.
+- When React Router confirms the location, provided hooks do not re-run merely because they subscribed to `useLocation` themselves.
+
+This does not guarantee fewer renders. React Router may still re-render the route tree after location confirmation and propagate rendering to children. Without `React.memo`, `useMemo`, or similar optimizations, the actual effect may be small or invisible.
+
+## When To Use
+
+Use this decision order:
+
+1. Start with the default `useSearchValue` / `useSearchValues` hooks.
+2. Add an optional `SearchProvider` when you need to configure or isolate store behavior.
+3. Switch to the provided entry only when the page is render-sensitive and you have confirmed that the default hooks' React Router `location` subscription adds measurable cost.
+
+provided runtime only centralizes React Router capability access in `SearchRuntimeConnector`. It is not required for basic hooks and does not guarantee fewer renders for every page.

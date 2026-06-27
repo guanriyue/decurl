@@ -98,7 +98,7 @@ const SearchPanel = () => {
 };
 ```
 
-Use [`useSearchValue`](/api/react-router#usesearchvalue) when reading a single field. If you need to bind a store, isolate multiple React Router runtimes, or reduce direct dependency on React Router `useLocation`, continue with [`@guanriyue/decurl/configured`](/api/configured).
+Use [`useSearchValue`](/api/react-router#usesearchvalue) when reading a single field. If you need to configure or isolate the search store, or reduce direct dependency on React Router `useLocation`, continue with [`@guanriyue/decurl/provided`](/api/provided).
 
 Continue reading:
 
